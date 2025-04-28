@@ -1,0 +1,1222 @@
+[
+  {
+    "id": "mando-ajuda",
+    "skill": "mando-ajuda",
+    "tag": "Mando",
+    "title": "Mando por Ajuda (Informação)",
+    "objective": "Criança pede ajuda para localizar item não visível (Ex: \"Onde está [item]?\") (75%+, 3 situações).",
+    "materials": ["Caixa com brinquedos", "item desejado escondido parcialmente", "registro"],
+    "procedure": [
+      {"term": "SD", "description": "Terapeuta pergunta \"O que você quer brincar?\", sabendo que o item preferido (Ex: dinossauro) não está totalmente visível."},
+      {"term": "R", "description": "Criança pergunta \"Onde está o dinossauro?\" ou similar."},
+      {"term": "C", "description": "Correto: Terapeuta aponta/indica localização + Elogio (\"Boa pergunta! Está aqui.\"). Incorreto/Ausência: Ajuda."},
+      {"term": "Ajuda", "description": "Dica ecoica parcial (\"Onde...\") > Modelo verbal completo (\"Pergunte 'Onde está o dinossauro?'\"). Fading."},
+      {"term": "Nota", "description": "Iniciar com ajuda para ações (Ex: \"Me ajuda a abrir\")."}
+    ],
+    "criteria_for_advancement": "A criança atinge o objetivo de pedir ajuda para localizar itens não visíveis com 75% ou mais de precisão em pelo menos 3 situações diferentes, com o fading de ajuda estabelecido.",
+    "trials": 5
+  },
+  {
+    "id": "mando-atencao",
+    "skill": "mando-atencao",
+    "tag": "Mando",
+    "title": "Mando por Atenção",
+    "objective": "Criança solicita atenção do adulto (Ex: \"Olha!\", tocar braço) antes de mostrar algo interessante (80%+, 2 adultos).",
+    "materials": ["Brinquedos que acendem/fazem barulho", "livro interessante", "registro"],
+    "procedure": [
+      {"term": "SD", "description": "Criança pega item interessante, adulto está próximo mas olhando para outro lado (simular distração)."},
+      {"term": "R", "description": "Criança vocaliza para chamar atenção (\"Olha!\", \"Psiu!\") ou toca o braço do adulto."},
+      {"term": "C", "description": "Correto: Adulto direciona atenção imediatamente + Elogio (\"Uau! Que legal!\"). Incorreto/Ausência: Ajuda."},
+      {"term": "Ajuda", "description": "Modelo verbal (\"Diga 'Olha!'\") > Ajuda física leve (guiar mão para tocar braço). Fading."},
+      {"term": "Generalização", "description": "Praticar com diferentes pessoas e em situações naturais (ex: mostrar um desenho)."}
+    ],
+    "criteria_for_advancement": "A criança atinge o objetivo de solicitar a atenção de um adulto com 80% ou mais de precisão antes de mostrar algo interessante, generalizando a habilidade com pelo menos 2 adultos diferentes, com o fading de ajuda estabelecido.",
+    "trials": 5
+  },
+  {
+    "id": "mando-retirada",
+    "skill": "mando-retirada",
+    "tag": "Mando",
+    "title": "Mando por Retirada de Aversivo",
+    "objective": "Criança pede para parar/remover atividade não preferida (Ex: \"Acabou\", \"Não quero\") de forma apropriada (80%+, 2 situações).",
+    "materials": ["Atividade levemente aversiva/não preferida (Ex: guardar blocos)", "registro"],
+    "procedure": [
+      {"term": "SD", "description": "Apresentar brevemente a tarefa não preferida (Ex: colocar blocos na caixa)."},
+      {"term": "R", "description": "Criança vocaliza pedido de parada (Ex: \"Acabou\", \"Pausa\", \"Não\") ou usa gesto/cartão."},
+      {"term": "C", "description": "Correto: Remover a tarefa imediatamente por um curto período + Elogio (\"Ok, você pediu 'acabou'. Pausa.\"). Incorreto/Comport. Inadequado: Ignorar inadequado, oferecer Ajuda para R correta."},
+      {"term": "Ajuda", "description": "Modelo verbal (\"Diga 'Acabou'\") assim que mostrar sinais de desconforto, antes de comportamento inadequado. Fading."},
+      {"term": "Importante", "description": "Ensino diferencial. Não remover sempre, variar com persistência na tarefa."}
+    ],
+    "criteria_for_advancement": "A criança atinge o objetivo de pedir para parar/remover uma atividade não preferida de forma apropriada com 80% ou mais de precisão em pelo menos 2 situações diferentes, com o fading de ajuda estabelecido.",
+    "trials": 5
+  },
+  {
+    "id": "mando-item-preferencia",
+    "skill": "mando-item",
+    "tag": "Mando",
+    "title": "Mando por Item de Preferência",
+    "objective": "Criança pede verbalmente/gestualmente 3 itens preferidos visíveis (80%+, 3 sessões).",
+    "materials": ["Itens preferidos (biscoito, bola, carrinho)", "registro"],
+    "procedure": [
+      {"term": "SD", "description": "Item visível, fora do alcance. Espera motivada ou \"O que você quer?\"."},
+      {"term": "R", "description": "Criança emite mando específico (Ex: \"Biscoito\", aponta para biscoito)."},
+      {"term": "C", "description": "Correto: Entrega Imediata do item + Elogio (\"Muito bem, pediu biscoito!\"). Incorreto/Ausência: Ajuda."},
+      {"term": "Ajuda", "description": "Dica ecoica parcial (\"Bi...\") > Modelo verbal (\"Diga BISCOITO\") > Gestual (apontar). Fading gradual."},
+      {"term": "Generalização", "description": "Variar itens, pessoas, ambientes."}
+    ],
+    "criteria_for_advancement": "A criança atinge o objetivo de pedir verbalmente ou gestualmente por 3 itens preferidos visíveis com 80% ou mais de precisão em pelo menos 3 sessões consecutivas, com o fading de ajuda estabelecido.",
+    "trials": 5
+  },
+  {
+    "id": "mando-apontar",
+    "skill": "mando-apontar",
+    "tag": "Mando",
+    "title": "Mando por Apontar",
+    "objective": "Criança aponta com dedo indicador para item desejado (campo de 2) para solicitar (90%+, 3 sessões).",
+    "materials": ["Dois itens (1 preferido, 1 neutro)", "mesa", "registro"],
+    "procedure": [
+      {"term": "SD", "description": "Apresentar os dois itens lado a lado, visíveis mas fora de alcance. Esperar ou perguntar \"Qual você quer?\"."},
+      {"term": "R", "description": "Criança estende o braço e aponta com o dedo indicador para o item preferido."},
+      {"term": "C", "description": "Correto: Entregar o item apontado + Elogio (\"Isso, você apontou para a bolacha!\"). Incorreto/Outro Gesto: Ajuda."},
+      {"term": "Ajuda", "description": "Ajuda física total (moldar mão e guiar dedo) > Ajuda física parcial (guiar pulso/cotovelo) > Modelo gestual. Fading."},
+      {"term": "Generalização", "description": "Aumentar campo de escolha, variar itens e posições."}
+    ],
+    "criteria_for_advancement": "A criança atinge o objetivo de apontar com o dedo indicador para solicitar um item desejado (em um campo de 2) com 90% ou mais de precisão em pelo menos 3 sessões consecutivas, com o fading de ajuda estabelecido.",
+    "trials": 5
+  },
+  {
+    "id": "tato-simples",
+    "skill": "tato-simples",
+    "tag": "Tato",
+    "title": "Tato Simples: Nomear Objetos Comuns",
+    "objective": "Criança nomeia 5 objetos comuns (90%+, 2 dias).",
+    "materials": ["Objetos (bola, copo, carro, etc)", "registro"],
+    "procedure": [
+      {"term": "SD", "description": "Apresenta objeto, \"O que é isso?\"."},
+      {"term": "R", "description": "Nome correto do objeto."},
+      {"term": "C", "description": "Correto: Elogio específico (\"É o carro!\"). Incorreto: Ajuda."},
+      {"term": "Ajuda", "description": "Modelo verbal, Dica fonêmica. Fading."}
+    ],
+    "criteria_for_advancement": "A criança atinge o objetivo de nomear 5 objetos comuns com 90% ou mais de precisão em pelo menos 2 dias consecutivos, com o fading de ajuda estabelecido.",
+    "trials": 5
+  },
+  {
+    "id": "tato-2-componentes",
+    "skill": "tato-2-componentes",
+    "tag": "Tato",
+    "title": "Tato de 2 Componentes: Item + Característica",
+    "objective": "Criança nomeia item e uma característica (Ex: \"bola azul\") (80%+, 3 sessões).",
+    "materials": ["Objetos com cores/formas variadas", "registro"],
+    "procedure": [
+      {"term": "SD", "description": "Apresenta objeto, \"O que é isso?\" ou \"Descreva o que você vê\"."},
+      {"term": "R", "description": "Nomeia item e característica (Ex: \"bola azul\")."},
+      {"term": "C", "description": "Correto: Elogio específico (\"Muito bem, uma bola azul!\"). Incorreto: Ajuda."},
+      {"term": "Ajuda", "description": "Modelo verbal (\"É uma bola azul\"), Dica ecoica. Fading."}
+    ],
+    "criteria_for_advancement": "A criança atinge o objetivo de nomear um item e uma de suas características com 80% ou mais de precisão em pelo menos 3 sessões consecutivas, com o fading de ajuda estabelecido.",
+    "trials": 8
+  },
+  {
+    "id": "tato-acoes",
+    "skill": "tato-acoes",
+    "tag": "Tato",
+    "title": "Tato de Ações: Descrever Ações",
+    "objective": "Criança descreve ações simples (Ex: \"correndo\", \"comendo\") (75%+, 3 sessões).",
+    "materials": ["Bonecos", "figuras de ações", "registro"],
+    "procedure": [
+      {"term": "SD", "description": "Mostra figura/ação, \"O que ele/ela está fazendo?\"."},
+      {"term": "R", "description": "Descreve a ação (Ex: \"comendo\")."},
+      {"term": "C", "description": "Correto: Elogio específico (\"Sim, comendo!\"). Incorreto: Ajuda."},
+      {"term": "Ajuda", "description": "Modelo verbal (\"Ele está comendo\"), Dica ecoica. Fading."}
+    ],
+    "criteria_for_advancement": "A criança atinge o objetivo de descrever ações simples com 75% ou mais de precisão em pelo menos 3 sessões consecutivas, com o fading de ajuda estabelecido.",
+    "trials": 8
+  },
+  {
+    "id": "tato-emocoes",
+    "skill": "tato-emocoes",
+    "tag": "Tato",
+    "title": "Tato de Estados Internos: Nomear Emoções",
+    "objective": "Criança nomeia emoções básicas (feliz, triste, bravo) em figuras ou no terapeuta (70%+, 4 sessões).",
+    "materials": ["Cartões de emoções", "espelho", "registro"],
+    "procedure": [
+      {"term": "SD", "description": "Mostra figura de emoção ou faz expressão, \"Como ele/ela está?\"."},
+      {"term": "R", "description": "Nomeia a emoção (Ex: \"feliz\")."},
+      {"term": "C", "description": "Correto: Elogio + reforço social. Incorreto: Ajuda."},
+      {"term": "Ajuda", "description": "Modelo verbal (\"Ele está feliz\"), Ajuda física (guiar dedo para figura). Fading."}
+    ],
+    "criteria_for_advancement": "A criança atinge o objetivo de nomear emoções básicas (feliz, triste, bravo) em figuras ou no terapeuta com 70% ou mais de precisão em pelo menos 4 sessões consecutivas, com o fading de ajuda estabelecido.",
+    "trials": 8
+  },
+  {
+    "id": "ecoiico-imediato-simples",
+    "skill": "ecoiico-imediato-simples",
+    "tag": "Ecoico",
+    "title": "Ecoico Imediato Simples: Repetir Sons/Palavras",
+    "objective": "Criança repete 5 sons/palavras simples (90%+, 2 sessões).",
+    "materials": ["Nenhum específico", "reforçadores"],
+    "procedure": [
+      {"term": "SD", "description": "Contato visual, \"Diga [som/palavra]\"."},
+      {"term": "R", "description": "Criança repete o som/palavra em 3s."},
+      {"term": "C", "description": "Correto: Reforço imediato. Incorreto: Sem reforço, tentar novamente ou ajuda."},
+      {"term": "Ajuda", "description": "Modelo verbal claro, Dica fonêmica. Fading rápido."}
+    ],
+    "criteria_for_advancement": "A criança atinge o objetivo de repetir 5 sons/palavras simples com 90% ou mais de precisão em pelo menos 2 sessões consecutivas, com o fading de ajuda estabelecido.",
+    "trials": 10
+  },
+  {
+    "id": "ecoiico-expansao",
+    "skill": "ecoiico-expansao",
+    "tag": "Ecoico",
+    "title": "Ecoico com Expansão: Repetir com Adição",
+    "objective": "Criança repete palavra e terapeuta expande (Ex: Criança \"bola\", Terapeuta \"bola azul\") (70%+, 3 sessões).",
+    "materials": ["Objetos", "figuras"],
+    "procedure": [
+      {"term": "SD", "description": "Criança emite um tato ou mando simples (Ex: \"bola\")."},
+      {"term": "R", "description": "Criança emite a vocalização."},
+      {"term": "C", "description": "Terapeuta repete a vocalização e adiciona informação (\"Sim, é uma bola azul!\"). Reforço social."}
+    ],
+    "criteria_for_advancement": "A criança participa de interações onde sua vocalização é expandida pelo terapeuta em 70% ou mais das oportunidades em pelo menos 3 sessões consecutivas.",
+    "trials": 5
+  },
+  {
+    "id": "ecoiico-frases",
+    "skill": "ecoiico-frases",
+    "tag": "Ecoico",
+    "title": "Ecoico de Frases e Sentenças",
+    "objective": "Criança repete frases de 3-4 palavras (80%+, 3 sessões).",
+    "materials": ["Livros", "figuras de cenas", "registro"],
+    "procedure": [
+      {"term": "SD", "description": "Mostra cena/figura, \"Diga 'O menino está brincando'\"."},
+      {"term": "R", "description": "Criança repete a frase."},
+      {"term": "C", "description": "Correto: Reforço imediato. Incorreto: Ajuda."},
+      {"term": "Ajuda", "description": "Modelo verbal claro, quebrar a frase em partes menores. Fading."}
+    ],
+    "criteria_for_advancement": "A criança atinge o objetivo de repetir frases de 3-4 palavras com 80% ou mais de precisão em pelo menos 3 sessões consecutivas, com o fading de ajuda estabelecido.",
+    "trials": 8
+  },
+  {
+    "id": "ecoiico-variacao-fonetica",
+    "skill": "ecoiico-variacao-fonetica",
+    "tag": "Ecoico",
+    "title": "Ecoico Imediato com Variação Fonética",
+    "objective": "Criança repete palavras com entonação/ritmo diferente (Ex: \"bola?\", \"BO-LA!\") (70%+, 3 sessões).",
+    "materials": ["Objetos", "registro"],
+    "procedure": [
+      {"term": "SD", "description": "Apresenta objeto, \"Diga [palavra com variação]\" (Ex: \"bola?\" com entonação de pergunta)."},
+      {"term": "R", "description": "Criança repete a palavra com a variação solicitada."},
+      {"term": "C", "description": "Correto: Reforço imediato. Incorreto: Ajuda."},
+      {"term": "Ajuda", "description": "Modelo verbal exagerado da variação. Fading."}
+    ],
+    "criteria_for_advancement": "A criança atinge o objetivo de repetir palavras com variação de entonação ou ritmo com 70% ou mais de precisão em pelo menos 3 sessões consecutivas, com o fading de ajuda estabelecido.",
+    "trials": 8
+  },
+  {
+    "id": "intraverbal-completar-frases",
+    "skill": "intraverbal-completar-frases",
+    "tag": "Intraverbal",
+    "title": "Intraverbal de Completar Frases",
+    "objective": "Criança completa 5 frases conhecidas (Ex: \"O gato faz...\") (90%+, 2 sessões).",
+    "materials": ["Nenhum específico", "registro"],
+    "procedure": [
+      {"term": "SD", "description": "Diz a primeira parte da frase, \"O cachorro faz...\"."},
+      {"term": "R", "description": "Criança completa a frase (\"au au\")."},
+      {"term": "C", "description": "Correto: Reforço imediato. Incorreto: Ajuda."},
+      {"term": "Ajuda", "description": "Dica ecoica parcial (\"au...\"), Modelo verbal completo. Fading."}
+    ],
+    "criteria_for_advancement": "A criança atinge o objetivo de completar 5 frases conhecidas com 90% ou mais de precisão em pelo menos 2 sessões consecutivas, com o fading de ajuda estabelecido.",
+    "trials": 10
+  },
+  {
+    "id": "intraverbal-perguntas-simples",
+    "skill": "intraverbal-perguntas-simples",
+    "tag": "Intraverbal",
+    "title": "Intraverbal de Responder Perguntas Simples",
+    "objective": "Criança responde 5 perguntas básicas sobre si (Ex: \"Qual seu nome?\") (80%+, 3 sessões).",
+    "materials": ["Nenhum específico", "registro"],
+    "procedure": [
+      {"term": "SD", "description": "Faz uma pergunta simples, \"Qual a sua idade?\"."},
+      {"term": "R", "description": "Criança responde corretamente (\"Três anos\")."},
+      {"term": "C", "description": "Correto: Reforço social. Incorreto: Ajuda."},
+      {"term": "Ajuda", "description": "Modelo verbal, Dica visual (mostrar dedos). Fading."}
+    ],
+    "criteria_for_advancement": "A criança atinge o objetivo de responder 5 perguntas básicas sobre si com 80% ou mais de precisão em pelo menos 3 sessões consecutivas, com o fading de ajuda estabelecido.",
+    "trials": 8
+  },
+  {
+    "id": "intraverbal-categorias",
+    "skill": "intraverbal-categorias",
+    "tag": "Intraverbal",
+    "title": "Intraverbal de Categorias: Nomear Itens",
+    "objective": "Criança nomeia 3 itens de uma categoria (Ex: frutas) (75%+, 3 sessões).",
+    "materials": ["Figuras de categorias", "registro"],
+    "procedure": [
+      {"term": "SD", "description": "Nomeia uma categoria, \"Fale três animais\"."},
+      {"term": "R", "description": "Criança nomeia 3 animais (Ex: \"gato, cachorro, leão\")."},
+      {"term": "C", "description": "Correto: Reforço social + elogio. Incorreto: Ajuda."},
+      {"term": "Ajuda", "description": "Dica visual (mostrar figuras), Dica ecoica parcial. Fading."}
+    ],
+    "criteria_for_advancement": "A criança atinge o objetivo de nomear 3 itens de uma categoria solicitada com 75% ou mais de precisão em pelo menos 3 sessões consecutivas, com o fading de ajuda estabelecido.",
+    "trials": 8
+  },
+  {
+    "id": "intraverbal-opostos",
+    "skill": "intraverbal-opostos",
+    "tag": "Intraverbal",
+    "title": "Intraverbal de Opostos",
+    "objective": "Criança identifica 5 pares de opostos (Ex: quente/frio) (80%+, 3 sessões).",
+    "materials": ["Cartões de opostos", "registro"],
+    "procedure": [
+      {"term": "SD", "description": "Diz uma palavra, \"O oposto de grande é...\"."},
+      {"term": "R", "description": "Criança responde com o oposto (\"pequeno\")."},
+      {"term": "C", "description": "Correto: Reforço imediato. Incorreto: Ajuda."},
+      {"term": "Ajuda", "description": "Dica visual (mostrar cartões), Modelo verbal. Fading."}
+    ],
+    "criteria_for_advancement": "A criança atinge o objetivo de identificar 5 pares de opostos com 80% ou mais de precisão em pelo menos 3 sessões consecutivas, com o fading de ajuda estabelecido.",
+    "trials": 10
+  },
+  {
+    "id": "intraverbal-social",
+    "skill": "intraverbal-social",
+    "tag": "Intraverbal",
+    "title": "Intraverbal Social: Diálogo Simples",
+    "objective": "Criança participa de troca verbal de 2-3 turnos (70%+, 4 sessões).",
+    "materials": ["Brinquedos", "livros", "registro"],
+    "procedure": [
+      {"term": "SD", "description": "Inicia uma conversa simples sobre um tópico de interesse, \"Você gostou de brincar com a bola?\"."},
+      {"term": "R", "description": "Criança responde e/ou faz uma pergunta de volta."},
+      {"term": "C", "description": "Correto: Manter a interação, reforço social. Incorreto: Modelar resposta/pergunta."},
+      {"term": "Ajuda", "description": "Modelar a resposta ou uma pergunta para a criança fazer. Fading."}
+    ],
+    "criteria_for_advancement": "A criança atinge o objetivo de participar de trocas verbais de 2-3 turnos com 70% ou mais de sucesso em pelo menos 4 sessões consecutivas, com o fading de ajuda estabelecido.",
+    "trials": 5
+  },
+  {
+    "id": "imitacao-motora",
+    "skill": "imitacao-motora",
+    "tag": "Imitação",
+    "title": "Imitação Motora: Movimentos Grossos e Finos",
+    "objective": "Imita 5 movimentos motores (grossos e finos) (80%+, 3 sessões).",
+    "materials": ["Nenhum específico", "reforçadores"],
+    "procedure": [
+      {"term": "SD", "description": "Contato visual, \"Faz igual\", demonstra movimento."},
+      {"term": "R", "description": "Criança imita o movimento."},
+      {"term": "C", "description": "Correto: Reforço imediato. Incorreto: Ajuda."},
+      {"term": "Ajuda", "description": "Física total > parcial > gestual. Fading."}
+    ],
+    "criteria_for_advancement": "A criança atinge o objetivo de imitar 5 movimentos motores (grossos e finos) com 80% ou mais de precisão em pelo menos 3 sessões consecutivas, com o fading de ajuda estabelecido.",
+    "trials": 10
+  },
+  {
+    "id": "imitacao-espelho",
+    "skill": "imitacao-espelho",
+    "tag": "Imitação",
+    "title": "Imitação em Espelho (Espelhamento)",
+    "objective": "Imita movimentos espelhados (Ex: levantar mão esquerda quando o terapeuta levanta a direita) (70%+, 3 sessões).",
+    "materials": ["Espelho (opcional)", "registro"],
+    "procedure": [
+      {"term": "SD", "description": "Terapeuta faz um movimento simples, \"Faz igual\"."},
+      {"term": "R", "description": "Criança imita o movimento como se estivesse no espelho."},
+      {"term": "C", "description": "Correto: Reforço imediato. Incorreto: Ajuda."},
+      {"term": "Ajuda", "description": "Ajuda física, demonstração lenta. Fading."}
+    ],
+    "criteria_for_advancement": "A criança atinge o objetivo de imitar movimentos espelhados com 70% ou mais de precisão em pelo menos 3 sessões consecutivas, com o fading de ajuda estabelecido.",
+    "trials": 8
+  },
+  {
+    "id": "imitacao-objetos",
+    "skill": "imitacao-objetos",
+    "tag": "Imitação",
+    "title": "Imitação com Objetos",
+    "objective": "Imita ações usando objetos (Ex: bater com bloco) (80%+, 3 sessões).",
+    "materials": ["Blocos", "carrinhos", "outros brinquedos simples", "registro"],
+    "procedure": [
+      {"term": "SD", "description": "Terapeuta demonstra ação com objeto, \"Faz igual\"."},
+      {"term": "R", "description": "Criança imita a ação usando o objeto."},
+      {"term": "C", "description": "Correto: Reforço imediato. Incorreto: Ajuda."},
+      {"term": "Ajuda", "description": "Ajuda física, modelagem da ação. Fading."}
+    ],
+    "criteria_for_advancement": "A criança atinge o objetivo de imitar ações usando objetos com 80% ou mais de precisão em pelo menos 3 sessões consecutivas, com o fading de ajuda estabelecido.",
+    "trials": 10
+  },
+  {
+    "id": "imitacao-facial",
+    "skill": "imitacao-facial",
+    "tag": "Imitação",
+    "title": "Imitação Facial",
+    "objective": "Imita 3 expressões faciais básicas (feliz, triste, bravo) (70%+, 4 sessões).",
+    "materials": ["Espelho", "cartões de emoções", "registro"],
+    "procedure": [
+      {"term": "SD", "description": "Terapeuta faz uma expressão facial, \"Faz igual\"."},
+      {"term": "R", "description": "Criança imita a expressão facial."},
+      {"term": "C", "description": "Correto: Reforço social + elogio. Incorreto: Ajuda."},
+      {"term": "Ajuda", "description": "Ajuda física leve (moldar rosto), usar espelho. Fading."}
+    ],
+    "criteria_for_advancement": "A criança atinge o objetivo de imitar 3 expressões faciais básicas com 70% ou mais de precisão em pelo menos 4 sessões consecutivas, com o fading de ajuda estabelecido.",
+    "trials": 8
+  },
+  {
+    "id": "imitacao-sequencia",
+    "skill": "imitacao-sequencia",
+    "tag": "Imitação",
+    "title": "Imitação de Ações em Sequência (2 Passos)",
+    "objective": "Imita uma sequência de 2 ações (Ex: bater palmas, depois levantar braços) (75%+, 3 sessões).",
+    "materials": ["Nenhum específico", "registro"],
+    "procedure": [
+      {"term": "SD", "description": "Terapeuta demonstra a sequência de 2 ações, \"Faz igual\"."},
+      {"term": "R", "description": "Criança imita a sequência completa na ordem correta."},
+      {"term": "C", "description": "Correto: Reforço imediato. Incorreto: Ajuda."},
+      {"term": "Ajuda", "description": "Modelar cada passo separadamente, depois juntar. Ajuda física. Fading."}
+    ],
+    "criteria_for_advancement": "A criança atinge o objetivo de imitar uma sequência de 2 ações na ordem correta com 75% ou mais de precisão em pelo menos 3 sessões consecutivas, com o fading de ajuda estabelecido.",
+    "trials": 8
+  },
+  {
+    "id": "contato-visual-nome",
+    "skill": "contato-visual-nome",
+    "tag": "Contato Visual",
+    "title": "Contato Visual ao Ouvir o Nome",
+    "objective": "Criança olha para o interlocutor em 80%+ das vezes ao ouvir o nome (3 sessões).",
+    "materials": ["Nenhum específico", "reforçadores"],
+    "procedure": [
+      {"term": "SD", "description": "Chamar o nome da criança em tom neutro, esperando a resposta."},
+      {"term": "R", "description": "Criança olha para o interlocutor por pelo menos 1 segundo."},
+      {"term": "C", "description": "Correto: Reforço imediato (elogio, item preferido). Incorreto: Sem reforço, ajuda."},
+      {"term": "Ajuda", "description": "Ajuda física leve (tocar ombro), mover item preferido para perto do rosto. Fading."}
+    ],
+    "criteria_for_advancement": "A criança atinge o objetivo de olhar para o interlocutor ao ouvir o nome em 80% ou mais das oportunidades em pelo menos 3 sessões consecutivas, com o fading de ajuda estabelecido.",
+    "trials": 2
+  },
+  {
+    "id": "contato-visual-reforco-direto",
+    "skill": "contato-visual-reforco-direto",
+    "tag": "Contato Visual",
+    "title": "Contato Visual com Reforço Direto",
+    "objective": "Criança faz contato visual espontâneo para obter reforço (75%+, 3 sessões).",
+    "materials": ["Itens/atividades preferidas"],
+    "procedure": [
+      {"term": "SD", "description": "Segurar item preferido próximo ao rosto, esperar contato visual."},
+      {"term": "R", "description": "Criança faz contato visual."},
+      {"term": "C", "description": "Correto: Entregar item imediatamente + elogio. Incorreto: Sem reforço, não entregar item."},
+      {"term": "Ajuda", "description": "Mover item lentamente para perto do rosto, dica verbal (\"Olha pra mim\"). Fading."}
+    ],
+    "criteria_for_advancement": "A criança atinge o objetivo de fazer contato visual espontâneo para obter reforço em 75% ou mais das oportunidades em pelo menos 3 sessões consecutivas, com o fading de ajuda estabelecido.",
+    "trials": 5
+  },
+  {
+    "id": "contato-visual-imitacao",
+    "skill": "contato-visual-imitacao",
+    "tag": "Contato Visual",
+    "title": "Contato Visual por Imitação (Modelagem)",
+    "objective": "Criança imita o contato visual do terapeuta (80%+, 3 sessões).",
+    "materials": ["Nenhum específico", "registro"],
+    "procedure": [
+      {"term": "SD", "description": "Terapeuta faz contato visual e diz \"Olha pra mim\" ou \"Faz igual\"."},
+      {"term": "R", "description": "Criança faz contato visual."},
+      {"term": "C", "description": "Correto: Reforço imediato. Incorreto: Ajuda."},
+      {"term": "Ajuda", "description": "Ajuda física leve (guiar rosto), apontar para os próprios olhos. Fading."}
+    ],
+    "criteria_for_advancement": "A criança atinge o objetivo de imitar o contato visual do terapeuta com 80% ou mais de precisão em pelo menos 3 sessões consecutivas, com o fading de ajuda estabelecido.",
+    "trials": 5
+  },
+  {
+    "id": "contato-visual-solicitacoes",
+    "skill": "contato-visual-solicitacoes",
+    "tag": "Contato Visual",
+    "title": "Contato Visual Durante Solicitações (Mandos)",
+    "objective": "Criança faz contato visual antes ou durante o mando (70%+, 4 sessões).",
+    "materials": ["Itens preferidos"],
+    "procedure": [
+      {"term": "SD", "description": "Segurar item preferido, esperar criança iniciar o mando, mas não entregar até que haja contato visual."},
+      {"term": "R", "description": "Criança faz contato visual e emite o mando."},
+      {"term": "C", "description": "Correto: Entregar item + elogio. Incorreto: Não entregar item, ajuda para contato visual."},
+      {"term": "Ajuda", "description": "Dica verbal (\"Olha pra mim\"), mover item para perto do rosto. Fading."}
+    ],
+    "criteria_for_advancement": "A criança atinge o objetivo de fazer contato visual antes ou durante solicitações (mandos) em 70% ou mais das oportunidades em pelo menos 4 sessões consecutivas, com o fading de ajuda estabelecido.",
+    "trials": 5
+  },
+  {
+    "id": "contato-visual-interacao-curta",
+    "skill": "contato-visual-interacao-curta",
+    "tag": "Contato Visual",
+    "title": "Contato Visual Durante Interações Sociais Curtas",
+    "objective": "Criança mantém contato visual por 2-3 segundos durante troca social (70%+, 3 sessões).",
+    "materials": ["Brinquedos de interação", "registro"],
+    "procedure": [
+      {"term": "SD", "description": "Engajar em breve interação (Ex: rolar bola), esperar contato visual."},
+      {"term": "R", "description": "Criança mantém contato visual por 2-3 segundos."},
+      {"term": "C", "description": "Correto: Continuar interação + elogio. Incorreto: Pausar interação, ajuda."},
+      {"term": "Ajuda", "description": "Dica verbal (\"Olha pra mim enquanto brincamos\"), mover brinquedo para perto do rosto. Fading."}
+    ],
+    "criteria_for_advancement": "A criança atinge o objetivo de manter contato visual por 2-3 segundos durante trocas sociais em 70% ou mais das oportunidades em pelo menos 3 sessões consecutivas, com o fading de ajuda estabelecido.",
+    "trials": 5
+  },
+  {
+    "id": "contato-visual-respostas-verbais",
+    "skill": "contato-visual-respostas-verbais",
+    "tag": "Contato Visual",
+    "title": "Contato Visual Durante Conversas ou Respostas Verbais",
+    "objective": "Criança faz contato visual ao responder perguntas simples (75%+, 3 sessões).",
+    "materials": ["Registro"],
+    "procedure": [
+      {"term": "SD", "description": "Faz uma pergunta simples (Ex: \"Qual cor você gosta?\"), esperando resposta e contato visual."},
+      {"term": "R", "description": "Criança responde e faz contato visual."},
+      {"term": "C", "description": "Correto: Elogio social + reforço verbal. Incorreto: Repetir pergunta, ajuda."},
+      {"term": "Ajuda", "description": "Dica verbal (\"Olha pra mim quando falar\"). Fading."}
+    ],
+    "criteria_for_advancement": "A criança atinge o objetivo de fazer contato visual ao responder perguntas simples em 75% ou mais das oportunidades em pelo menos 3 sessões consecutivas, com o fading de ajuda estabelecido.",
+    "trials": 5
+  },
+  {
+    "id": "contato-visual-atencao-compartilhada",
+    "skill": "contato-visual-atencao-compartilhada",
+    "tag": "Contato Visual",
+    "title": "Contato Visual com Atenção Compartilhada",
+    "objective": "Criança alterna olhar entre objeto e interlocutor (70%+, 4 sessões).",
+    "materials": ["Objeto interessante"],
+    "procedure": [
+      {"term": "SD", "description": "Terapeuta mostra objeto interessante, \"Olha que legal!\", esperando criança olhar para objeto e depois para o terapeuta."},
+      {"term": "R", "description": "Criança olha para o objeto e depois para o terapeuta (ou vice-versa)."},
+      {"term": "C", "description": "Correto: Elogio social + interagir com o objeto. Incorreto: Ajuda."},
+      {"term": "Ajuda", "description": "Apontar para o objeto, depois para o rosto. Dica verbal (\"Olha o [objeto], agora olha pra mim\"). Fading."}
+    ],
+    "criteria_for_advancement": "A criança atinge o objetivo de alternar o olhar entre um objeto e o interlocutor em 70% ou mais das oportunidades em pelo menos 4 sessões consecutivas, com o fading de ajuda estabelecido.",
+    "trials": 5
+  },
+  {
+    "id": "contato-visual-espontaneo",
+    "skill": "contato-visual-espontaneo",
+    "tag": "Contato Visual",
+    "title": "Contato Visual Espontâneo e Funcional",
+    "objective": "Criança usa contato visual espontaneamente para comunicar interesse/necessidades (60%+, 5 sessões).",
+    "materials": ["Ambiente com oportunidades naturais"],
+    "procedure": [
+      {"term": "SD", "description": "Estar presente no ambiente da criança, criar oportunidades para comunicação."},
+      {"term": "R", "description": "Criança faz contato visual para iniciar interação, pedir algo, mostrar algo, etc."},
+      {"term": "C", "description": "Correto: Responder à comunicação da criança + reforço social. Incorreto: Ignorar (se apropriado) ou redirecionar."},
+      {"term": "Ajuda", "description": "Reforçar tentativas, modelar comportamento. Fading de ajuda."}
+    ],
+    "criteria_for_advancement": "A criança atinge o objetivo de usar contato visual espontaneamente para comunicar interesse ou necessidades em 60% ou mais das oportunidades em pelo menos 5 sessões consecutivas, com o fading de ajuda estabelecido.",
+    "trials": 5
+  },
+  {
+    "id": "ouvinte-responder-nome",
+    "skill": "ouvinte-responder-nome",
+    "tag": "Comportamento Ouvinte",
+    "title": "Ouvinte: Responder ao Ser Chamado pelo Nome",
+    "objective": "Criança olha ou se vira para o interlocutor em 90%+ das vezes ao ouvir o nome (2 sessões).",
+    "materials": ["Nenhum específico", "reforçadores"],
+    "procedure": [
+      {"term": "SD", "description": "Chamar o nome da criança em tom neutro, a uma curta distância."},
+      {"term": "R", "description": "Criança orienta a cabeça/corpo para o interlocutor em 3s."},
+      {"term": "C", "description": "Correto: Reforço imediato (elogio, item preferido). Incorreto: Sem reforço, ajuda."},
+      {"term": "Ajuda", "description": "Ajuda física leve (tocar ombro), mover item preferido para perto do rosto. Fading."}
+    ],
+    "criteria_for_advancement": "A criança atinge o objetivo de olhar ou se virar para o interlocutor ao ouvir o nome em 90% ou mais das oportunidades em pelo menos 2 sessões consecutivas, com o fading de ajuda estabelecido.",
+    "trials": 5
+  },
+  {
+    "id": "ouvinte-instrucao-1",
+    "skill": "ouvinte-instrucao-1",
+    "tag": "Comportamento Ouvinte",
+    "title": "Ouvinte: Seguir Instrução Simples com 1 Passo",
+    "objective": "Senta na cadeira após instrução (80%+, 3 dias). (Ex: \"Senta\")",
+    "materials": ["Cadeira", "registro"],
+    "procedure": [
+      {"term": "SD", "description": "\"Senta na cadeira\"."},
+      {"term": "R", "description": "Criança senta na cadeira em 5s."},
+      {"term": "C", "description": "Correto: Elogio específico. Incorreto: Ajuda."},
+      {"term": "Ajuda", "description": "Gestual (apontar), Física parcial (tocar ombro), Física total."}
+    ],
+    "criteria_for_advancement": "A criança atinge o objetivo de seguir uma instrução simples de 1 passo (ex: sentar) com 80% ou mais de precisão em pelo menos 3 dias consecutivos, com o fading de ajuda estabelecido.",
+    "trials": 10
+  },
+  {
+    "id": "ouvinte-instrucao-2-3",
+    "skill": "ouvinte-instrucao-2-3",
+    "tag": "Comportamento Ouvinte",
+    "title": "Ouvinte: Seguir Instruções com 2 a 3 Passos",
+    "objective": "Executa sequência de 2-3 comandos (Ex: \"Pega o urso e põe na caixa\") (70%+, 4 sessões).",
+    "materials": ["Objetos diversos", "caixas/locais", "registro"],
+    "procedure": [
+      {"term": "SD", "description": "Dá a instrução composta, \"Pega o carro e me dá\"."},
+      {"term": "R", "description": "Criança executa ambos os passos na ordem correta."},
+      {"term": "C", "description": "Correto: Reforço imediato. Incorreto: Ajuda em cada passo."},
+      {"term": "Ajuda", "description": "Modelar cada passo separadamente, depois juntar. Ajuda física. Fading."}
+    ],
+    "criteria_for_advancement": "A criança atinge o objetivo de executar sequências de 2-3 comandos na ordem correta com 70% ou mais de precisão em pelo menos 4 sessões consecutivas, com o fading de ajuda estabelecido.",
+    "trials": 8
+  },
+  {
+    "id": "ouvinte-funcao",
+    "skill": "ouvinte-funcao",
+    "tag": "Comportamento Ouvinte",
+    "title": "Ouvinte por Função: Identificar por Uso",
+    "objective": "Identifica objeto pela função (Ex: \"Mostra o que você come\") (80%+, 3 sessões).",
+    "materials": ["Objetos com funções claras (colher, copo, bola)", "registro"],
+    "procedure": [
+      {"term": "SD", "description": "Apresenta campo de objetos, \"Mostra o que usamos para beber\"."},
+      {"term": "R", "description": "Criança aponta/pega o objeto correto (copo)."},
+      {"term": "C", "description": "Correto: Elogio específico. Incorreto: Ajuda."},
+      {"term": "Ajuda", "description": "Dica visual (apontar para o objeto correto), Dica verbal parcial (\"o que faz assim [simula beber]\"). Fading."}
+    ],
+    "criteria_for_advancement": "A criança atinge o objetivo de identificar um objeto pela sua função com 80% ou mais de precisão em pelo menos 3 sessões consecutivas, com o fading de ajuda estabelecido.",
+    "trials": 8
+  },
+  {
+    "id": "ouvinte-caracteristica",
+    "skill": "ouvinte-caracteristica",
+    "tag": "Comportamento Ouvinte",
+    "title": "Ouvinte por Característica: Identificar por Atributo",
+    "objective": "Identifica objeto pela característica (Ex: \"Mostra o vermelho\") (80%+, 3 sessões).",
+    "materials": ["Objetos de cores/formas/tamanhos variados", "registro"],
+    "procedure": [
+      {"term": "SD", "description": "Apresenta campo de objetos, \"Mostra o grande\"."},
+      {"term": "R", "description": "Criança aponta/pega o objeto com a característica solicitada."},
+      {"term": "C", "description": "Correto: Elogio específico. Incorreto: Ajuda."},
+      {"term": "Ajuda", "description": "Dica visual (apontar), Dica verbal parcial (\"o que é grandão\"). Fading."}
+    ],
+    "criteria_for_advancement": "A criança atinge o objetivo de identificar um objeto pela sua característica (atributo) com 80% ou mais de precisão em pelo menos 3 sessões consecutivas, com o fading de ajuda estabelecido.",
+    "trials": 8
+  },
+  {
+    "id": "ouvinte-categoria",
+    "skill": "ouvinte-categoria",
+    "tag": "Comportamento Ouvinte",
+    "title": "Ouvinte por Classe ou Categoria",
+    "objective": "Identifica item pela categoria (Ex: \"Mostra um animal\") (75%+, 3 sessões).",
+    "materials": ["Cartões/objetos de diferentes categorias (animais, frutas, veículos)", "registro"],
+    "procedure": [
+      {"term": "SD", "description": "Apresenta campo de itens, \"Mostra um animal\"."},
+      {"term": "R", "description": "Criança aponta/pega um item da categoria solicitada."},
+      {"term": "C", "description": "Correto: Elogio específico. Incorreto: Ajuda."},
+      {"term": "Ajuda", "description": "Dica visual (apontar para a categoria), Dica verbal parcial. Fading."}
+    ],
+    "criteria_for_advancement": "A criança atinge o objetivo de identificar um item pela sua categoria com 75% ou mais de precisão em pelo menos 3 sessões consecutivas, com o fading de ajuda estabelecido.",
+    "trials": 8
+  },
+  {
+    "id": "ouvinte-instrucao-abstrata",
+    "skill": "ouvinte-instrucao-abstrata",
+    "tag": "Comportamento Ouvinte",
+    "title": "Ouvinte: Seguir Instruções Abstratas ou Flexíveis",
+    "objective": "Responde a comandos como \"Faz de conta que...\", \"Perto de...\" (60%+, 5 sessões).",
+    "materials": ["Objetos diversos", "registro"],
+    "procedure": [
+      {"term": "SD", "description": "Dá uma instrução abstrata, \"Coloca o urso perto da caixa\"."},
+      {"term": "R", "description": "Criança executa a instrução corretamente."},
+      {"term": "C", "description": "Correto: Reforço imediato. Incorreto: Ajuda."},
+      {"term": "Ajuda", "description": "Modelagem, ajuda física, dica visual (desenho). Fading."}
+    ],
+    "criteria_for_advancement": "A criança atinge o objetivo de responder a comandos abstratos ou flexíveis com 60% ou mais de precisão em pelo menos 5 sessões consecutivas, com o fading de ajuda estabelecido.",
+    "trials": 5
+  },
+  {
+    "id": "ouvinte-perguntas-complexas",
+    "skill": "ouvinte-perguntas-complexas",
+    "tag": "Comportamento Ouvinte",
+    "title": "Ouvinte: Responder a Perguntas Complexas ou Indiretas",
+    "objective": "Responde a perguntas que exigem inferência ou memória (Ex: \"Onde você colocou o livro?\") (60%+, 5 sessões).",
+    "materials": ["Objetos", "registro"],
+    "procedure": [
+      {"term": "SD", "description": "Faz uma pergunta complexa, \"O que você fez na escola hoje?\"."},
+      {"term": "R", "description": "Criança responde com informação relevante."},
+      {"term": "C", "description": "Correto: Reforço social + elogio. Incorreto: Reformular pergunta, ajuda."},
+      {"term": "Ajuda", "description": "Dica verbal (lembretes), mostrar fotos/objetos relacionados. Fading."}
+    ],
+    "criteria_for_advancement": "A criança atinge o objetivo de responder a perguntas complexas ou indiretas com informação relevante em 60% ou mais das oportunidades em pelo menos 5 sessões consecutivas, com o fading de ajuda estabelecido.",
+    "trials": 5
+  },
+  {
+    "id": "brincar-exploratorio",
+    "skill": "brincar-exploratorio",
+    "tag": "Brincar",
+    "title": "Brincar Exploratório (Sensorial)",
+    "objective": "Criança explora objetos novos com diferentes sentidos (tocar, cheirar, observar) por 5 min (80%+, 3 sessões).",
+    "materials": ["Objetos com texturas, sons, cheiros variados (seguros)"],
+    "procedure": [
+      {"term": "SD", "description": "Apresenta um objeto novo e seguro, permitindo exploração livre."},
+      {"term": "R", "description": "Criança toca, vira, cheira, observa o objeto."},
+      {"term": "C", "description": "Correto: Elogio social, descrever a exploração (\"Você está sentindo a textura!\"). Incorreto: Redirecionar suavemente para exploração."},
+      {"term": "Ajuda", "description": "Modelar a exploração, tocar o objeto junto. Fading."}
+    ],
+    "criteria_for_advancement": "A criança atinge o objetivo de explorar objetos novos com diferentes sentidos por 5 minutos em 80% ou mais das oportunidades em pelo menos 3 sessões consecutivas.",
+    "trials": 5
+  },
+  {
+    "id": "brincar-funcional-objetos",
+    "skill": "brincar-funcional-objetos",
+    "tag": "Brincar",
+    "title": "Brincar Funcional com Objetos",
+    "objective": "Criança usa 3 brinquedos simples conforme seu propósito (Ex: empurrar carrinho) (80%+, 3 sessões).",
+    "materials": ["Brinquedos funcionais (carrinho, boneca, telefone de brinquedo)"],
+    "procedure": [
+      {"term": "SD", "description": "Apresenta brinquedo, \"Vamos brincar com o carrinho\"."},
+      {"term": "R", "description": "Criança usa o brinquedo de forma funcional (empurra o carrinho)."},
+      {"term": "C", "description": "Correto: Reforço social + interagir com a brincadeira. Incorreto: Ajuda."},
+      {"term": "Ajuda", "description": "Modelar o uso do brinquedo, ajuda física leve. Fading."}
+    ],
+    "criteria_for_advancement": "A criança atinge o objetivo de usar 3 brinquedos simples conforme seu propósito com 80% ou mais de precisão em pelo menos 3 sessões consecutivas, com o fading de ajuda estabelecido.",
+    "trials": 8
+  },
+  {
+    "id": "brincar-independente-estruturado",
+    "skill": "brincar-independente-estruturado",
+    "tag": "Brincar",
+    "title": "Brincar Independente Estruturado",
+    "objective": "Criança realiza atividade estruturada (quebra-cabeça simples) sozinha por 5-10 min (70%+, 4 sessões).",
+    "materials": ["Quebra-cabeças simples", "jogos de encaixe", "registro"],
+    "procedure": [
+      {"term": "SD", "description": "Prepara a atividade na mesa, \"Você pode fazer este quebra-cabeça\"."},
+      {"term": "R", "description": "Criança se engaja na atividade de forma autônoma."},
+      {"term": "C", "description": "Correto: Reforço intermitente (elogio a cada peça encaixada), elogio ao completar. Incorreto: Ajuda se necessário."},
+      {"term": "Ajuda", "description": "Ajuda física ou gestual para iniciar/continuar, sentar próximo para suporte. Fading."}
+    ],
+    "criteria_for_advancement": "A criança atinge o objetivo de realizar uma atividade estruturada sozinha por 5-10 minutos em 70% ou mais das oportunidades em pelo menos 4 sessões consecutivas, com o fading de ajuda estabelecido.",
+    "trials": 3
+  },
+  {
+    "id": "brincar-paralelo",
+    "skill": "brincar-paralelo",
+    "tag": "Brincar",
+    "title": "Brincar Paralelo",
+    "objective": "Criança brinca próximo a outra criança (1-2 metros) com brinquedos semelhantes por 5 min (70%+, 3 sessões).",
+    "materials": ["Dois conjuntos de brinquedos semelhantes", "outra criança"],
+    "procedure": [
+      {"term": "SD", "description": "Posicionar a criança próxima a outra criança que está brincando, oferecer brinquedos semelhantes."},
+      {"term": "R", "description": "Criança brinca de forma independente mas próxima à outra."},
+      {"term": "C", "description": "Correto: Reforço social por estar perto e brincando. Incorreto: Não forçar interação direta."},
+      {"term": "Ajuda", "description": "Sentar junto no início, modelar a brincadeira independente. Fading."}
+    ],
+    "criteria_for_advancement": "A criança atinge o objetivo de brincar próximo a outra criança com brinquedos semelhantes por 5 minutos em 70% ou mais das oportunidades em pelo menos 3 sessões consecutivas.",
+    "trials": 3
+  },
+  {
+    "id": "brincar-imitacao-outros",
+    "skill": "brincar-imitacao-outros",
+    "tag": "Brincar",
+    "title": "Imitação de Brincadeiras de Outras Crianças",
+    "objective": "Criança imita ação simples de brincadeira de outra criança (80%+, 3 sessões).",
+    "materials": ["Brinquedos", "outra criança"],
+    "procedure": [
+      {"term": "SD", "description": "Outra criança demonstra uma ação simples com um brinquedo (Ex: empurrar carrinho)."},
+      {"term": "R", "description": "Criança imita a ação."},
+      {"term": "C", "description": "Correto: Reforço social + elogio. Incorreto: Ajuda."},
+      {"term": "Ajuda", "description": "Dica verbal (\"Faz igual a ele/ela\"), modelar a ação. Fading."}
+    ],
+    "criteria_for_advancement": "A criança atinge o objetivo de imitar uma ação simples de brincadeira de outra criança com 80% ou mais de precisão em pelo menos 3 sessões consecutivas, com o fading de ajuda estabelecido.",
+    "trials": 5
+  },
+  {
+    "id": "brincar-simbolico-simples",
+    "skill": "brincar-simbolico-simples",
+    "tag": "Brincar",
+    "title": "Brincar Simbólico Funcional Simples",
+    "objective": "Criança usa objeto de forma simbólica (Ex: \"alimentar\" boneca) (70%+, 4 sessões).",
+    "materials": ["Boneca", "mamadeira de brinquedo", "comida de brinquedo"],
+    "procedure": [
+      {"term": "SD", "description": "Apresenta objeto e boneca, \"Vamos dar comidinha para o bebê\"."},
+      {"term": "R", "description": "Criança realiza a ação simbólica (leva mamadeira à boca da boneca)."},
+      {"term": "C", "description": "Correto: Reforço social + interagir na brincadeira. Incorreto: Ajuda."},
+      {"term": "Ajuda", "description": "Modelar a ação, ajuda física. Fading."}
+    ],
+    "criteria_for_advancement": "A criança atinge o objetivo de usar um objeto de forma simbólica simples com 70% ou mais de precisão em pelo menos 4 sessões consecutivas, com o fading de ajuda estabelecido.",
+    "trials": 10
+  },
+  {
+    "id": "brincar-simbolico-substituicao",
+    "skill": "brincar-simbolico-substituicao",
+    "tag": "Brincar",
+    "title": "Brincar Simbólico com Substituição de Objetos",
+    "objective": "Criança usa um objeto para representar outro (Ex: bloco como telefone) (60%+, 5 sessões).",
+    "materials": ["Objetos diversos (blocos, caixas)", "registro"],
+    "procedure": [
+      {"term": "SD", "description": "Apresenta um objeto neutro (bloco), \"Este bloco é um telefone. Alô?\"."},
+      {"term": "R", "description": "Criança usa o objeto substituto de forma simbólica."},
+      {"term": "C", "description": "Correto: Reforço social + continuar a brincadeira. Incorreto: Ajuda."},
+      {"term": "Ajuda", "description": "Modelar o uso simbólico, ajuda física. Fading."}
+    ],
+    "criteria_for_advancement": "A criança atinge o objetivo de usar um objeto para representar outro em brincadeiras simbólicas em 60% ou mais das oportunidades em pelo menos 5 sessões consecutivas, com o fading de ajuda estabelecido.",
+    "trials": 8
+  },
+  {
+    "id": "brincar-simbolico-personagens",
+    "skill": "brincar-simbolico-personagens",
+    "tag": "Brincar",
+    "title": "Brincar Simbólico com Personagens e Roteiros Simples",
+    "objective": "Criança atribui voz/ação a personagem em roteiro simples (Ex: boneca \"dorme\") (60%+, 5 sessões).",
+    "materials": ["Bonecos", "casinha de brinquedo", "registro"],
+    "procedure": [
+      {"term": "SD", "description": "Inicia um roteiro simples, \"O bebê está com sono. O que o bebê faz?\"."},
+      {"term": "R", "description": "Criança faz o personagem realizar a ação (deita a boneca, faz som de dormir)."},
+      {"term": "C", "description": "Correto: Reforço social + continuar o roteiro. Incorreto: Ajuda."},
+      {"term": "Ajuda", "description": "Modelar falas/ações do personagem, ajuda física. Fading."}
+    ],
+    "criteria_for_advancement": "A criança atinge o objetivo de atribuir voz/ação a um personagem em um roteiro simples em 60% ou mais das oportunidades em pelo menos 5 sessões consecutivas, com o fading de ajuda estabelecido.",
+    "trials": 8
+  },
+  {
+    "id": "brincar-social-simples",
+    "skill": "brincar-social-simples",
+    "tag": "Brincar",
+    "title": "Brincar Social Simples (Turnos e Trocas)",
+    "objective": "Criança participa de jogo de turnos simples (Ex: rolar bola) (80%+, 3 sessões).",
+    "materials": ["Bola", "jogos de tabuleiro simples", "outra pessoa/criança"],
+    "procedure": [
+      {"term": "SD", "description": "Inicia o jogo de turnos, \"Minha vez! Agora é a sua vez\"."},
+      {"term": "R", "description": "Criança espera a vez e participa no seu turno."},
+      {"term": "C", "description": "Correto: Reforço social + continuar o jogo. Incorreto: Ajuda."},
+      {"term": "Ajuda", "description": "Dica verbal (\"Sua vez\"), gestual (apontar), física para executar a ação. Fading."}
+    ],
+    "criteria_for_advancement": "A criança atinge o objetivo de participar de um jogo de turnos simples com 80% ou mais de precisão (esperando e agindo no turno) em pelo menos 3 sessões consecutivas, com o fading de ajuda estabelecido.",
+    "trials": 5
+  },
+  {
+    "id": "brincar-cooperativo-roteiro",
+    "skill": "brincar-cooperativo-roteiro",
+    "tag": "Brincar",
+    "title": "Brincar Cooperativo com Roteiro Compartilhado",
+    "objective": "Criança participa de brincadeira com papéis definidos (Ex: médico/paciente) (70%+, 4 sessões).",
+    "materials": ["Fantasia", "acessórios de brinquedo (kit médico)", "outra pessoa/criança"],
+    "procedure": [
+      {"term": "SD", "description": "Propõe um roteiro, \"Vamos brincar de médico? Você é o médico e eu sou o paciente\"."},
+      {"term": "R", "description": "Criança assume o papel e participa do roteiro."},
+      {"term": "C", "description": "Correto: Reforço social + interagir no papel. Incorreto: Ajuda."},
+      {"term": "Ajuda", "description": "Modelar falas/ações do papel, dar dicas verbais. Fading."}
+    ],
+    "criteria_for_advancement": "A criança atinge o objetivo de participar de uma brincadeira cooperativa com papéis definidos e roteiro compartilhado em 70% ou mais das oportunidades em pelo menos 4 sessões consecutivas, com o fading de ajuda estabelecido.",
+    "trials": 5
+  },
+  {
+    "id": "brincar-social-resolucao-problemas",
+    "skill": "brincar-social-resolucao-problemas",
+    "tag": "Brincar",
+    "title": "Brincar Social com Resolução de Problemas e Objetivos",
+    "objective": "Criança participa de brincadeira em grupo com regra simples ou objetivo (Ex: montar torre juntos) (60%+, 5 sessões).",
+    "materials": ["Blocos", "jogos de construção", "outras crianças"],
+    "procedure": [
+      {"term": "SD", "description": "Propõe uma brincadeira com objetivo, \"Vamos construir a torre mais alta!\"."},
+      {"term": "R", "description": "Criança colabora para atingir o objetivo."},
+      {"term": "C", "description": "Correto: Reforço social pelo esforço conjunto. Incorreto: Ajuda na colaboração."},
+      {"term": "Ajuda", "description": "Mediar a interação, sugerir ações, ajudar a resolver pequenos conflitos. Fading."}
+    ],
+    "criteria_for_advancement": "A criança atinge o objetivo de participar de uma brincadeira social em grupo com regra ou objetivo simples, colaborando para atingir o objetivo, em 60% ou mais das oportunidades em pelo menos 5 sessões consecutivas.",
+    "trials": 5
+  },
+  {
+    "id": "brincar-troca-turno-simples",
+    "skill": "brincar-troca-turno-simples",
+    "tag": "Brincar",
+    "title": "Programa de Troca de Turno (Brinquedos Simples)",
+    "objective": "Criança se reveza em atividade com brinquedo simples (Ex: empurrar carrinho) (90%+, 2 sessões).",
+    "materials": ["Carrinho", "bola", "outro brinquedo de ação única", "outra pessoa/criança"],
+    "procedure": [
+      {"term": "SD", "description": "Inicia a atividade, \"Minha vez [empurra carrinho], sua vez\"."},
+      {"term": "R", "description": "Criança espera a vez e executa a ação no seu turno."},
+      {"term": "C", "description": "Correto: Reforço imediato + continuar a atividade. Incorreto: Ajuda."},
+      {"term": "Ajuda", "description": "Dica verbal (\"Sua vez\"), ajuda física para executar a ação. Fading."}
+    ],
+    "criteria_for_advancement": "A criança atinge o objetivo de se revezar em uma atividade com brinquedo simples com 90% ou mais de precisão (esperando e agindo no turno) em pelo menos 2 sessões consecutivas, com o fading de ajuda estabelecido.",
+    "trials": 5
+  },
+   {
+    "id": "brincar-troca-turno-pares",
+    "skill": "brincar-troca-turno-pares",
+    "tag": "Brincar",
+    "title": "Programa de Troca de Turno (Com Pares)",
+    "objective": "Criança se reveza com outra criança em jogo simples (Ex: jogo de montar) (80%+, 3 sessões).",
+    "materials": ["Jogo de montar", "blocos", "outra criança"],
+    "procedure": [
+      {"term": "SD", "description": "Facilita o jogo entre as crianças, \"Agora é a vez do [Nome da Criança 1], depois a vez do [Nome da Criança 2]\"."},
+      {"term": "R", "description": "Criança espera a vez do par e executa sua ação no turno."},
+      {"term": "C", "description": "Correto: Reforço social pela espera e participação. Incorreto: Intervir para garantir o turno."},
+      {"term": "Ajuda", "description": "Lembretes verbais, gestual, ajuda física. Fading."}
+    ],
+    "criteria_for_advancement": "A criança atinge o objetivo de se revezar com outra criança em um jogo simples com 80% ou mais de precisão (esperando e agindo no turno) em pelo menos 3 sessões consecutivas, com o fading de ajuda estabelecido.",
+    "trials": 5
+  },
+  {
+    "id": "social-iniciar-interacao",
+    "skill": "social-iniciar-interacao",
+    "tag": "Habilidades Sociais",
+    "title": "Habilidade Social: Iniciar Interação Social",
+    "objective": "Criança inicia interação (dizer \"oi\", se aproximar) em 70%+ das oportunidades (4 sessões).",
+    "materials": ["Ambiente social", "outras pessoas/crianças"],
+    "procedure": [
+      {"term": "SD", "description": "Criar oportunidade (ex: aproximar-se de outra criança brincando)."},
+      {"term": "R", "description": "Criança se aproxima, diz \"oi\", ou usa outro comportamento inicial."},
+      {"term": "C", "description": "Correto: Responder positivamente à iniciação + reforço social. Incorreto: Ajuda."},
+      {"term": "Ajuda", "description": "Modelar a iniciação, ajuda física leve para se aproximar. Fading."}
+    ],
+    "criteria_for_advancement": "A criança atinge o objetivo de iniciar interação social de forma apropriada em 70% ou mais das oportunidades em pelo menos 4 sessões consecutivas, com o fading de ajuda estabelecido.",
+    "trials": 5
+  },
+  {
+    "id": "social-manter-interacao",
+    "skill": "social-manter-interacao",
+    "tag": "Habilidades Sociais",
+    "title": "Habilidade Social: Manter uma Interação Social",
+    "objective": "Criança mantém interação (responde, mostra interesse) por 2-3 turnos (60%+, 5 sessões).",
+    "materials": ["Brinquedos de interação", "tópicos de interesse", "outra pessoa/criança"],
+    "procedure": [
+      {"term": "SD", "description": "Iniciar uma interação com a criança (pergunta, comentário)."},
+      {"term": "R", "description": "Criança responde, faz pergunta, ou demonstra interesse (contato visual, sorriso)."},
+      {"term": "C", "description": "Correto: Manter a interação + reforço social. Incorreto: Ajuda."},
+      {"term": "Ajuda", "description": "Modelar respostas, dar dicas verbais. Fading."}
+    ],
+    "criteria_for_advancement": "A criança atinge o objetivo de manter uma interação social por 2-3 turnos em 60% ou mais das oportunidades em pelo menos 5 sessões consecutivas, com o fading de ajuda estabelecido.",
+    "trials": 5
+  },
+  {
+    "id": "social-solicitar-ajuda",
+    "skill": "social-solicitar-ajuda",
+    "tag": "Habilidades Sociais",
+    "title": "Habilidade Social: Solicitar Ajuda",
+    "objective": "Criança pede ajuda (verbalmente/gestualmente) quando encontra dificuldade (75%+, 3 sessões).",
+    "materials": ["Tarefas levemente difíceis (abrir pote, encaixar peça apertada)"],
+    "procedure": [
+      {"term": "SD", "description": "Apresentar tarefa que a criança precisará de ajuda."},
+      {"term": "R", "description": "Criança pede ajuda (Ex: \"Ajuda\", entrega o item, aponta)."},
+      {"term": "C", "description": "Correto: Fornecer ajuda imediatamente + elogio. Incorreto: Não fornecer ajuda, ajuda para o pedido."},
+      {"term": "Ajuda", "description": "Modelo verbal (\"Diga 'Ajuda'\"), ajuda física para o pedido. Fading."}
+    ],
+    "criteria_for_advancement": "A criança atinge o objetivo de solicitar ajuda de forma apropriada quando encontra dificuldade em 75% ou mais das oportunidades em pelo menos 3 sessões consecutivas, com o fading de ajuda estabelecido.",
+    "trials": 5
+  },
+  {
+    "id": "social-oferecer-ajuda",
+    "skill": "social-oferecer-ajuda",
+    "tag": "Habilidades Sociais",
+    "title": "Habilidade Social: Oferecer Ajuda",
+    "objective": "Criança oferece ajuda a outra pessoa/criança em situação apropriada (60%+, 4 sessões).",
+    "materials": ["Situações simuladas de necessidade (deixar algo cair, ter dificuldade)"],
+    "procedure": [
+      {"term": "SD", "description": "Simular uma situação onde ajuda é necessária (ex: deixar cair um lápis)."},
+      {"term": "R", "description": "Criança se oferece para ajudar (Ex: pega o lápis, pergunta \"Quer ajuda?\")."},
+      {"term": "C", "description": "Correto: Aceitar a ajuda + reforço social. Incorreto: Ajuda."},
+      {"term": "Ajuda", "description": "Modelar a oferta de ajuda, dica gestual (apontar para o item caído). Fading."}
+    ],
+    "criteria_for_advancement": "A criança atinge o objetivo de oferecer ajuda a outra pessoa em situações apropriadas em 60% ou mais das oportunidades em pelo menos 4 sessões consecutivas.",
+    "trials": 3
+  },
+  {
+    "id": "social-compartilhar",
+    "skill": "social-compartilhar",
+    "tag": "Habilidades Sociais",
+    "title": "Habilidade Social: Compartilhar Objetos ou Materiais",
+    "objective": "Criança compartilha brinquedo/material quando solicitado ou espontaneamente (70%+, 3 sessões).",
+    "materials": ["Brinquedos", "materiais de arte", "outra pessoa/criança"],
+    "procedure": [
+      {"term": "SD", "description": "Pedir um brinquedo da criança, ou criar situação onde compartilhar é natural."},
+      {"term": "R", "description": "Criança entrega/oferece o item."},
+      {"term": "C", "description": "Correto: Reforço social + elogio. Devolver o item rapidamente se solicitado. Incorreto: Ajuda."},
+      {"term": "Ajuda", "description": "Modelo verbal (\"Compartilha com o amigo\"), ajuda física para entregar o item. Fading."}
+    ],
+    "criteria_for_advancement": "A criança atinge o objetivo de compartilhar objetos ou materiais (quando solicitado ou espontaneamente) em 70% ou mais das oportunidades em pelo menos 3 sessões consecutivas.",
+    "trials": 5
+  },
+  {
+    "id": "social-esperar-vez",
+    "skill": "social-esperar-vez",
+    "tag": "Habilidades Sociais",
+    "title": "Habilidade Social: Esperar a Vez",
+    "objective": "Criança aguarda sua vez em jogo/atividade de turnos (80%+, 3 sessões).",
+    "materials": ["Jogos de tabuleiro simples", "brinquedos de revezamento", "outra pessoa/criança"],
+    "procedure": [
+      {"term": "SD", "description": "Iniciar jogo/atividade que requer turnos, \"Minha vez... agora é a sua vez\"."},
+      {"term": "R", "description": "Criança espera o turno do outro e participa no seu turno."},
+      {"term": "C", "description": "Correto: Reforço social pela espera e participação. Incorreto: Ajuda."},
+      {"term": "Ajuda", "description": "Dica verbal (\"Espere um pouquinho\"), usar timer visual, ajuda física para esperar. Fading."}
+    ],
+    "criteria_for_advancement": "A criança atinge o objetivo de aguardar sua vez em jogos ou atividades de turnos com 80% ou mais de precisão em pelo menos 3 sessões consecutivas, com o fading de ajuda estabelecido.",
+    "trials": 5
+  },
+  {
+    "id": "social-pedir-participar",
+    "skill": "social-pedir-participar",
+    "tag": "Habilidades Sociais",
+    "title": "Habilidade Social: Pedir para Participar de uma Atividade",
+    "objective": "Criança pede para entrar em brincadeira/grupo (verbalmente/gestualmente) (60%+, 4 sessões).",
+    "materials": ["Grupo de crianças brincando"],
+    "procedure": [
+      {"term": "SD", "description": "Posicionar a criança perto de um grupo brincando, criar oportunidade."},
+      {"term": "R", "description": "Criança se aproxima e pede para participar (Ex: \"Posso brincar?\", aponta)."},
+      {"term": "C", "description": "Correto: Facilitar a entrada no grupo + reforço social. Incorreto: Ajuda."},
+      {"term": "Ajuda", "description": "Modelar o pedido (\"Diga 'Posso brincar?'\"), ajuda física para se aproximar. Fading."}
+    ],
+    "criteria_for_advancement": "A criança atinge o objetivo de pedir para participar de uma atividade ou grupo de forma apropriada em 60% ou mais das oportunidades em pelo menos 4 sessões consecutivas, com o fading de ajuda estabelecido.",
+    "trials": 3
+  },
+  {
+    "id": "social-aceitar-mudancas",
+    "skill": "social-aceitar-mudancas",
+    "tag": "Habilidades Sociais",
+    "title": "Habilidade Social: Aceitar Interrupções e Mudanças",
+    "objective": "Criança aceita transição ou interrupção em atividade social com mínimo protesto (70%+, 3 sessões).",
+    "materials": ["Atividades de transição"],
+    "procedure": [
+      {"term": "SD", "description": "Anunciar uma transição ou interrupção em uma atividade social, \"Daqui 2 minutos vamos mudar de brincadeira\"."},
+      {"term": "R", "description": "Criança aceita a mudança com pouca ou nenhuma resistência."},
+      {"term": "C", "description": "Correto: Reforço social pelo comportamento flexível. Incorreto: Ajuda."},
+      {"term": "Ajuda", "description": "Avisos antecipados, usar timer visual, dar opções limitadas. Fading."}
+    ],
+    "criteria_for_advancement": "A criança atinge o objetivo de aceitar transições ou interrupções em atividades sociais com mínimo protesto em 70% ou mais das oportunidades em pelo menos 3 sessões consecutivas.",
+    "trials": 3
+  },
+  {
+    "id": "social-compreender-expressoes",
+    "skill": "social-compreender-expressoes",
+    "tag": "Habilidades Sociais",
+    "title": "Habilidade Social: Compreender Expressões Faciais e Tons de Voz",
+    "objective": "Criança identifica emoção básica (feliz, triste, bravo) em expressão facial/tom de voz (80%+, 3 sessões).",
+    "materials": ["Cartões de emoções", "gravações de voz com tons variados"],
+    "procedure": [
+      {"term": "SD", "description": "Mostra cartão de emoção ou usa tom de voz específico, \"Como ele/ela está se sentindo?\" ou \"Como eu estou falando?\"."},
+      {"term": "R", "description": "Criança nomeia a emoção ou descreve o tom."},
+      {"term": "C", "description": "Correto: Reforço social + elogio. Incorreto: Ajuda."},
+      {"term": "Ajuda", "description": "Nomear a emoção/tom, exagerar a expressão/tom. Fading."}
+    ],
+    "criteria_for_advancement": "A criança atinge o objetivo de identificar emoções básicas em expressões faciais ou tons de voz com 80% ou mais de precisão em pelo menos 3 sessões consecutivas, com o fading de ajuda estabelecido.",
+    "trials": 8
+  },
+  {
+    "id": "social-cumprimentar-despedir",
+    "skill": "social-cumprimentar-despedir",
+    "tag": "Habilidades Sociais",
+    "title": "Habilidade Social: Cumprimentar e Despedir-se",
+    "objective": "Criança usa cumprimento/despedida apropriado (dizer \"oi\"/\"tchau\", acenar) (90%+, 2 pessoas).",
+    "materials": ["Outras pessoas"],
+    "procedure": [
+      {"term": "SD", "description": "Encontrar ou despedir-se de uma pessoa, \"Diga oi para [Nome]\"."},
+      {"term": "R", "description": "Criança diz \"oi\"/\"tchau\" ou acena."},
+      {"term": "C", "description": "Correto: Reforço social + elogio da outra pessoa. Incorreto: Ajuda."},
+      {"term": "Ajuda", "description": "Modelo verbal/gestual, ajuda física leve. Fading."}
+    ],
+    "criteria_for_advancement": "A criança atinge o objetivo de usar cumprimentos e despedidas apropriados com 90% ou mais de precisão, generalizando a habilidade com pelo menos 2 pessoas diferentes, com o fading de ajuda estabelecido.",
+    "trials": 5
+  },
+  {
+    "id": "social-fazer-aceitar-elogios",
+    "skill": "social-fazer-aceitar-elogios",
+    "tag": "Habilidades Sociais",
+    "title": "Habilidade Social: Fazer e Aceitar Elogios",
+    "objective": "Criança faz elogio simples ou aceita elogio com resposta apropriada (70%+, 3 sessões).",
+    "materials": ["Situações de sucesso"],
+    "procedure": [
+      {"term": "SD", "description": "Criar situação para elogiar outro ou para a criança receber elogio."},
+      {"term": "R", "description": "Criança elogia outro (Ex: \"Gostei do seu desenho\") ou responde a elogio (Ex: \"Obrigado\")."},
+      {"term": "C", "description": "Correto: Reforço social + reciprocidade. Incorreto: Ajuda."},
+      {"term": "Ajuda", "description": "Modelar o elogio/resposta, dar dicas verbais. Fading."}
+    ],
+    "criteria_for_advancement": "A criança atinge o objetivo de fazer um elogio simples ou aceitar um elogio com resposta apropriada em 70% ou mais das oportunidades em pelo menos 3 sessões consecutivas.",
+    "trials": 5
+  },
+  {
+    "id": "social-resolver-conflitos",
+    "skill": "social-resolver-conflitos",
+    "tag": "Habilidades Sociais",
+    "title": "Habilidade Social: Resolver Conflitos de Forma Apropriada",
+    "objective": "Criança usa estratégia simples (trocar, pedir, esperar) para resolver conflito (60%+, 4 sessões).",
+    "materials": ["Situações de conflito simuladas ou reais com brinquedos/espaço"],
+    "procedure": [
+      {"term": "SD", "description": "Criar ou observar um pequeno conflito (Ex: duas crianças querem o mesmo brinquedo)."},
+      {"term": "R", "description": "Criança usa estratégia apropriada (Ex: pede para usar depois, oferece outro brinquedo)."},
+      {"term": "C", "description": "Correto: Reforço social + elogio pela solução. Incorreto: Intervir e modelar a solução."},
+      {"term": "Ajuda", "description": "Modelar a estratégia, dar opções, mediar a interação. Fading."}
+    ],
+    "criteria_for_advancement": "A criança atinge o objetivo de usar uma estratégia simples e apropriada para resolver conflitos em 60% ou mais das oportunidades em pelo menos 4 sessões consecutivas, com o fading de ajuda estabelecido.",
+    "trials": 3
+  },
+   {
+    "id": "social-rejeitar-convites",
+    "skill": "social-rejeitar-convites",
+    "tag": "Habilidades Sociais",
+    "title": "Habilidade Social: Rejeitar Convites ou Pedidos de Forma Educada",
+    "objective": "Criança recusa convite/pedido usando frase simples e educada (Ex: \"Não, obrigado\") (70%+, 3 sessões).",
+    "materials": ["Situações de convite/pedido"],
+    "procedure": [
+      {"term": "SD", "description": "Fazer um convite ou pedido que a criança pode recusar (Ex: \"Quer brincar com isso?\", \"Pode me dar aquilo?\")."},
+      {"term": "R", "description": "Criança recusa de forma educada (Ex: \"Não, obrigado\", balança a cabeça e diz \"não\")."},
+      {"term": "C", "description": "Correto: Aceitar a recusa + reforço social pela forma educada. Incorreto: Ajuda."},
+      {"term": "Ajuda", "description": "Modelar a resposta educada, dar dica verbal. Fading."}
+    ],
+    "criteria_for_advancement": "A criança atinge o objetivo de recusar convites ou pedidos de forma educada em 70% ou mais das oportunidades em pelo menos 3 sessões consecutivas, com o fading de ajuda estabelecido.",
+    "trials": 3
+  },
+   {
+    "id": "social-lidar-frustracao",
+    "skill": "social-lidar-frustracao",
+    "tag": "Habilidades Sociais",
+    "title": "Habilidade Social: Lidar com Frustração em Contexto Social",
+    "objective": "Criança usa estratégia (pedir ajuda, respirar fundo) em situação frustrante social (60%+, 4 sessões).",
+    "materials": ["Situações sociais levemente frustrantes (jogo que não sai certo, brinquedo quebrado)"],
+    "procedure": [
+      {"term": "SD", "description": "Criar ou observar situação social frustrante."},
+      {"term": "R", "description": "Criança usa estratégia apropriada para lidar com a frustração."},
+      {"term": "C", "description": "Correto: Reforço social pela estratégia utilizada. Incorreto: Ajuda."},
+      {"term": "Ajuda", "description": "Modelar a estratégia, dar dica verbal (\"O que você pode fazer quando está bravo?\"). Fading."}
+    ],
+    "criteria_for_advancement": "A criança atinge o objetivo de usar uma estratégia apropriada para lidar com a frustração em contexto social em 60% ou mais das oportunidades em pelo menos 4 sessões consecutivas.",
+    "trials": 3
+  },
+  {
+    "id": "pareamento-objetos-identicos",
+    "skill": "pareamento-objetos-identicos",
+    "tag": "Pareamento",
+    "title": "Pareamento de Objetos Idênticos (Campo 3)",
+    "objective": "Emparelha objeto idêntico (campo 3) (90%+, 2 dias).",
+    "materials": ["3 pares objetos idênticos", "mesa"],
+    "procedure": [
+      {"term": "SD", "description": "3 itens base, entrega par, \"Põe com o igual\"."},
+      {"term": "R", "description": "Coloca objeto sobre/ao lado do par."},
+      {"term": "C", "description": "Correto: Elogio + reforçador. Incorreto: Ajuda."},
+      {"term": "Ajuda", "description": "Física total > parcial > gestual. Correção de erro."}
+    ],
+    "criteria_for_advancement": "A criança atinge o objetivo de emparelhar um objeto idêntico em um campo de 3 com 90% ou mais de precisão em pelo menos 2 dias consecutivos, com o fading de ajuda estabelecido.",
+    "trials": 9
+  },
+  {
+    "id": "pareamento-figuras-identicas",
+    "skill": "pareamento-figuras-identicas",
+    "tag": "Pareamento",
+    "title": "Pareamento de Figuras Idênticas (Campo 3)",
+    "objective": "Emparelha figura idêntica (campo 3) (90%+, 2 dias).",
+    "materials": ["3 pares de cartões com figuras idênticas"],
+    "procedure": [
+      {"term": "SD", "description": "3 figuras base, entrega par, \"Põe com o igual\"."},
+      {"term": "R", "description": "Coloca cartão sobre/ao lado do par."},
+      {"term": "C", "description": "Correto: Elogio + reforçador. Incorreto: Ajuda."},
+      {"term": "Ajuda", "description": "Física > gestual. Correção de erro."}
+    ],
+    "criteria_for_advancement": "A criança atinge o objetivo de emparelhar uma figura idêntica em um campo de 3 com 90% ou mais de precisão em pelo menos 2 dias consecutivos, com o fading de ajuda estabelecido.",
+    "trials": 9
+  },
+  {
+    "id": "pareamento-objeto-figura",
+    "skill": "pareamento-objeto-figura",
+    "tag": "Pareamento",
+    "title": "Pareamento de Objeto com Figura Correspondente",
+    "objective": "Emparelha objeto com sua figura correspondente (campo 3) (80%+, 3 sessões).",
+    "materials": ["Objetos", "cartões com figuras correspondentes", "registro"],
+    "procedure": [
+      {"term": "SD", "description": "3 figuras base, entrega objeto, \"Põe com a figura igual\"."},
+      {"term": "R", "description": "Criança coloca o objeto sobre/ao lado da figura correspondente."},
+      {"term": "C", "description": "Correto: Elogio + reforçador. Incorreto: Ajuda."},
+      {"term": "Ajuda", "description": "Física > gestual. Correção de erro."}
+    ],
+    "criteria_for_advancement": "A criança atinge o objetivo de emparelhar um objeto com sua figura correspondente em um campo de 3 com 80% ou mais de precisão em pelo menos 3 sessões consecutivas, com o fading de ajuda estabelecido.",
+    "trials": 9
+  },
+  {
+    "id": "pareamento-figura-objeto",
+    "skill": "pareamento-figura-objeto",
+    "tag": "Pareamento",
+    "title": "Pareamento de Figura com Objeto Correspondente",
+    "objective": "Emparelha figura com seu objeto correspondente (campo 3) (80%+, 3 sessões).",
+    "materials": ["Figuras", "objetos correspondentes", "registro"],
+    "procedure": [
+      {"term": "SD", "description": "3 objetos base, entrega figura, \"Põe com o objeto igual\"."},
+      {"term": "R", "description": "Criança coloca a figura sobre/ao lado do objeto correspondente."},
+      {"term": "C", "description": "Correto: Elogio + reforçador. Incorreto: Ajuda."},
+      {"term": "Ajuda", "description": "Física > gestual. Correção de erro."}
+    ],
+    "criteria_for_advancement": "A criança atinge o objetivo de emparelhar uma figura com seu objeto correspondente em um campo de 3 com 80% ou mais de precisão em pelo menos 3 sessões consecutivas, com o fading de ajuda estabelecido.",
+    "trials": 9
+  },
+  {
+    "id": "pareamento-categoria",
+    "skill": "pareamento-categoria",
+    "tag": "Pareamento",
+    "title": "Pareamento por Categoria (Semelhança Funcional/Temática)",
+    "objective": "Emparelha itens da mesma categoria (Ex: fruta com fruta) (75%+, 3 sessões).",
+    "materials": ["Cartões/objetos de diferentes categorias (animais, frutas, veículos)"],
+    "procedure": [
+      {"term": "SD", "description": "Apresenta campo de itens misturados, entrega um item, \"Põe com o que combina\" ou \"Põe com o igual\" (para categoria)."},
+      {"term": "R", "description": "Criança emparelha o item com outro da mesma categoria."},
+      {"term": "C", "description": "Correto: Elogio + reforçador. Incorreto: Ajuda."},
+      {"term": "Ajuda", "description": "Dica visual (apontar para a categoria), dica verbal (\"Qual é um animal também?\"). Fading."}
+    ],
+    "criteria_for_advancement": "A criança atinge o objetivo de emparelhar itens da mesma categoria com 75% ou mais de precisão em pelo menos 3 sessões consecutivas, com o fading de ajuda estabelecido.",
+    "trials": 8
+  },
+  {
+    "id": "pareamento-atributos",
+    "skill": "pareamento-atributos",
+    "tag": "Pareamento",
+    "title": "Pareamento por Cor, Forma ou Tamanho (Atributos Específicos)",
+    "objective": "Emparelha itens por cor, forma ou tamanho (80%+, 3 sessões).",
+    "materials": ["Blocos coloridos, formas geométricas, objetos de tamanhos variados"],
+    "procedure": [
+      {"term": "SD", "description": "Apresenta campo de itens misturados, entrega um item, \"Põe com o que é da mesma cor/forma/tamanho\"."},
+      {"term": "R", "description": "Criança emparelha o item com outro que compartilha o mesmo atributo."},
+      {"term": "C", "description": "Correto: Elogio + reforçador. Incorreto: Ajuda."},
+      {"term": "Ajuda", "description": "Dica visual (apontar), dica verbal (\"Qual é vermelho igual a este?\"). Fading."}
+    ],
+    "criteria_for_advancement": "A criança atinge o objetivo de emparelhar itens por um atributo específico (cor, forma ou tamanho) com 80% ou mais de precisão em pelo menos 3 sessões consecutivas, com o fading de ajuda estabelecido.",
+    "trials": 8
+  },
+  {
+    "id": "pareamento-auditivo-visual",
+    "skill": "pareamento-auditivo-visual",
+    "tag": "Pareamento",
+    "title": "Pareamento Auditivo-Visual (Som-Imagem/Objeto)",
+    "objective": "Emparelha som (animal, veículo) com imagem ou objeto correspondente (70%+, 4 sessões).",
+    "materials": ["Gravações de sons", "cartões/objetos correspondentes"],
+    "procedure": [
+      {"term": "SD", "description": "Apresenta campo de imagens/objetos, reproduz um som, \"Mostra o que faz este som\"."},
+      {"term": "R", "description": "Criança aponta/pega a imagem/objeto que corresponde ao som."},
+      {"term": "C", "description": "Correto: Elogio + reforçador. Incorreto: Ajuda."},
+      {"term": "Ajuda", "description": "Modelar a resposta, dica visual (apontar para a imagem/objeto correto). Fading."}
+    ],
+    "criteria_for_advancement": "A criança atinge o objetivo de emparelhar um som com sua imagem ou objeto correspondente com 70% ou mais de precisão em pelo menos 4 sessões consecutivas, com o fading de ajuda estabelecido.",
+    "trials": 8
+  },
+  {
+    "id": "pareamento-funcional",
+    "skill": "pareamento-funcional",
+    "tag": "Pareamento",
+    "title": "Pareamento Funcional (por Uso ou Função)",
+    "objective": "Emparelha itens com base em sua função ou uso (Ex: copo com água) (75%+, 3 sessões).",
+    "materials": ["Pares de itens relacionados por função (copo-água, lápis-papel, colher-comida)"],
+    "procedure": [
+      {"term": "SD", "description": "Apresenta campo de itens misturados, entrega um item, \"Põe com o que usamos junto\" ou \"Põe com o que combina\"."},
+      {"term": "R", "description": "Criança emparelha o item com outro que tem relação funcional."},
+      {"term": "C", "description": "Correto: Elogio + reforçador. Incorreto: Ajuda."},
+      {"term": "Ajuda", "description": "Dica verbal (\"O que usamos com o lápis?\"), dica visual. Fading."}
+    ],
+    "criteria_for_advancement": "A criança atinge o objetivo de emparelhar itens com base em sua função ou uso com 75% ou mais de precisão em pelo menos 3 sessões consecutivas, com o fading de ajuda estabelecido.",
+    "trials": 8
+  },
+  {
+    "id": "pareamento-simbolico",
+    "skill": "pareamento-simbolico",
+    "tag": "Pareamento",
+    "title": "Pareamento Simbólico ou Abstrato (Letras, Números)",
+    "objective": "Emparelha letras, números ou formas geométricas idênticas (80%+, 3 sessões).",
+    "materials": ["Cartões com letras, números, formas geométricas"],
+    "procedure": [
+      {"term": "SD", "description": "Apresenta campo de símbolos, entrega um símbolo, \"Põe com o igual\"."},
+      {"term": "R", "description": "Criança emparelha o símbolo com o idêntico."},
+      {"term": "C", "description": "Correto: Elogio + reforçador. Incorreto: Ajuda."},
+      {"term": "Ajuda", "description": "Dica visual (apontar), ajuda física. Fading."}
+    ],
+    "criteria_for_advancement": "A criança atinge o objetivo de emparelhar símbolos idênticos (letras, números, formas) com 80% ou mais de precisão em pelo menos 3 sessões consecutivas, com o fading de ajuda estabelecido.",
+    "trials": 10
+  },
+  {
+    "id": "pareamento-multiplas-opcoes",
+    "skill": "pareamento-multiplas-opcoes",
+    "tag": "Pareamento",
+    "title": "Pareamento com Múltiplas Opções (Distratores)",
+    "objective": "Emparelha item correto em campo com 5+ distratores (70%+, 4 sessões).",
+    "materials": ["Item alvo", "5+ itens distratores"],
+    "procedure": [
+      {"term": "SD", "description": "Apresenta campo com alvo e distratores, entrega o alvo, \"Põe com o igual\"."},
+      {"term": "R", "description": "Criança emparelha o alvo com o item idêntico no campo."},
+      {"term": "C", "description": "Correto: Elogio + reforçador. Incorreto: Ajuda."},
+      {"term": "Ajuda", "description": "Reduzir número de distratores, dica visual (apontar). Fading."}
+    ],
+    "criteria_for_advancement": "A criança atinge o objetivo de emparelhar um item correto em um campo com 5 ou mais distratores com 70% ou mais de precisão em pelo menos 4 sessões consecutivas, com o fading de ajuda estabelecido.",
+    "trials": 10
+  }
+]
