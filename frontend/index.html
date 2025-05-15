@@ -18,7 +18,7 @@
             height: 100vh;
             display: flex;
             flex-direction: column;
-            background-color: #f3f4f6; /* Slightly lighter gray background */
+            background-color: #f3f4f6; /* Fundo cinza um pouco mais claro */
         }
         /* Scrollbar customizada (Webkit) */
         ::-webkit-scrollbar { width: 8px; height: 8px; }
@@ -44,22 +44,22 @@
             transform: scale(1); /* Animação de entrada */
         }
 
-        /* Estilos para botões e itens de lista (mantidos) */
+        /* Estilos para botões e itens de lista */
         .assigned-program-item button { transition: all 0.2s ease; }
         .assigned-program-item button:hover { opacity: 0.8; }
         .assign-program-btn.assigned { background-color: #10b981; color: white; cursor: default; }
         .assign-program-btn.assigned:hover { background-color: #059669; }
 
-        /* Estilos para áreas de gráfico (mantidos) */
+        /* Estilos para áreas de gráfico */
         #program-progress-chart canvas,
         .consolidated-chart-wrapper canvas { min-height: 250px; max-height: 400px; }
         .consolidated-chart-wrapper canvas { height: 200px !important; }
 
-        /* --- ESTILOS DE IMPRESSÃO (MELHORADOS) --- */
+        /* --- ESTILOS DE IMPRESSÃO --- */
          @media print {
             /* Esconde elementos não desejados */
             .no-print, nav, #contextual-sidebar, #login-modal, .modal-actions,
-            #consolidated-report-modal > .modal-content > div:first-child /* Esconde cabeçalho da tela */ {
+            #consolidated-report-modal > .modal-content > div:first-child {
                 display: none !important;
             }
 
@@ -69,67 +69,65 @@
                 height: auto !important;
                 font-size: 10pt;
                 background-color: white !important;
-                color: black !important; /* Garante texto preto */
-                -webkit-print-color-adjust: exact; /* Garante cores de fundo e bordas no Chrome/Safari */
-                print-color-adjust: exact; /* Garante cores de fundo e bordas */
+                color: black !important;
+                -webkit-print-color-adjust: exact;
+                print-color-adjust: exact;
             }
             #app-main-interface { display: block !important; height: auto !important; overflow: visible !important; flex-direction: column !important; }
             #main-content-area { padding: 0 !important; overflow: visible !important; background-color: white !important; }
 
             /* Ajusta layout do modal para ocupar a página */
-             .modal { position: static !important; /* Remove posicionamento fixo */ inset: auto !important; background: none !important; display: block !important; width: 100% !important; height: auto !important; overflow: visible !important; padding: 15mm !important; /* Adiciona margem à página */ box-shadow: none !important; }
+             .modal { position: static !important; inset: auto !important; background: none !important; display: block !important; width: 100% !important; height: auto !important; overflow: visible !important; padding: 15mm !important; box-shadow: none !important; }
              .modal-content { box-shadow: none !important; border: none !important; max-width: 100% !important; max-height: none !important; overflow: visible !important; padding: 0 !important; display: block !important; background-color: white !important; }
 
-            /* Mostra e estiliza o cabeçalho de impressão PROFISSIONAL */
+            /* Mostra e estiliza o cabeçalho de impressão */
             #consolidated-report-print-header {
                 display: block !important;
-                margin-bottom: 10mm; /* Espaço após o cabeçalho */
-                padding-bottom: 5mm; /* Espaço interno */
-                border-bottom: 1px solid #666 !important; /* Linha separadora mais visível */
-                text-align: left; /* Alinha texto à esquerda */
+                margin-bottom: 10mm;
+                padding-bottom: 5mm;
+                border-bottom: 1px solid #666 !important;
+                text-align: left;
             }
             #consolidated-report-print-header h2 {
                 font-size: 16pt;
                 font-weight: bold;
-                color: #333; /* Cor mais escura */
+                color: #333;
                 margin-bottom: 4mm;
             }
             #consolidated-report-print-header p {
                 font-size: 10pt;
                 color: #444;
-                margin-bottom: 1mm; /* Espaço entre linhas de dados */
+                margin-bottom: 1mm;
             }
              #consolidated-report-print-header p span {
-                 font-weight: bold; /* Destaca os valores */
+                 font-weight: bold;
                  color: black;
              }
 
-
-            /* Layout dos gráficos para impressão (SINGLE COLUMN) */
+            /* Layout dos gráficos para impressão */
              #consolidated-charts-container {
-                 display: block !important; /* Muda para block para fluxo normal */
+                 display: block !important;
                  max-height: none !important;
                  overflow: visible !important;
                  width: 100%;
-                 padding: 0 !important; /* Remove padding extra */
-                 margin-top: 5mm; /* Espaço antes do primeiro gráfico */
+                 padding: 0 !important;
+                 margin-top: 5mm;
              }
              .consolidated-chart-wrapper {
-                 width: 100% !important; /* Ocupa largura total disponível */
-                 page-break-inside: avoid !important; /* Tenta não quebrar */
-                 border: 1px solid #ccc !important; /* Borda sutil */
-                 box-shadow: none !important;
-                 background-color: #fdfdfd !important; /* Fundo levemente diferente */
-                 padding: 5mm !important; /* Padding interno */
-                 margin-bottom: 8mm !important; /* Espaço ENTRE os gráficos */
-                 display: block !important; /* Garante fluxo */
-             }
-             /* Ajusta canvas dentro do wrapper para impressão */
-             .consolidated-chart-wrapper canvas {
-                 max-height: 80mm !important; /* Altura máxima para caber bem */
                  width: 100% !important;
-                 display: block; /* Garante que o canvas ocupe o espaço */
-                 margin: 0 auto; /* Centraliza se houver espaço */
+                 page-break-inside: avoid !important;
+                 border: 1px solid #ccc !important;
+                 box-shadow: none !important;
+                 background-color: #fdfdfd !important;
+                 padding: 5mm !important;
+                 margin-bottom: 8mm !important;
+                 display: block !important;
+             }
+             .consolidated-chart-wrapper canvas {
+                 max-height: 80mm !important;
+                 width: 100% !important;
+                 display: block;
+                 margin: 0 auto;
              }
              .consolidated-chart-wrapper h4 {
                  font-size: 11pt;
@@ -142,15 +140,11 @@
                  font-size: 9pt;
                  text-align: center;
                  color: #666;
-                 padding: 20mm 0; /* Espaço se não houver dados */
+                 padding: 20mm 0;
              }
-
-            /* Rodapé da página (se necessário adicionar via CSS) */
-            /* Pode ser complexo controlar paginação perfeitamente com CSS puro */
-            /* A biblioteca jsPDF seria mais adequada para controle total de header/footer */
          }
 
-         /* Estilos Guia de Dicas (mantidos) */
+         /* Estilos Guia de Dicas */
          #tip-guide-content h3 { font-size: 1.125rem; font-weight: 600; color: #4f46e5; margin-top: 1.5rem; margin-bottom: 0.75rem; padding-bottom: 0.5rem; border-bottom: 1px solid #e5e7eb; }
          #tip-guide-content ul { list-style-type: none; padding-left: 0; margin-bottom: 1rem; }
          #tip-guide-content li { margin-bottom: 0.5rem; font-size: 0.875rem; color: #4b5563; }
@@ -221,19 +215,19 @@
              font-size: 0.875rem; /* text-sm */
          }
 
-         /* --- Ajuste Específico para Layout da Sessão (Revertido) --- */
-         #session-progress-section > div { /* Remove padding extra do container */
+         /* Ajuste Específico para Layout da Sessão */
+         #session-progress-section > div {
             padding: 0;
          }
-         #add-session-form { /* Estilos mais próximos do original */
+         #add-session-form {
              margin-bottom: 1.5rem; /* mb-6 */
              padding-bottom: 1.5rem; /* pb-6 */
              border-bottom: 1px solid #e5e7eb; /* border-b */
          }
-         #program-progress-chart { /* Estilos mais próximos do original */
+         #program-progress-chart {
              margin-top: 1rem; /* mt-4 */
          }
-         #program-progress-chart .relative { /* Container do canvas */
+         #program-progress-chart .relative {
              height: 16rem; /* h-64 */
          }
          @media (min-width: 768px) { /* md: */
@@ -241,8 +235,6 @@
                  height: 18rem; /* md:h-72 */
              }
          }
-
-
     </style>
 </head>
 <body class="bg-gray-100">
@@ -297,7 +289,12 @@
                 </span>
                 <a href="#" class="nav-link text-gray-600 hover:text-indigo-600 font-medium px-3 py-2 rounded-md text-sm transition-colors duration-150" data-view="dashboard-view"><i class="fas fa-tachometer-alt fa-fw mr-1.5"></i> Dashboard</a>
                 <a href="#" class="nav-link text-gray-600 hover:text-indigo-600 font-medium px-3 py-2 rounded-md text-sm transition-colors duration-150 active" data-view="clients-view"><i class="fas fa-users fa-fw mr-1.5"></i> Clientes</a>
-                <a href="#" class="nav-link text-gray-600 hover:text-indigo-600 font-medium px-3 py-2 rounded-md text-sm transition-colors duration-150" data-view="programs-view"><i class="fas fa-folder-open fa-fw mr-1.5"></i> Programas</a>
+                <a href="#" class="nav-link text-gray-600 hover:text-indigo-600 font-medium px-3 py-2 rounded-md text-sm transition-colors duration-150" data-view="programs-view" data-area="Psicologia"><i class="fas fa-folder-open fa-fw mr-1.5"></i> Psicologia</a>
+                <a href="#" class="nav-link text-gray-600 hover:text-indigo-600 font-medium px-3 py-2 rounded-md text-sm transition-colors duration-150" data-view="programs-view" data-area="TerapiaOcupacional"><i class="fas fa-puzzle-piece fa-fw mr-1.5"></i> T. Ocupacional</a>
+                <a href="#" class="nav-link text-gray-600 hover:text-indigo-600 font-medium px-3 py-2 rounded-md text-sm transition-colors duration-150" data-view="programs-view" data-area="Psicomotricidade"><i class="fas fa-child fa-fw mr-1.5"></i> Psicomotric.</a>
+                <a href="#" class="nav-link text-gray-600 hover:text-indigo-600 font-medium px-3 py-2 rounded-md text-sm transition-colors duration-150" data-view="programs-view" data-area="Psicopedagogia"><i class="fas fa-graduation-cap fa-fw mr-1.5"></i> Psicopedag.</a>
+                <a href="#" class="nav-link text-gray-600 hover:text-indigo-600 font-medium px-3 py-2 rounded-md text-sm transition-colors duration-150" data-view="programs-view" data-area="Musicoterapia"><i class="fas fa-music fa-fw mr-1.5"></i> Musicoterapia</a>
+                <a href="#" class="nav-link text-gray-600 hover:text-indigo-600 font-medium px-3 py-2 rounded-md text-sm transition-colors duration-150" data-view="programs-view" data-area="Fonoaudiologia"><i class="fas fa-comment-dots fa-fw mr-1.5"></i> Fonoaudiol.</a>
                 <a href="#" class="nav-link text-gray-600 hover:text-indigo-600 font-medium px-3 py-2 rounded-md text-sm transition-colors duration-150" data-view="notes-view"><i class="fas fa-pencil-alt fa-fw mr-1.5"></i> Anotações</a>
                 <a href="#" class="nav-link text-gray-600 hover:text-indigo-600 font-medium px-3 py-2 rounded-md text-sm transition-colors duration-150" data-view="tip-guide-view"><i class="fas fa-book-open fa-fw mr-1.5"></i> Guia de Dicas</a>
             </div>
@@ -325,7 +322,7 @@
                     </div>
                     <ul id="client-list" class="space-y-1 overflow-y-auto flex-1 mb-4 -mx-2 px-2">
                         <li class="no-clients-message text-center text-gray-500 text-xs py-4 hidden">Nenhum cliente.</li>
-                        </ul>
+                    </ul>
                     <div class="mt-auto border-t border-gray-200 pt-3">
                          <div id="patient-count-indicator" class="text-xs text-center text-gray-500 mb-2 hidden">Pacientes: 0 / 0</div>
                          <button id="show-add-client-form-btn" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-medium py-2 px-4 rounded-md text-sm transition duration-150 ease-in-out flex items-center justify-center space-x-2 shadow-sm hover:shadow disabled:opacity-60 disabled:cursor-not-allowed" disabled>
@@ -343,12 +340,12 @@
                         <input type="text" id="program-search" placeholder="Buscar programa..." class="w-full pl-10 pr-3 py-1.5 border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-indigo-500 focus:border-indigo-500 text-sm shadow-sm">
                      </div>
                      <div id="program-categories" class="space-y-1 overflow-y-auto flex-1 -mx-2 px-2">
-                         </div>
+                     </div>
                  </div>
                  <div id="sidebar-content-tip-guide" class="sidebar-section hidden">
                       <h3 class="text-base font-semibold text-gray-700 mb-3 px-1">Guia de Dicas</h3>
                       <p class="text-sm text-gray-600 px-1">Referência rápida sobre os tipos e passos de dicas.</p>
-                      </div>
+                 </div>
             </aside>
 
             <main id="main-content-area" class="flex-1 bg-gray-100 overflow-y-auto p-6">
@@ -359,7 +356,7 @@
                         <p>Visão geral da aplicação.</p>
                     </div>
                     <div id="client-dashboard-content" class="hidden">
-                        </div>
+                    </div>
                 </div>
 
                 <div id="clients-view" class="view hidden">
@@ -434,7 +431,7 @@
                                 <h3 class="text-base font-semibold text-gray-800 mb-4 pb-2 border-b border-gray-100">Programas Atribuídos</h3>
                                 <ul id="assigned-programs-list" class="space-y-1 overflow-y-auto flex-1 -mx-2 px-2 max-h-[calc(100vh-400px)]">
                                     <li class="no-assigned-programs text-center text-gray-500 text-xs py-4 hidden">Nenhum programa atribuído.</li>
-                                    </ul>
+                                </ul>
                             </div>
                             <div class="lg:col-span-2 bg-white p-6 rounded-lg shadow-md border border-gray-200">
                                 <div id="session-progress-section">
@@ -464,7 +461,7 @@
                              <i class="fas fa-book-open"></i>
                              <span>Selecione uma categoria na barra lateral ou faça uma busca.</span>
                          </p>
-                         </div>
+                     </div>
                  </div>
 
                 <div id="notes-view" class="view hidden">
@@ -526,9 +523,9 @@
                 <h2 id="consolidated-report-print-title" class="text-xl font-semibold text-gray-800 text-center mb-1">Relatório</h2>
                  <p><span>Cliente:</span> <span id="consolidated-report-client-name-print"></span></p>
                 <p><span>ID:</span> <span id="consolidated-report-client-id-print" class="font-mono"></span></p>
-                </div>
+            </div>
             <div id="consolidated-charts-container" class="p-6 overflow-y-auto flex-1 grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-5 print:grid-cols-1 print:overflow-visible print:p-4 print:gap-6">
-                </div>
+            </div>
             <div class="modal-actions p-4 border-t border-gray-200 bg-gray-50 text-right space-x-3 rounded-b-lg no-print">
                 <button id="print-consolidated-report-btn" class="bg-indigo-600 hover:bg-indigo-700 text-white font-medium py-2 px-5 rounded-md text-sm transition shadow hover:shadow-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
                     <i class="fas fa-print mr-1.5"></i> Imprimir
