@@ -2,15 +2,15 @@
 document.addEventListener('DOMContentLoaded', () => {
     // --- Constantes & Estado Global ---
     const LOCAL_STORAGE_BASE_KEY = 'abaplay.v3';
-    const API_BASE_URL = 'https://abaplay-backend.onrender.com/api'; // Conforme sua configuração local
+    const API_BASE_URL = 'http://localhost:3000/api'; // Certifique-se que esta URL está correta
 
     // Variáveis de estado global
     let allProgramsData = {};
-    let currentActiveArea = 'Psicologia';
+    let currentActiveArea = 'Psicologia'; // Área padrão
     let patients = [];
     let selectedPatient = null;
     let selectedProgramForProgress = null;
-    let currentView = 'clients-view';
+    let currentView = 'clients-view'; // View padrão ao carregar
     let progressChartInstance = null;
     let consolidatedChartInstances = {};
     let isAuthenticated = false;
@@ -24,13 +24,27 @@ document.addEventListener('DOMContentLoaded', () => {
     const passwordInput = document.getElementById('password');
     const loginErrorMessage = document.getElementById('login-error-message');
     const appMainInterface = document.getElementById('app-main-interface');
+
     const topNavLinks = document.querySelectorAll('nav .nav-link');
+    const mobileMenuButton = document.getElementById('mobile-menu-button');
+    const mobileMenu = document.getElementById('mobile-menu');
+    const hamburgerIcon = document.getElementById('hamburger-icon');
+    const closeIcon = document.getElementById('close-icon');
+    const mobileNavLinks = document.querySelectorAll('#mobile-menu .nav-link-mobile');
+    const mobileLogoutButton = document.getElementById('mobile-logout-button');
+
     const views = document.querySelectorAll('#main-content-area .view');
     const mainContentArea = document.getElementById('main-content-area');
+
     const loggedInUsernameSpan = document.getElementById('logged-in-username');
     const userAvatarDiv = document.getElementById('user-avatar');
+    const mobileLoggedInUsernameSpan = document.getElementById('mobile-logged-in-username');
+    const mobileUserAvatarDiv = document.getElementById('mobile-user-avatar');
     const logoutButton = document.getElementById('logout-button');
+
     const currentClientIndicator = document.getElementById('current-client-indicator');
+    const mobileCurrentClientIndicator = document.getElementById('mobile-current-client-indicator');
+
     const contextualSidebar = document.getElementById('contextual-sidebar');
     const sidebarSections = contextualSidebar.querySelectorAll('.sidebar-section');
     const clientSidebarSection = document.getElementById('sidebar-content-clients');
@@ -39,6 +53,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const clientSearchInput = document.getElementById('client-search');
     const showAddClientFormBtn = document.getElementById('show-add-client-form-btn');
     const patientCountIndicator = document.getElementById('patient-count-indicator');
+
     const addClientPanel = document.getElementById('add-client-panel');
     const addClientForm = document.getElementById('add-client-form');
     const addClientFormTitle = addClientPanel.querySelector('h2');
@@ -48,6 +63,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const clientDobInput = document.getElementById('client-dob');
     const clientDiagnosisInput = document.getElementById('client-diagnosis');
     const clientNotesInput = document.getElementById('client-notes');
+
     const clientDetailsPanel = document.getElementById('client-details-panel');
     const noClientSelectedPlaceholder = document.getElementById('no-client-selected-placeholder');
     const triggerAddClientFormBtn = document.getElementById('trigger-add-client-form-btn');
@@ -63,8 +79,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const generateClientGradePdfBtn = document.getElementById('generate-client-grade-pdf');
     const generateClientRecordPdfBtn = document.getElementById('generate-client-record-pdf');
     const generateConsolidatedReportBtn = document.getElementById('generate-consolidated-report-btn');
-    const sessionProgressSectionDiv = document.getElementById('session-progress-section');
-    const progressDetailsAreaDiv = document.getElementById('progress-details-area');
+
     const programSidebarSection = document.getElementById('sidebar-content-programs');
     const programSearchInput = document.getElementById('program-search');
     const programCategoriesContainer = document.getElementById('program-categories');
@@ -72,6 +87,19 @@ document.addEventListener('DOMContentLoaded', () => {
     const noProgramsMessage = document.getElementById('no-programs-message');
     const programViewPlaceholder = document.getElementById('program-view-placeholder');
     const programSidebarTitle = programSidebarSection.querySelector('h3');
+
+    const sessionProgressSectionDiv = document.getElementById('session-progress-section');
+    const progressDetailsAreaDiv = document.getElementById('progress-details-area');
+
+    const notesView = document.getElementById('notes-view');
+    const notesViewTextarea = document.getElementById('notes-textarea');
+    const saveNotesBtn = document.getElementById('save-notes-btn');
+    const notesPlaceholder = notesView.querySelector('.notes-placeholder');
+
+    const dashboardView = document.getElementById('dashboard-view');
+    const dashboardContent = document.getElementById('dashboard-content');
+    const clientDashboardContent = document.getElementById('client-dashboard-content');
+
     const consolidatedReportModal = document.getElementById('consolidated-report-modal');
     const consolidatedReportTitle = document.getElementById('consolidated-report-title');
     const consolidatedReportPrintTitle = document.getElementById('consolidated-report-print-title');
@@ -80,12 +108,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const consolidatedChartsContainer = document.getElementById('consolidated-charts-container');
     const printConsolidatedReportBtn = document.getElementById('print-consolidated-report-btn');
     const closeModalBtns = consolidatedReportModal.querySelectorAll('.close-modal-btn, #close-consolidated-modal-btn');
-    const notesView = document.getElementById('notes-view');
-    const notesViewTextarea = document.getElementById('notes-textarea');
-    const saveNotesBtn = document.getElementById('save-notes-btn');
-    const notesPlaceholder = notesView.querySelector('.notes-placeholder');
-    const dashboardContent = document.getElementById('dashboard-content');
-    const clientDashboardContent = document.getElementById('client-dashboard-content');
+
 
     // --- Funções Utilitárias de Autenticação ---
     function saveAuthToken(token) { localStorage.setItem(`${LOCAL_STORAGE_BASE_KEY}_token`, token); authToken = token; }
@@ -97,12 +120,47 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // --- Inicialização ---
     function initializeApp() {
-        console.log("ABAplay v3.8 (Registro por Acertos) - Inicializando...");
+        console.log("ABAplay v3.8 (Mobile Enhanced) - Inicializando...");
         loginForm.addEventListener('submit', handleLogin);
         logoutButton.addEventListener('click', handleLogout);
+        mobileLogoutButton.addEventListener('click', handleLogout);
+
+        if (mobileMenuButton) {
+            mobileMenuButton.addEventListener('click', () => toggleMobileMenu());
+        }
+        mobileNavLinks.forEach(link => {
+            link.addEventListener('click', (e) => {
+                handleNavClick(e);
+                if (mobileMenu && !mobileMenu.classList.contains('hidden')) {
+                    toggleMobileMenu(false);
+                }
+            });
+        });
+        document.addEventListener('click', (event) => {
+            const isClickInsideMenu = mobileMenu && mobileMenu.contains(event.target);
+            const isClickOnMenuButton = mobileMenuButton && mobileMenuButton.contains(event.target);
+            if (mobileMenu && !mobileMenu.classList.contains('hidden') && !isClickInsideMenu && !isClickOnMenuButton) {
+                toggleMobileMenu(false);
+            }
+        });
+
         closeModalBtns.forEach(btn => btn.addEventListener('click', closeConsolidatedReportModal));
-        consolidatedReportModal.addEventListener('click', (e) => { if (e.target === consolidatedReportModal) closeConsolidatedReportModal(); });
-        printConsolidatedReportBtn.addEventListener('click', handlePrintConsolidatedReport);
+        consolidatedReportModal.addEventListener('click', (e) => { 
+            if (e.target === consolidatedReportModal) {
+                closeConsolidatedReportModal();
+            }
+        });
+        
+        // CORREÇÃO: Removida a linha que causava o erro. A função handlePrintConsolidatedReport não existe mais.
+        // O listener abaixo já configura a ação correta para o botão de impressão do relatório consolidado.
+        printConsolidatedReportBtn.addEventListener('click', () => { 
+            if (selectedPatient) {
+                generateConsolidatedReportPDF(selectedPatient);
+            } else {
+                alert("Selecione um cliente para gerar o relatório.");
+            }
+        });
+
         tryRestoringSession();
     }
 
@@ -110,8 +168,30 @@ document.addEventListener('DOMContentLoaded', () => {
     function tryRestoringSession() { authToken = getAuthToken(); currentUser = getUserData(); if (authToken && currentUser) { console.log(`Sessão restaurada para ${currentUser.username}.`); isAuthenticated = true; startAuthenticatedSession(); } else { console.log("Nenhuma sessão ativa. Exibindo login."); showLoginScreen(); } }
 
     // --- Controle de Estado da Interface ---
-    function showLoginScreen() { isAuthenticated = false; currentUser = null; authToken = null; loginModal.classList.remove('hidden'); appMainInterface.classList.add('hidden'); loginForm.reset(); loginErrorMessage.textContent = ''; usernameInput.focus(); }
+    function showLoginScreen() { isAuthenticated = false; currentUser = null; authToken = null; loginModal.classList.remove('hidden'); appMainInterface.classList.add('hidden'); loginForm.reset(); loginErrorMessage.textContent = ''; if(usernameInput) usernameInput.focus(); if (mobileMenu) mobileMenu.classList.add('hidden'); if(hamburgerIcon) hamburgerIcon.classList.remove('hidden'); if(closeIcon) closeIcon.classList.add('hidden');}
     function showMainAppScreen() { loginModal.classList.add('hidden'); appMainInterface.classList.remove('hidden'); appMainInterface.classList.add('flex'); }
+
+    // --- Lógica do Menu Mobile ---
+    function toggleMobileMenu(forceState) {
+        if (!mobileMenu || !hamburgerIcon || !closeIcon) return;
+        const isOpen = typeof forceState !== 'undefined' ? !forceState : mobileMenu.classList.contains('hidden');
+
+        if (isOpen) {
+            mobileMenu.classList.remove('hidden');
+            hamburgerIcon.classList.add('hidden');
+            closeIcon.classList.remove('hidden');
+            mobileMenuButton.setAttribute('aria-expanded', 'true');
+            document.body.style.overflow = 'hidden';
+            if (contextualSidebar && window.innerWidth < 768) contextualSidebar.classList.add('hidden');
+        } else {
+            mobileMenu.classList.add('hidden');
+            hamburgerIcon.classList.remove('hidden');
+            closeIcon.classList.add('hidden');
+            mobileMenuButton.setAttribute('aria-expanded', 'false');
+            document.body.style.overflow = '';
+            updateContextualSidebar(currentView, currentActiveArea);
+        }
+    }
 
     // --- Autenticação ---
     async function handleLogin(e) {
@@ -130,14 +210,49 @@ document.addEventListener('DOMContentLoaded', () => {
         } catch (error) { console.error('Erro de rede no login:', error); loginErrorMessage.textContent = 'Erro de conexão.'; }
         finally { submitButton.disabled = false; submitButton.innerHTML = '<i class="fas fa-sign-in-alt"></i> Entrar'; }
     }
-    function handleLogout() { console.log(`Logout para: ${currentUser?.username}`); isAuthenticated = false; removeAuthToken(); removeUserData(); patients = []; selectedPatient = null; selectedProgramForProgress = null; currentView = 'clients-view'; currentActiveArea = 'Psicologia';
-        if (progressChartInstance) progressChartInstance.destroy(); Object.values(consolidatedChartInstances).forEach(chart => chart.destroy()); progressChartInstance = null; consolidatedChartInstances = {}; resetUIForLogout(); showLoginScreen(); console.log("Sessão encerrada."); }
+
+    function handleLogout() {
+        console.log(`Logout para: ${currentUser?.username}`);
+        isAuthenticated = false;
+        removeAuthToken();
+        removeUserData();
+        patients = [];
+        selectedPatient = null;
+        selectedProgramForProgress = null;
+        currentView = 'clients-view';
+        currentActiveArea = 'Psicologia';
+        if (progressChartInstance) progressChartInstance.destroy();
+        Object.values(consolidatedChartInstances).forEach(chart => chart.destroy());
+        progressChartInstance = null;
+        consolidatedChartInstances = {};
+        resetUIForLogout();
+        showLoginScreen();
+        console.log("Sessão encerrada.");
+    }
 
     // --- Inicialização Pós-Login ---
-    async function startAuthenticatedSession() { if (!isAuthenticated || !currentUser) { console.error("Tentativa de iniciar sessão sem autenticação."); showLoginScreen(); return; } showMainAppScreen(); updateUserInfoDisplay(); await loadProgramsData();
-        await loadUserPatientsFromAPI(); setupMainEventListeners(); renderClientList(); renderProgramCategories(currentActiveArea);
-        updatePatientCountDisplay(); updateCurrentClientIndicator(); displayNoClientSelected(); switchView(currentView, { area: currentActiveArea });
-        console.log(`Sessão iniciada para ${currentUser.username}. Área ativa: ${currentActiveArea}`); }
+    async function startAuthenticatedSession() {
+        if (!isAuthenticated || !currentUser) {
+            console.error("Tentativa de iniciar sessão sem autenticação.");
+            showLoginScreen();
+            return;
+        }
+        showMainAppScreen();
+        updateUserInfoDisplay();
+        await loadProgramsData();
+        await loadUserPatientsFromAPI();
+        setupMainEventListeners();
+        renderClientList();
+        updatePatientCountDisplay();
+        updateCurrentClientIndicator();
+        if (patients.length > 0) {
+            displayNoClientSelected(); 
+        } else {
+            displayNoClientSelected();
+        }
+        switchView('clients-view', { area: 'Psicologia' }); 
+        console.log(`Sessão iniciada para ${currentUser.username}. Área ativa: ${currentActiveArea}`);
+    }
 
     // --- Configuração de Listeners ---
     function setupMainEventListeners() {
@@ -150,37 +265,226 @@ document.addEventListener('DOMContentLoaded', () => {
         addClientForm.removeEventListener('submit', handleAddOrEditClientSubmit); addClientForm.addEventListener('submit', handleAddOrEditClientSubmit);
         editClientBtn.removeEventListener('click', handleEditClient); editClientBtn.addEventListener('click', handleEditClient);
         deleteClientBtn.removeEventListener('click', handleDeleteClient); deleteClientBtn.addEventListener('click', handleDeleteClient);
-        generateClientGradePdfBtn.removeEventListener('click', handleGenerateGradePdf); generateClientGradePdfBtn.addEventListener('click', handleGenerateGradePdf);
-        generateClientRecordPdfBtn.removeEventListener('click', handleGenerateRecordPdf); generateClientRecordPdfBtn.addEventListener('click', handleGenerateRecordPdf);
-        generateConsolidatedReportBtn.removeEventListener('click', handleGenerateConsolidatedReport); generateConsolidatedReportBtn.addEventListener('click', handleGenerateConsolidatedReport);
+        
+        generateClientGradePdfBtn.removeEventListener('click', handleGenerateGradePdf); 
+        generateClientGradePdfBtn.addEventListener('click', handleGenerateGradePdf);
+        
+        generateClientRecordPdfBtn.removeEventListener('click', handleGenerateRecordPdf); 
+        generateClientRecordPdfBtn.addEventListener('click', handleGenerateRecordPdf);
+        
+        generateConsolidatedReportBtn.removeEventListener('click', openConsolidatedReportModal);
+        generateConsolidatedReportBtn.addEventListener('click', openConsolidatedReportModal);
+        
         programSearchInput.removeEventListener('input', handleProgramSearch); programSearchInput.addEventListener('input', handleProgramSearch);
         saveNotesBtn.removeEventListener('click', handleSaveNotes); saveNotesBtn.addEventListener('click', handleSaveNotes);
     }
-    // Handlers
-    function handleNavClick(e) { e.preventDefault(); const link = e.currentTarget; const viewId = link.dataset.view; const area = link.dataset.area;
-        if (viewId && isAuthenticated) { if (area) { currentActiveArea = area; console.log("Área ativa mudou para:", currentActiveArea); } switchView(viewId, { area: currentActiveArea });
-        } }
-    function handleClientSearch(e) { if (isAuthenticated) renderClientList(e.target.value); }
-    function handleShowAddClientForm() { if (isAuthenticated && !showAddClientFormBtn.disabled) { resetAddClientForm(); addClientPanel.classList.remove('hidden'); clientDetailsPanel.classList.add('hidden'); noClientSelectedPlaceholder.classList.add('hidden'); clientNameInput.focus(); } }
-    function handleCloseAddClientPanel() { if (isAuthenticated) { addClientPanel.classList.add('hidden'); if (selectedPatient) { clientDetailsPanel.classList.remove('hidden'); } else { noClientSelectedPlaceholder.classList.remove('hidden'); } } }
-    function handleClientListClick(e) { if (isAuthenticated) { const clientItem = e.target.closest('.client-item'); if (clientItem && clientItem.dataset.clientId) { const clickedClientId = clientItem.dataset.clientId; const patientToSelect = patients.find(p => String(p.id) === clickedClientId); if (patientToSelect) { selectPatient(patientToSelect); } else { console.warn(`Paciente ID ${clickedClientId} não encontrado.`); } } } }
-    function handleTriggerAddClientForm() { showAddClientFormBtn.click(); }
-    function handleEditClient() { if (isAuthenticated) editClient(); }
-    function handleDeleteClient() { if (isAuthenticated) deleteClient(); }
-    function handleGenerateGradePdf() { if (isAuthenticated && selectedPatient) generateProgramGradePDF(selectedPatient); else alert("Selecione um cliente."); }
-    function handleGenerateRecordPdf() { if (isAuthenticated && selectedPatient) generateWeeklyRecordSheetPDF(selectedPatient); else alert("Selecione um cliente."); }
-    function handleGenerateConsolidatedReport() { if (isAuthenticated) openConsolidatedReportModal(); }
-    function handleProgramSearch(e) { if (isAuthenticated) { const activeProgramLink = programCategoriesContainer.querySelector('a.program-link.active'); const programId = activeProgramLink ? activeProgramLink.dataset.programId : null; filterAndDisplayPrograms(currentActiveArea, programId, e.target.value);
-        } }
-    function handleSaveNotes() { if (isAuthenticated) saveNotes(); }
 
-    // --- Reset da UI ---
-    function resetUIForLogout() { loggedInUsernameSpan.textContent = 'Usuário'; userAvatarDiv.textContent = '--'; logoutButton.classList.add('hidden'); currentClientIndicator.textContent = ''; clientListUl.innerHTML = ''; noClientsMessageLi.classList.remove('hidden'); clientListUl.appendChild(noClientsMessageLi); assignedProgramsListUl.innerHTML = ''; noAssignedProgramsLi.classList.remove('hidden'); assignedProgramsListUl.appendChild(noAssignedProgramsLi); programLibraryListDiv.innerHTML = ''; programViewPlaceholder.classList.remove('hidden'); noProgramsMessage.classList.add('hidden'); programCategoriesContainer.innerHTML = ''; clientDetailsPanel.classList.add('hidden'); noClientSelectedPlaceholder.classList.remove('hidden'); addClientPanel.classList.add('hidden'); clearSessionProgressArea(); clientSearchInput.value = ''; programSearchInput.value = ''; updatePatientCountDisplay(); patientCountIndicator.classList.add('hidden'); notesViewTextarea.value = ''; notesViewTextarea.disabled = true; saveNotesBtn.disabled = true; if (notesPlaceholder) notesPlaceholder.classList.remove('hidden'); dashboardContent.classList.remove('hidden'); clientDashboardContent.classList.add('hidden'); clientDashboardContent.innerHTML = ''; showAddClientFormBtn.disabled = true; showAddClientFormBtn.title = ''; views.forEach(view => view.classList.add('hidden')); topNavLinks.forEach(link => link.classList.remove('active')); const defaultNavLink = document.querySelector('nav .nav-link[data-view="clients-view"]'); if(defaultNavLink) defaultNavLink.classList.add('active'); }
+    // Handlers de Eventos
+    function handleNavClick(e) {
+        e.preventDefault();
+        const link = e.currentTarget;
+        const viewId = link.dataset.view;
+        const area = link.dataset.area;
+
+        if (viewId && isAuthenticated) {
+            if (area) {
+                currentActiveArea = area;
+                console.log("Área ativa mudou para:", currentActiveArea);
+            }
+            switchView(viewId, { area: currentActiveArea });
+            if (link.classList.contains('nav-link-mobile') && mobileMenu && !mobileMenu.classList.contains('hidden')) {
+                toggleMobileMenu(false);
+            }
+        }
+    }
+    function handleClientSearch(e) { if (isAuthenticated) renderClientList(e.target.value); }
+    function handleShowAddClientForm() {
+        if (isAuthenticated && !showAddClientFormBtn.disabled) {
+            resetAddClientForm();
+            addClientPanel.classList.remove('hidden');
+            clientDetailsPanel.classList.add('hidden');
+            noClientSelectedPlaceholder.classList.add('hidden');
+            clientNameInput.focus();
+            if (window.innerWidth < 768 && contextualSidebar) { contextualSidebar.classList.add('hidden'); }
+        }
+    }
+    function handleCloseAddClientPanel() {
+        if (isAuthenticated) {
+            addClientPanel.classList.add('hidden');
+            if (selectedPatient) {
+                clientDetailsPanel.classList.remove('hidden');
+            } else {
+                noClientSelectedPlaceholder.classList.remove('hidden');
+            }
+            updateContextualSidebar(currentView, currentActiveArea);
+        }
+    }
+    function handleClientListClick(e) {
+        if (isAuthenticated) {
+            const clientItem = e.target.closest('.client-item');
+            if (clientItem && clientItem.dataset.clientId) {
+                const clickedClientId = clientItem.dataset.clientId;
+                const patientToSelect = patients.find(p => String(p.id) === clickedClientId);
+                if (patientToSelect) {
+                    selectPatient(patientToSelect);
+                    if (window.innerWidth < 768 && contextualSidebar) { contextualSidebar.classList.add('hidden'); }
+                } else { console.warn(`Paciente ID ${clickedClientId} não encontrado.`); }
+            }
+        }
+    }
+    function handleTriggerAddClientForm() { showAddClientFormBtn.click(); }
+    function handleEditClient() { if (isAuthenticated && selectedPatient) editClient(); }
+    function handleDeleteClient() { if (isAuthenticated && selectedPatient) deleteClient(); }
+    function handleGenerateGradePdf() { 
+        if (isAuthenticated && selectedPatient) { 
+            generateProgramGradePDF(selectedPatient); 
+        } else {
+            alert("Selecione um cliente para gerar a Grade de Programas.");
+        }
+    }
+    function handleGenerateRecordPdf() { 
+        if (isAuthenticated && selectedPatient) { 
+            generateWeeklyRecordSheetPDF(selectedPatient); 
+        } else {
+            alert("Selecione um cliente para gerar a Folha de Registro.");
+        }
+    }
+    function handleProgramSearch(e) {
+        if (isAuthenticated) {
+            const activeProgramLink = programCategoriesContainer.querySelector('a.program-link.active');
+            const programId = activeProgramLink ? activeProgramLink.dataset.programId : null;
+            filterAndDisplayPrograms(currentActiveArea, programId, e.target.value);
+        }
+    }
+
+    // --- Reset da UI para Logout ---
+    function resetUIForLogout() {
+        loggedInUsernameSpan.textContent = 'Usuário';
+        userAvatarDiv.textContent = '--';
+        logoutButton.classList.add('hidden');
+        currentClientIndicator.textContent = 'Nenhum cliente selecionado';
+        currentClientIndicator.classList.add('italic', 'text-gray-500');
+        currentClientIndicator.classList.remove('font-medium', 'text-indigo-700');
+
+        if (mobileLoggedInUsernameSpan) mobileLoggedInUsernameSpan.textContent = 'Usuário';
+        if (mobileUserAvatarDiv) mobileUserAvatarDiv.textContent = '--';
+        if (mobileCurrentClientIndicator) {
+            mobileCurrentClientIndicator.textContent = 'Nenhum cliente selecionado';
+            mobileCurrentClientIndicator.classList.add('italic', 'text-gray-500');
+            mobileCurrentClientIndicator.classList.remove('font-medium', 'text-indigo-700');
+        }
+        if (mobileMenu) mobileMenu.classList.add('hidden');
+        if (hamburgerIcon) hamburgerIcon.classList.remove('hidden');
+        if (closeIcon) closeIcon.classList.add('hidden');
+
+        clientListUl.innerHTML = '';
+        if (noClientsMessageLi) {
+            noClientsMessageLi.classList.remove('hidden');
+            clientListUl.appendChild(noClientsMessageLi);
+        }
+        if(assignedProgramsListUl) assignedProgramsListUl.innerHTML = '';
+        if(noAssignedProgramsLi) {
+            noAssignedProgramsLi.classList.remove('hidden');
+            if(assignedProgramsListUl) assignedProgramsListUl.appendChild(noAssignedProgramsLi);
+        }
+        if(programLibraryListDiv) programLibraryListDiv.innerHTML = '';
+        if(programViewPlaceholder) programViewPlaceholder.classList.remove('hidden');
+        if(noProgramsMessage) noProgramsMessage.classList.add('hidden');
+        if(programCategoriesContainer) programCategoriesContainer.innerHTML = '';
+
+        if(clientDetailsPanel) clientDetailsPanel.classList.add('hidden');
+        if(noClientSelectedPlaceholder) noClientSelectedPlaceholder.classList.remove('hidden');
+        if(addClientPanel) addClientPanel.classList.add('hidden');
+        if(progressDetailsAreaDiv) progressDetailsAreaDiv.innerHTML = `<div class="text-center text-gray-500 py-6"><i class="fas fa-tasks text-3xl mb-3 text-gray-400"></i><p class="text-sm">Selecione um programa atribuído na lista ao lado para registrar uma sessão ou ver o gráfico de progresso.</p></div>`;
+
+        if(clientSearchInput) clientSearchInput.value = '';
+        if(programSearchInput) programSearchInput.value = '';
+        updatePatientCountDisplay();
+        if(patientCountIndicator) patientCountIndicator.classList.add('hidden');
+
+        if (notesViewTextarea) notesViewTextarea.value = '';
+        if (notesViewTextarea) notesViewTextarea.disabled = true;
+        if (saveNotesBtn) saveNotesBtn.disabled = true;
+        if (notesPlaceholder) notesPlaceholder.classList.remove('hidden');
+
+        if (dashboardContent) dashboardContent.classList.remove('hidden'); 
+        if (dashboardContent && dashboardContent.querySelector('.placeholder-container')) {
+             dashboardContent.querySelector('.placeholder-container').classList.remove('hidden');
+        } else if (dashboardContent) { 
+            dashboardContent.innerHTML = `<div class="placeholder-container"><i class="fas fa-chart-pie"></i><p>Visão geral da aplicação.</p></div>`;
+        }
+        if (clientDashboardContent) clientDashboardContent.classList.add('hidden');
+        if (clientDashboardContent) clientDashboardContent.innerHTML = '';
+
+        if(showAddClientFormBtn) {
+            showAddClientFormBtn.disabled = true;
+            showAddClientFormBtn.title = '';
+        }
+
+        views.forEach(view => view.classList.add('hidden'));
+        topNavLinks.forEach(link => link.classList.remove('active'));
+        mobileNavLinks.forEach(link => link.classList.remove('active'));
+
+        const defaultNavLinkDesktop = document.querySelector('nav .nav-link[data-view="clients-view"]');
+        if(defaultNavLinkDesktop) defaultNavLinkDesktop.classList.add('active');
+        const defaultNavLinkMobile = document.querySelector('#mobile-menu .nav-link-mobile[data-view="clients-view"]');
+        if(defaultNavLinkMobile) defaultNavLinkMobile.classList.add('active');
+
+        if (contextualSidebar) {
+            contextualSidebar.classList.remove('hidden');
+            contextualSidebar.classList.add('md:block');
+             if (window.innerWidth < 768) {
+                contextualSidebar.classList.add('hidden');
+            }
+        }
+    }
 
     // --- Atualizações da UI ---
-    function updateUserInfoDisplay() { if (currentUser) { loggedInUsernameSpan.textContent = currentUser.full_name || 'Usuário'; const initials = (currentUser.full_name || ' ').split(' ').map(n => n[0]).slice(0, 2).join('').toUpperCase(); userAvatarDiv.textContent = initials; logoutButton.classList.remove('hidden'); } }
-    function updatePatientCountDisplay() { if (isAuthenticated && currentUser) { const limit = currentUser.max_patients || 0; patientCountIndicator.textContent = `Pacientes: ${patients.length} / ${limit}`; patientCountIndicator.classList.remove('hidden'); const canAddMore = patients.length < limit; showAddClientFormBtn.disabled = !canAddMore; showAddClientFormBtn.title = canAddMore ? '' : `Limite de ${limit} pacientes atingido`; } else { patientCountIndicator.textContent = `Pacientes: 0 / 0`; patientCountIndicator.classList.add('hidden'); showAddClientFormBtn.disabled = true; showAddClientFormBtn.title = ''; } }
-    function updateCurrentClientIndicator() { if (!isAuthenticated) { currentClientIndicator.textContent = ''; currentClientIndicator.classList.add('italic', 'text-gray-500'); currentClientIndicator.classList.remove('font-medium', 'text-indigo-700'); return; } if (selectedPatient) { currentClientIndicator.textContent = `Cliente: ${selectedPatient.name}`; currentClientIndicator.classList.remove('italic', 'text-gray-500'); currentClientIndicator.classList.add('font-medium', 'text-indigo-700'); } else { currentClientIndicator.textContent = `Nenhum cliente selecionado`; currentClientIndicator.classList.add('italic', 'text-gray-500'); currentClientIndicator.classList.remove('font-medium', 'text-indigo-700'); } }
+    function updateUserInfoDisplay() {
+        if (currentUser) {
+            const initials = (currentUser.full_name || ' ').split(' ').map(n => n[0]).slice(0, 2).join('').toUpperCase();
+            loggedInUsernameSpan.textContent = currentUser.full_name || 'Usuário';
+            userAvatarDiv.textContent = initials;
+            logoutButton.classList.remove('hidden');
+            if (mobileLoggedInUsernameSpan) mobileLoggedInUsernameSpan.textContent = currentUser.full_name || 'Usuário';
+            if (mobileUserAvatarDiv) mobileUserAvatarDiv.textContent = initials;
+        }
+    }
+    function updateCurrentClientIndicator() {
+        const defaultText = 'Nenhum cliente selecionado';
+        const activeClasses = ['font-medium', 'text-indigo-700'];
+        const inactiveClasses = ['italic', 'text-gray-500'];
+        const updateIndicator = (indicatorElement) => {
+            if (!indicatorElement) return;
+            if (!isAuthenticated) {
+                indicatorElement.textContent = '';
+                indicatorElement.classList.add(...inactiveClasses);
+                indicatorElement.classList.remove(...activeClasses);
+                return;
+            }
+            const clientName = selectedPatient ? `Cliente: ${selectedPatient.name}` : defaultText;
+            indicatorElement.textContent = clientName;
+            inactiveClasses.forEach(cls => indicatorElement.classList.toggle(cls, !selectedPatient));
+            activeClasses.forEach(cls => indicatorElement.classList.toggle(cls, !!selectedPatient));
+        };
+        updateIndicator(currentClientIndicator);
+        updateIndicator(mobileCurrentClientIndicator);
+    }
+    function updatePatientCountDisplay() {
+        if (isAuthenticated && currentUser) {
+            const limit = currentUser.max_patients || 0;
+            patientCountIndicator.textContent = `Pacientes: ${patients.length} / ${limit}`;
+            patientCountIndicator.classList.remove('hidden');
+            const canAddMore = patients.length < limit;
+            showAddClientFormBtn.disabled = !canAddMore;
+            showAddClientFormBtn.title = canAddMore ? 'Adicionar novo cliente' : `Limite de ${limit} pacientes atingido`;
+        } else {
+            patientCountIndicator.textContent = `Pacientes: 0 / 0`;
+            patientCountIndicator.classList.add('hidden');
+            showAddClientFormBtn.disabled = true;
+            showAddClientFormBtn.title = '';
+        }
+    }
 
     // --- Carregamento e Salvamento de Dados ---
     async function loadProgramsData() {
@@ -202,11 +506,9 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         } catch (error) {
             console.error('Erro fatal ao carregar programas:', error);
-            alert("Falha ao carregar biblioteca de programas.");
             allProgramsData = {};
         }
     }
-
     function getProgramById(programId) {
         if (!allProgramsData || typeof allProgramsData !== 'object') return null;
         for (const areaKey in allProgramsData) {
@@ -218,8 +520,45 @@ document.addEventListener('DOMContentLoaded', () => {
         console.warn(`Programa com ID "${programId}" não encontrado em nenhuma área.`);
         return null;
     }
-
-    async function loadUserPatientsFromAPI() { if (!isAuthenticated || !authToken) { console.warn("Tentativa de carregar pacientes sem autenticação."); patients = []; return; } console.log("Carregando pacientes da API..."); try { const response = await fetch(`${API_BASE_URL}/patients`, { method: 'GET', headers: { 'Authorization': `Bearer ${authToken}`, 'Content-Type': 'application/json' } }); if (response.ok) { const data = await response.json(); patients = (data.patients || []).map(p => ({ ...p, assigned_program_ids: Array.isArray(p.assigned_program_ids) ? p.assigned_program_ids : [], sessionData: Array.isArray(p.sessionData) ? p.sessionData : [] })); console.log(`Pacientes carregados:`, patients.length); } else if (response.status === 401 || response.status === 403) { console.error("Erro ao carregar pacientes: Token inválido/expirado.", response.status); alert("Sessão expirada. Faça login novamente."); handleLogout(); patients = []; } else { const errorData = await response.json().catch(() => ({ errors: [{msg: response.statusText}] })); console.error(`Erro ${response.status} ao carregar pacientes:`, errorData.errors?.[0]?.msg || response.statusText); alert(`Erro ao carregar pacientes: ${errorData.errors?.[0]?.msg || 'Erro desconhecido'}`); patients = []; } } catch (error) { console.error("Erro de rede ao carregar pacientes:", error); alert("Erro de conexão ao buscar pacientes."); patients = []; } renderClientList(); updatePatientCountDisplay(); }
+    async function loadUserPatientsFromAPI() {
+        if (!isAuthenticated || !authToken) {
+            console.warn("Tentativa de carregar pacientes sem autenticação.");
+            patients = [];
+            renderClientList(); 
+            updatePatientCountDisplay(); 
+            return;
+        }
+        console.log("Carregando pacientes da API...");
+        try {
+            const response = await fetch(`${API_BASE_URL}/patients`, {
+                method: 'GET',
+                headers: { 'Authorization': `Bearer ${authToken}`, 'Content-Type': 'application/json' }
+            });
+            if (response.ok) {
+                const data = await response.json();
+                patients = (data.patients || []).map(p => ({
+                    ...p,
+                    assigned_program_ids: Array.isArray(p.assigned_program_ids) ? p.assigned_program_ids : [],
+                    sessionData: Array.isArray(p.sessionData) ? p.sessionData : []
+                }));
+                console.log(`Pacientes carregados:`, patients.length);
+            } else if (response.status === 401 || response.status === 403) {
+                console.error("Erro ao carregar pacientes: Token inválido/expirado.", response.status);
+                alert("Sessão expirada. Faça login novamente.");
+                handleLogout(); 
+                patients = [];
+            } else {
+                const errorData = await response.json().catch(() => ({ errors: [{ msg: response.statusText }] }));
+                console.error(`Erro ${response.status} ao carregar pacientes:`, errorData.errors?.[0]?.msg || response.statusText);
+                patients = [];
+            }
+        } catch (error) {
+            console.error("Erro de rede ao carregar pacientes:", error);
+            patients = [];
+        }
+        renderClientList(); 
+        updatePatientCountDisplay(); 
+    }
 
     // --- Gerenciamento de Visão ---
     function switchView(viewId, context = {}) {
@@ -229,26 +568,22 @@ document.addEventListener('DOMContentLoaded', () => {
         currentView = viewId;
         currentActiveArea = areaToSwitch;
 
-        topNavLinks.forEach(link => {
-            const linkView = link.dataset.view;
-            const linkArea = link.dataset.area;
-            let isActive = linkView === viewId;
-            if (linkView === 'programs-view' && linkArea) {
-                isActive = isActive && (linkArea === currentActiveArea);
-            }
-            link.classList.toggle('active', isActive);
-        });
-
+        topNavLinks.forEach(link => { link.classList.toggle('active', link.dataset.view === viewId && (!link.dataset.area || link.dataset.area === currentActiveArea)); });
+        mobileNavLinks.forEach(link => { link.classList.toggle('active', link.dataset.view === viewId && (!link.dataset.area || link.dataset.area === currentActiveArea)); });
         views.forEach(view => { view.classList.toggle('hidden', view.id !== viewId); });
         updateContextualSidebar(viewId, currentActiveArea);
+        if (mobileMenu && !mobileMenu.classList.contains('hidden')) {
+            toggleMobileMenu(false);
+        }
+
         switch (viewId) {
             case 'clients-view': handleClientViewSwitch(context); break;
             case 'programs-view': handleProgramViewSwitch(context); break;
-            case 'dashboard-view': renderDashboard(); break;
             case 'notes-view': handleNotesViewSwitch(); break;
+            case 'dashboard-view': renderDashboard(); break;
             case 'tip-guide-view': break;
         }
-        mainContentArea.scrollTop = 0;
+        if (mainContentArea) mainContentArea.scrollTop = 0;
     }
 
     function updateContextualSidebar(viewId, activeArea) {
@@ -261,20 +596,47 @@ document.addEventListener('DOMContentLoaded', () => {
         }
         sidebarSections.forEach(section => { section.classList.toggle('hidden', section.id !== targetSidebarId); });
 
+        if (contextualSidebar) {
+            if (window.innerWidth < 768) { // Mobile
+                const isAddClientPanelVisible = addClientPanel && !addClientPanel.classList.contains('hidden');
+                const isMobileMenuOpen = mobileMenu && !mobileMenu.classList.contains('hidden');
+                
+                if (!isMobileMenuOpen && !isAddClientPanelVisible && targetSidebarId !== 'sidebar-content-tip-guide') {
+                    contextualSidebar.classList.remove('hidden');
+                } else {
+                    contextualSidebar.classList.add('hidden');
+                }
+            } else { // Desktop
+                contextualSidebar.classList.remove('hidden');
+                contextualSidebar.classList.add('md:block');
+            }
+        }
+
         if (targetSidebarId === 'sidebar-content-clients') {
             renderClientList(clientSearchInput.value);
             updatePatientCountDisplay();
         } else if (targetSidebarId === 'sidebar-content-programs') {
-            if (programSidebarTitle) {
-                 programSidebarTitle.textContent = `Programas de ${activeArea.replace(/([A-Z])/g, ' $1').trim()}`;
-            }
+            if (programSidebarTitle) { programSidebarTitle.textContent = `Programas de ${activeArea.replace(/([A-Z])/g, ' $1').trim()}`; }
             renderProgramCategories(activeArea);
             filterAndDisplayPrograms(activeArea, null, programSearchInput.value);
         }
     }
 
     // --- Lógica Específica das Views ---
-    function handleClientViewSwitch(context) { if (context?.clientId) { const patientToSelect = patients.find(p => String(p.id) === String(context.clientId)); selectPatient(patientToSelect); } else if (selectedPatient) { selectPatient(selectedPatient); } else { displayNoClientSelected(); } if (!(context?.showAddPanel)) { addClientPanel.classList.add('hidden'); } }
+    function handleClientViewSwitch(context) {
+        if (context?.clientId) {
+            const patientToSelect = patients.find(p => String(p.id) === String(context.clientId));
+            selectPatient(patientToSelect);
+        } else if (selectedPatient) {
+            selectPatient(selectedPatient);
+        } else {
+            displayNoClientSelected();
+        }
+        if (!(context?.showAddPanel)) { 
+            addClientPanel.classList.add('hidden');
+        }
+         updateContextualSidebar('clients-view', currentActiveArea); 
+    }
     function handleProgramViewSwitch(context) {
         const area = context.area || currentActiveArea;
         const programId = context?.programId || null;
@@ -290,18 +652,174 @@ document.addEventListener('DOMContentLoaded', () => {
                 if(details) details.querySelector('summary')?.classList.add('active');
             }
         }
+        updateContextualSidebar('programs-view', currentActiveArea); 
     }
-    function handleNotesViewSwitch() { if (selectedPatient) { notesViewTextarea.value = selectedPatient.general_notes || ''; notesViewTextarea.disabled = false; saveNotesBtn.disabled = false; if(notesPlaceholder) notesPlaceholder.classList.add('hidden'); } else { notesViewTextarea.value = ''; notesViewTextarea.disabled = true; saveNotesBtn.disabled = true; if(notesPlaceholder) notesPlaceholder.classList.remove('hidden'); } }
+    function handleNotesViewSwitch() {
+        if (!isAuthenticated) return;
+        if (selectedPatient) {
+            notesViewTextarea.value = selectedPatient.general_notes || '';
+            notesViewTextarea.disabled = false;
+            saveNotesBtn.disabled = false;
+            if (notesPlaceholder) notesPlaceholder.classList.add('hidden');
+        } else {
+            notesViewTextarea.value = '';
+            notesViewTextarea.disabled = true;
+            saveNotesBtn.disabled = true;
+            if (notesPlaceholder) notesPlaceholder.classList.remove('hidden');
+        }
+        updateContextualSidebar('notes-view', currentActiveArea);
+    }
 
     // --- Gerenciamento de Clientes ---
-    function renderClientList(filterText = '') { if (!isAuthenticated) return; clientListUl.innerHTML = ''; const lowerCaseFilter = filterText.toLowerCase(); const filteredPatients = patients.filter(patient => patient.name.toLowerCase().includes(lowerCaseFilter)); filteredPatients.sort((a, b) => a.name.localeCompare(b.name, 'pt-BR')); if (filteredPatients.length === 0) { noClientsMessageLi.classList.remove('hidden'); clientListUl.appendChild(noClientsMessageLi); noClientsMessageLi.textContent = patients.length === 0 ? 'Nenhum cliente cadastrado.' : 'Nenhum cliente encontrado.'; } else { noClientsMessageLi.classList.add('hidden'); filteredPatients.forEach(patient => { const li = document.createElement('li'); li.dataset.clientId = patient.id; const isSelected = selectedPatient && String(selectedPatient.id) === String(patient.id); li.className = `client-item cursor-pointer px-3 py-2 rounded-md text-sm hover:bg-gray-100 flex items-center justify-between ${isSelected ? 'active' : 'text-gray-700'}`; li.innerHTML = `<span class="truncate" title="${patient.name}">${patient.name}</span> ${isSelected ? '<i class="fas fa-check-circle text-indigo-500 text-xs"></i>' : ''}`; clientListUl.appendChild(li); }); } updatePatientCountDisplay(); }
-    function selectPatient(patient) { if (!isAuthenticated || !patient || !patients.some(p => String(p.id) === String(patient.id))) { console.warn("Tentativa de selecionar paciente inválido:", patient); displayNoClientSelected(); return; } selectedPatient = patient; updateCurrentClientIndicator(); renderClientList(clientSearchInput.value); if (currentView === 'clients-view') { displayClientDetails(selectedPatient); noClientSelectedPlaceholder.classList.add('hidden'); clientDetailsPanel.classList.remove('hidden'); addClientPanel.classList.add('hidden'); } else if (currentView === 'notes-view') { handleNotesViewSwitch(); } else if (currentView === 'dashboard-view') { renderDashboard(); } else if (currentView === 'programs-view') { filterAndDisplayPrograms(currentActiveArea, null, programSearchInput.value); } }
-    function displayNoClientSelected() { if (!isAuthenticated) return; selectedPatient = null; updateCurrentClientIndicator(); renderClientList(clientSearchInput.value); clientDetailsPanel.classList.add('hidden'); noClientSelectedPlaceholder.classList.remove('hidden'); addClientPanel.classList.add('hidden'); clearSessionProgressArea(); if (currentView === 'notes-view') handleNotesViewSwitch(); if (currentView === 'dashboard-view') renderDashboard(); if (currentView === 'programs-view') filterAndDisplayPrograms(currentActiveArea, null, programSearchInput.value); }
-    function displayClientDetails(patient) { if (!isAuthenticated || !patient) return; detailClientNameSpan.textContent = patient.name; detailClientIdSpan.textContent = patient.id; detailClientDobSpan.textContent = patient.dob ? formatDate(patient.dob) : 'Não informado'; detailClientDiagnosisSpan.textContent = patient.diagnosis || 'Não informado'; detailClientNotesSpan.textContent = patient.general_notes || 'Sem anotações'; renderAssignedPrograms(patient.assigned_program_ids || []); clearSessionProgressArea(); }
-    async function handleAddOrEditClientSubmit(e) { e.preventDefault(); if (!isAuthenticated || !authToken) return; const editingClientId = e.target.dataset.editingClientId; const clientData = { name: clientNameInput.value.trim(), dob: clientDobInput.value || null, diagnosis: clientDiagnosisInput.value.trim() || null, notes: clientNotesInput.value.trim() || null, }; if (!clientData.name) { alert("Insira o nome."); clientNameInput.focus(); return; } let url = `${API_BASE_URL}/patients`; let method = 'POST'; if (editingClientId) { url += `/${editingClientId}`; method = 'PUT'; } else { const limit = currentUser.max_patients || 0; if (patients.length >= limit) { alert(`Limite de ${limit} pacientes atingido.`); return; } } try { const response = await fetch(url, { method: method, headers: { 'Authorization': `Bearer ${authToken}`, 'Content-Type': 'application/json', }, body: JSON.stringify(clientData), }); const result = await response.json(); if (response.ok) { alert(`Cliente "${clientData.name}" ${editingClientId ? 'atualizado' : 'cadastrado'}.`); resetAddClientForm(); await loadUserPatientsFromAPI(); const targetId = result.patient?.id || editingClientId; const foundPatient = patients.find(p => String(p.id) === String(targetId)); if (foundPatient) { selectPatient(foundPatient); } else { displayNoClientSelected(); } } else { console.error(`Erro ao ${editingClientId ? 'editar' : 'adicionar'} cliente:`, result.errors?.[0]?.msg || response.statusText); alert(`Erro: ${result.errors?.[0]?.msg || 'Falha ao salvar.'}`); } } catch (error) { console.error(`Erro de rede ao ${editingClientId ? 'editar' : 'adicionar'} cliente:`, error); alert("Erro de conexão."); } }
-    async function deleteClient() { if (!selectedPatient || !authToken) return; if (confirm(`Excluir "${selectedPatient.name}"?`)) { const patientId = selectedPatient.id; const patientName = selectedPatient.name; try { const response = await fetch(`${API_BASE_URL}/patients/${patientId}`, { method: 'DELETE', headers: { 'Authorization': `Bearer ${authToken}`, } }); if (response.ok || response.status === 204) { alert(`Cliente "${patientName}" excluído.`); displayNoClientSelected(); await loadUserPatientsFromAPI(); } else { const result = await response.json().catch(() => ({ errors: [{msg: response.statusText}] })); console.error('Erro ao excluir:', result.errors?.[0]?.msg || response.statusText); alert(`Erro: ${result.errors?.[0]?.msg || 'Falha.'}`); } } catch (error) { console.error('Erro de rede ao excluir:', error); alert("Erro de conexão."); } } }
-    function editClient() { if (!selectedPatient) return; clientNameInput.value = selectedPatient.name; clientDobInput.value = selectedPatient.dob || ''; clientDiagnosisInput.value = selectedPatient.diagnosis || ''; clientNotesInput.value = selectedPatient.general_notes || ''; addClientFormTitle.textContent = 'Editar Cliente'; addClientFormSubmitBtn.innerHTML = '<i class="fas fa-save mr-1"></i> Salvar Alterações'; addClientForm.dataset.editingClientId = selectedPatient.id; clientDetailsPanel.classList.add('hidden'); noClientSelectedPlaceholder.classList.add('hidden'); addClientPanel.classList.remove('hidden'); clientNameInput.focus(); }
-    function resetAddClientForm() { addClientForm.reset(); addClientPanel.classList.add('hidden'); addClientFormTitle.textContent = 'Cadastrar Novo Cliente'; addClientFormSubmitBtn.innerHTML = '<i class="fas fa-save mr-1"></i> Salvar Cliente'; delete addClientForm.dataset.editingClientId; }
+    function renderClientList(filterText = '') {
+        if (!isAuthenticated || !clientListUl) return;
+        clientListUl.innerHTML = ''; 
+        const lowerCaseFilter = filterText.toLowerCase();
+        const filteredPatients = patients.filter(patient => patient.name.toLowerCase().includes(lowerCaseFilter));
+        filteredPatients.sort((a, b) => a.name.localeCompare(b.name, 'pt-BR'));
+        if (filteredPatients.length === 0) {
+            noClientsMessageLi.classList.remove('hidden');
+            clientListUl.appendChild(noClientsMessageLi);
+            noClientsMessageLi.textContent = patients.length === 0 ? 'Nenhum cliente cadastrado.' : 'Nenhum cliente encontrado.';
+        } else {
+            noClientsMessageLi.classList.add('hidden');
+            filteredPatients.forEach(patient => {
+                const li = document.createElement('li');
+                li.dataset.clientId = patient.id;
+                const isSelected = selectedPatient && String(selectedPatient.id) === String(patient.id);
+                li.className = `client-item cursor-pointer px-3 py-2 rounded-md text-sm hover:bg-gray-100 flex items-center justify-between ${isSelected ? 'active bg-indigo-50 text-indigo-700 font-semibold' : 'text-gray-700'}`;
+                li.innerHTML = `<span class="truncate" title="${patient.name}">${patient.name}</span> ${isSelected ? '<i class="fas fa-check-circle text-indigo-500 text-xs"></i>' : ''}`;
+                clientListUl.appendChild(li);
+            });
+        }
+        updatePatientCountDisplay();
+    }
+    function selectPatient(patient) {
+        if (!isAuthenticated || !patient || !patients.some(p => String(p.id) === String(patient.id))) {
+            console.warn("Tentativa de selecionar paciente inválido:", patient);
+            displayNoClientSelected();
+            return;
+        }
+        selectedPatient = patient;
+        updateCurrentClientIndicator();
+        renderClientList(clientSearchInput.value); 
+        if (currentView === 'clients-view') {
+            displayClientDetails(selectedPatient);
+            noClientSelectedPlaceholder.classList.add('hidden');
+            clientDetailsPanel.classList.remove('hidden');
+            addClientPanel.classList.add('hidden');
+            renderAssignedPrograms(selectedPatient.assigned_program_ids || []);
+        }
+        else if (currentView === 'programs-view') {
+            filterAndDisplayPrograms(currentActiveArea, null, programSearchInput.value);
+        }
+        else if (currentView === 'notes-view') {
+            handleNotesViewSwitch();
+        }
+        else if (currentView === 'dashboard-view') {
+            renderDashboard();
+        }
+    }
+    function displayNoClientSelected() {
+        if (!isAuthenticated) return;
+        selectedPatient = null;
+        updateCurrentClientIndicator();
+        renderClientList(clientSearchInput.value); 
+        if(clientDetailsPanel) clientDetailsPanel.classList.add('hidden');
+        if(noClientSelectedPlaceholder) noClientSelectedPlaceholder.classList.remove('hidden');
+        if(addClientPanel) addClientPanel.classList.add('hidden');
+        if(assignedProgramsListUl) assignedProgramsListUl.innerHTML = '';
+        if(noAssignedProgramsLi && assignedProgramsListUl) {
+             noAssignedProgramsLi.classList.remove('hidden');
+             assignedProgramsListUl.appendChild(noAssignedProgramsLi);
+        }
+        if(progressDetailsAreaDiv) progressDetailsAreaDiv.innerHTML = `<div class="text-center text-gray-500 py-6"><i class="fas fa-tasks text-3xl mb-3 text-gray-400"></i><p class="text-sm">Selecione um programa atribuído na lista ao lado para registrar uma sessão ou ver o gráfico de progresso.</p></div>`;
+        if (currentView === 'programs-view') {
+            filterAndDisplayPrograms(currentActiveArea, null, programSearchInput.value);
+        }
+        else if (currentView === 'notes-view') {
+            handleNotesViewSwitch();
+        }
+        else if (currentView === 'dashboard-view') {
+            renderDashboard();
+        }
+    }
+    function displayClientDetails(patient) {
+        if (!isAuthenticated || !patient) return;
+        detailClientNameSpan.textContent = patient.name;
+        detailClientIdSpan.textContent = patient.id;
+        detailClientDobSpan.textContent = patient.dob ? formatDate(patient.dob) : 'Não informado';
+        detailClientDiagnosisSpan.textContent = patient.diagnosis || 'Não informado';
+        detailClientNotesSpan.textContent = patient.general_notes || 'Sem anotações'; 
+        renderAssignedPrograms(patient.assigned_program_ids || []);
+        if(progressDetailsAreaDiv) progressDetailsAreaDiv.innerHTML = `<div class="text-center text-gray-500 py-6"><i class="fas fa-tasks text-3xl mb-3 text-gray-400"></i><p class="text-sm">Selecione um programa atribuído na lista ao lado para registrar uma sessão ou ver o gráfico de progresso.</p></div>`;
+        selectedProgramForProgress = null;
+    }
+    async function handleAddOrEditClientSubmit(e) {
+        e.preventDefault();
+        if (!isAuthenticated || !authToken) return;
+        const editingClientId = e.target.dataset.editingClientId;
+        const clientData = {
+            name: clientNameInput.value.trim(),
+            dob: clientDobInput.value || null,
+            diagnosis: clientDiagnosisInput.value.trim() || null,
+            general_notes: clientNotesInput.value.trim() || null,
+        };
+        if (!clientData.name) { alert("O nome do cliente é obrigatório."); clientNameInput.focus(); return; }
+        let url = `${API_BASE_URL}/patients`;
+        let method = 'POST';
+        if (editingClientId) { url += `/${editingClientId}`; method = 'PUT'; }
+        else { const limit = currentUser.max_patients || 0; if (patients.length >= limit) { alert(`Limite de ${limit} pacientes atingido.`); return; } }
+        try {
+            const response = await fetch(url, { method: method, headers: { 'Authorization': `Bearer ${authToken}`, 'Content-Type': 'application/json', }, body: JSON.stringify(clientData), });
+            const result = await response.json();
+            if (response.ok) {
+                alert(`Cliente "${clientData.name}" ${editingClientId ? 'atualizado' : 'cadastrado'} com sucesso!`);
+                resetAddClientForm(); 
+                await loadUserPatientsFromAPI(); 
+                const targetId = result.patient?.id || editingClientId;
+                const foundPatient = patients.find(p => String(p.id) === String(targetId));
+                if (foundPatient) { selectPatient(foundPatient); } else { displayNoClientSelected(); }
+                updateContextualSidebar(currentView, currentActiveArea);
+            } else { console.error(`Erro ao ${editingClientId ? 'editar' : 'adicionar'} cliente:`, result.errors?.[0]?.msg || response.statusText); alert(`Erro: ${result.errors?.[0]?.msg || 'Falha ao salvar.'}`); }
+        } catch (error) { console.error(`Erro de rede ao ${editingClientId ? 'editar' : 'adicionar'} cliente:`, error); alert("Erro de conexão."); }
+    }
+    function resetAddClientForm() {
+        addClientForm.reset();
+        addClientFormTitle.textContent = 'Cadastrar Novo Cliente';
+        addClientFormSubmitBtn.innerHTML = '<i class="fas fa-save mr-1.5"></i> Salvar Cliente';
+        delete addClientForm.dataset.editingClientId; 
+    }
+    async function deleteClient() {
+        if (!selectedPatient || !authToken) return;
+        if (confirm(`Tem certeza que deseja excluir o cliente "${selectedPatient.name}"? Esta ação não pode ser desfeita.`)) {
+            const patientId = selectedPatient.id;
+            const patientName = selectedPatient.name;
+            try {
+                const response = await fetch(`${API_BASE_URL}/patients/${patientId}`, { method: 'DELETE', headers: { 'Authorization': `Bearer ${authToken}` } });
+                if (response.ok || response.status === 204) {
+                    alert(`Cliente "${patientName}" excluído com sucesso.`);
+                    displayNoClientSelected(); 
+                    await loadUserPatientsFromAPI(); 
+                } else { const result = await response.json().catch(() => ({ errors: [{ msg: response.statusText }] })); console.error('Erro ao excluir cliente:', result.errors?.[0]?.msg || response.statusText); alert(`Erro ao excluir: ${result.errors?.[0]?.msg || 'Falha.'}`); }
+            } catch (error) { console.error('Erro de rede ao excluir cliente:', error); alert("Erro de conexão."); }
+        }
+    }
+    function editClient() {
+        if (!selectedPatient) return;
+        clientNameInput.value = selectedPatient.name;
+        clientDobInput.value = selectedPatient.dob || '';
+        clientDiagnosisInput.value = selectedPatient.diagnosis || '';
+        clientNotesInput.value = selectedPatient.general_notes || '';
+        addClientFormTitle.textContent = 'Editar Cliente';
+        addClientFormSubmitBtn.innerHTML = '<i class="fas fa-save mr-1.5"></i> Salvar Alterações';
+        addClientForm.dataset.editingClientId = selectedPatient.id;
+        clientDetailsPanel.classList.add('hidden');
+        noClientSelectedPlaceholder.classList.add('hidden');
+        addClientPanel.classList.remove('hidden');
+        clientNameInput.focus();
+        if (window.innerWidth < 768 && contextualSidebar) { contextualSidebar.classList.add('hidden'); }
+    }
 
     // --- Gerenciamento de Programas ---
     function renderProgramCategories(activeArea) {
@@ -309,41 +827,57 @@ document.addEventListener('DOMContentLoaded', () => {
             programCategoriesContainer.innerHTML = `<p class="text-xs text-gray-500 px-1">Nenhuma categoria para ${activeArea.replace(/([A-Z])/g, ' $1').trim()}.</p>`;
             return;
         }
-
         const programsInArea = allProgramsData[activeArea];
         const categories = {};
         programsInArea.forEach(program => {
             const tag = program.tag || 'Sem Categoria';
-            if (!categories[tag]) {
-                categories[tag] = {};
-            }
+            if (!categories[tag]) categories[tag] = {};
             categories[tag][program.id] = program.title;
         });
-
         programCategoriesContainer.innerHTML = '';
         const sortedCategories = Object.keys(categories).sort((a, b) => a.localeCompare(b, 'pt-BR'));
-
         if (sortedCategories.length === 0) {
             programCategoriesContainer.innerHTML = `<p class="text-xs text-gray-500 px-1">Nenhuma categoria encontrada para ${activeArea.replace(/([A-Z])/g, ' $1').trim()}.</p>`;
             return;
         }
-
         sortedCategories.forEach(tag => {
             const details = document.createElement('details');
             details.className = 'group program-category-details';
             details.innerHTML = `<summary class="flex justify-between items-center font-medium cursor-pointer list-none p-2 rounded hover:bg-gray-100 text-gray-700 group-open:active"><span class="flex items-center"><i class="fas fa-folder w-4 mr-2 text-indigo-400 group-open:text-indigo-600"></i> ${tag}</span><span class="transition group-open:rotate-90"><i class="fas fa-chevron-right text-xs"></i></span></summary><ul class="mt-1 ml-4 space-y-1 border-l border-gray-200 pl-3 program-list-ul">${Object.entries(categories[tag]).sort(([, titleA], [, titleB]) => titleA.localeCompare(titleB, 'pt-BR')).map(([id, title]) => `<li><a href="#" class="program-link block text-sm text-gray-600 hover:text-indigo-600 hover:bg-gray-100 px-2 py-1 rounded" data-program-id="${id}">${title}</a></li>`).join('')}</ul>`;
             programCategoriesContainer.appendChild(details);
         });
-
         programCategoriesContainer.querySelectorAll('a.program-link').forEach(link => { link.removeEventListener('click', handleProgramLinkClick); link.addEventListener('click', handleProgramLinkClick); });
         programCategoriesContainer.querySelectorAll('details.program-category-details').forEach(detailsElement => { detailsElement.removeEventListener('toggle', handleCategoryToggle); detailsElement.addEventListener('toggle', handleCategoryToggle); });
     }
-
-    function handleProgramLinkClick(e) { e.preventDefault(); if (!isAuthenticated) return; const link = e.currentTarget; const programId = link.dataset.programId; programCategoriesContainer.querySelectorAll('a.program-link, summary').forEach(el => el.classList.remove('active')); link.classList.add('active'); const parentSummary = link.closest('details')?.querySelector('summary'); if (parentSummary) { parentSummary.classList.add('active'); if (!link.closest('details').open) { link.closest('details').open = true; } } filterAndDisplayPrograms(currentActiveArea, programId, '');
-        programSearchInput.value = ''; }
-
-    function handleCategoryToggle(event) { if (!isAuthenticated) return; const detailsElement = event.target; if (detailsElement.open) { programCategoriesContainer.querySelectorAll('details.program-category-details').forEach(otherDetails => { if (otherDetails !== detailsElement) { otherDetails.open = false; } }); programCategoriesContainer.querySelectorAll('details.program-category-details:not([open]) a.program-link, details.program-category-details:not([open]) summary').forEach(el => { el.classList.remove('active'); }); } else { detailsElement.querySelectorAll('a.program-link, summary').forEach(el => { el.classList.remove('active'); }); filterAndDisplayPrograms(currentActiveArea, null, programSearchInput.value); } }
-
+    function handleProgramLinkClick(e) {
+        e.preventDefault();
+        if (!isAuthenticated) return;
+        const link = e.currentTarget;
+        const programId = link.dataset.programId;
+        programCategoriesContainer.querySelectorAll('a.program-link, summary').forEach(el => el.classList.remove('active'));
+        link.classList.add('active');
+        const parentSummary = link.closest('details')?.querySelector('summary');
+        if (parentSummary) {
+            parentSummary.classList.add('active');
+            if (!link.closest('details').open) { link.closest('details').open = true; }
+        }
+        filterAndDisplayPrograms(currentActiveArea, programId, '');
+        programSearchInput.value = '';
+        if (window.innerWidth < 768 && contextualSidebar) { contextualSidebar.classList.add('hidden'); }
+    }
+    function handleCategoryToggle(event) {
+        if (!isAuthenticated) return;
+        const detailsElement = event.target;
+        if (detailsElement.open) {
+            programCategoriesContainer.querySelectorAll('details.program-category-details').forEach(otherDetails => {
+                if (otherDetails !== detailsElement) { otherDetails.open = false; }
+            });
+            programCategoriesContainer.querySelectorAll('details.program-category-details:not([open]) a.program-link, details.program-category-details:not([open]) summary').forEach(el => { el.classList.remove('active'); });
+        } else {
+            detailsElement.querySelectorAll('a.program-link, summary').forEach(el => { el.classList.remove('active'); });
+            filterAndDisplayPrograms(currentActiveArea, null, programSearchInput.value);
+        }
+    }
     function filterAndDisplayPrograms(area, programId = null, searchText = '') {
         if (!isAuthenticated || !allProgramsData || !allProgramsData[area]) {
             programLibraryListDiv.innerHTML = '';
@@ -352,27 +886,23 @@ document.addEventListener('DOMContentLoaded', () => {
             noProgramsMessage.textContent = `Nenhum programa encontrado para ${area.replace(/([A-Z])/g, ' $1').trim()}.`;
             return;
         }
-
         programLibraryListDiv.innerHTML = '';
         const lowerSearchText = searchText.toLowerCase().trim();
         const programsOfCurrentArea = allProgramsData[area] || [];
         let programsToDisplay = [];
-
-        if (programId) {
+        if (programId) { 
             const program = programsOfCurrentArea.find(p => p.id === programId);
             if (program) programsToDisplay.push(program);
-        } else if (lowerSearchText) {
+        } else if (lowerSearchText) { 
             programsToDisplay = programsOfCurrentArea.filter(program =>
                 program.title.toLowerCase().includes(lowerSearchText) ||
-                program.tag?.toLowerCase().includes(lowerSearchText) ||
-                program.objective?.toLowerCase().includes(lowerSearchText)
+                (program.tag && program.tag.toLowerCase().includes(lowerSearchText)) ||
+                (program.objective && program.objective.toLowerCase().includes(lowerSearchText))
             );
-        } else {
+        } else { 
             programsToDisplay = [...programsOfCurrentArea];
         }
-
         programsToDisplay.sort((a, b) => a.title.localeCompare(b.title, 'pt-BR'));
-
         if (programsToDisplay.length > 0) {
             programViewPlaceholder.classList.add('hidden');
             noProgramsMessage.classList.add('hidden');
@@ -380,94 +910,191 @@ document.addEventListener('DOMContentLoaded', () => {
                 const card = createProgramCardElement(program, selectedPatient);
                 programLibraryListDiv.appendChild(card);
             });
-        } else {
+        } else { 
             programViewPlaceholder.classList.add('hidden');
             noProgramsMessage.classList.remove('hidden');
-            noProgramsMessage.textContent = searchText ? `Nenhum programa encontrado para "${searchText}" em ${area.replace(/([A-Z])/g, ' $1').trim()}.` : `Nenhum programa em ${area.replace(/([A-Z])/g, ' $1').trim()}.`;
+            noProgramsMessage.textContent = searchText ? `Nenhum programa encontrado para "${searchText}" em ${area.replace(/([A-Z])/g, ' $1').trim()}.` : (programId ? `Programa não encontrado.` : `Nenhum programa em ${area.replace(/([A-Z])/g, ' $1').trim()}.`);
+        }
+    }
+    function getTagColor(tag) {
+        const colors = {
+            "Mando": "bg-blue-100 text-blue-800", "Tato": "bg-green-100 text-green-800",
+            "Ecoico": "bg-yellow-100 text-yellow-800", "Intraverbal": "bg-purple-100 text-purple-800",
+            "Imitação": "bg-pink-100 text-pink-800", "Contato Visual": "bg-red-100 text-red-800",
+            "Comportamento Ouvinte": "bg-orange-100 text-orange-800", "Brincar": "bg-teal-100 text-teal-800",
+            "Habilidades Sociais": "bg-cyan-100 text-cyan-800", "Pareamento": "bg-gray-300 text-gray-800",
+            "Coordenação Fina": "bg-lime-200 text-lime-800", "Coordenação Grossa": "bg-emerald-200 text-emerald-800",
+            "Processamento Sensorial": "bg-amber-200 text-amber-800", "Percepção Visual": "bg-sky-200 text-sky-800",
+            "AVDs": "bg-violet-200 text-violet-800", "Brincar T.O.": "bg-fuchsia-200 text-fuchsia-800",
+            "Funções Executivas T.O.": "bg-rose-200 text-rose-800", "Esquema Corporal": "bg-indigo-200 text-indigo-800",
+            "Lateralidade": "bg-yellow-300 text-yellow-900", "Organização Espaço-Temporal": "bg-green-300 text-green-900",
+            "Coordenação Global": "bg-blue-300 text-blue-900", "Coordenação Fina Psicomot.": "bg-lime-300 text-lime-900",
+            "Equilíbrio e Ritmo": "bg-pink-300 text-pink-900", "Grafomotricidade": "bg-purple-300 text-purple-900",
+            "Pré-Alfabetização": "bg-red-300 text-red-900", "Leitura e Escrita": "bg-orange-300 text-orange-900",
+            "Matemática Psicoped.": "bg-teal-300 text-teal-900", "Atenção e Memória": "bg-cyan-300 text-cyan-900",
+            "Organização de Estudos": "bg-gray-400 text-gray-900", "Percepção Auditiva": "bg-fuchsia-300 text-fuchsia-900",
+            "Expressão Vocal/Musical": "bg-rose-300 text-rose-900", "Ritmo e Movimento": "bg-sky-300 text-sky-900",
+            "Interação Musical": "bg-violet-300 text-violet-900", "Relaxamento Musical": "bg-emerald-300 text-emerald-900",
+            "Linguagem Receptiva": "bg-blue-400 text-blue-900", "Linguagem Expressiva": "bg-green-400 text-green-900",
+            "Articulação/Fonologia": "bg-yellow-400 text-yellow-900", "Fluência": "bg-purple-400 text-purple-900",
+            "Motricidade Orofacial": "bg-pink-400 text-pink-900", "Pragmática (Fono)": "bg-orange-400 text-orange-900"
+        };
+        return colors[tag] || "bg-gray-200 text-gray-700";
+    }
+    function createProgramCardElement(program, currentSelectedPatient) {
+        const card = document.createElement('div');
+        card.className = 'program-card bg-white rounded-lg shadow p-5 flex flex-col justify-between transition hover:shadow-md border border-gray-200';
+        card.dataset.programId = program.id;
+        const procedurePreviewHTML = program.procedure?.slice(0, 2).map(step =>
+            `<p class="text-xs text-gray-600 mb-1 truncate" title="${step.term}: ${step.description}"><strong class="font-medium text-gray-800">${step.term}:</strong> ${step.description}</p>`
+        ).join('') + (program.procedure?.length > 2 ? '<p class="text-xs text-gray-400 italic mt-1">...</p>' : '') || '<p class="text-xs text-gray-400 italic">Procedimento não detalhado.</p>';
+        const materialsHTML = program.materials?.length > 0 ?
+            `<div class="mt-2"><h4 class="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1">Materiais</h4><ul class="list-disc list-inside text-xs text-gray-600 space-y-0.5">${program.materials.slice(0, 3).map(item => `<li class="truncate" title="${item}">${item}</li>`).join('')}${program.materials.length > 3 ? '<li class="text-gray-400 italic">...</li>' : ''}</ul></div>` : '';
+        const assignedProgramIds = currentSelectedPatient?.assigned_program_ids || [];
+        const isAssigned = currentSelectedPatient && assignedProgramIds.includes(program.id);
+        const assignButtonHTML = currentSelectedPatient ?
+            `<button class="assign-program-btn text-xs font-medium py-1.5 px-3 rounded ${isAssigned ? 'assigned bg-emerald-500 text-white cursor-default' : 'bg-indigo-100 text-indigo-700 hover:bg-indigo-200'}" data-program-id="${program.id}" title="${isAssigned ? 'Programa Já Atribuído' : 'Atribuir ao Cliente'}" ${isAssigned ? 'disabled' : ''}><i class="fas ${isAssigned ? 'fa-check' : 'fa-plus'} mr-1"></i> ${isAssigned ? 'Atribuído' : 'Atribuir'}</button>` :
+            `<button class="text-xs font-medium py-1.5 px-3 rounded bg-gray-100 text-gray-500 cursor-not-allowed" disabled title="Selecione um cliente para atribuir programas"><i class="fas fa-plus mr-1"></i> Atribuir</button>`;
+        card.innerHTML = `
+            <div>
+                <div class="flex justify-between items-start mb-2">
+                    <h3 class="text-base font-semibold text-gray-800 leading-tight">${program.title}</h3>
+                    <span class="tag text-xs font-semibold uppercase px-2 py-0.5 rounded-full ${getTagColor(program.tag || 'N/A')} flex-shrink-0 ml-2">${program.tag || 'N/A'}</span>
+                </div>
+                <p class="text-xs font-medium text-indigo-600 mb-1">Objetivo:</p>
+                <p class="text-xs text-gray-600 mb-3 line-clamp-2" title="${program.objective || ''}">${program.objective || 'Não definido'}</p>
+                ${materialsHTML}
+                <div class="mt-3">
+                    <h4 class="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1">Procedimento (Prévia)</h4>
+                    ${procedurePreviewHTML}
+                </div>
+            </div>
+            <div class="program-card-actions mt-4 pt-3 border-t border-gray-100 text-right">
+                ${assignButtonHTML}
+            </div>`;
+        const assignButton = card.querySelector('.assign-program-btn');
+        if (assignButton && !assignButton.disabled) {
+            assignButton.removeEventListener('click', handleAssignProgram);
+            assignButton.addEventListener('click', handleAssignProgram);
+        }
+        return card;
+    }
+    async function handleAssignProgram(e) {
+        if (!isAuthenticated || !selectedPatient || !authToken) { alert("Por favor, selecione um cliente antes de atribuir um programa."); return; }
+        const button = e.currentTarget;
+        const programId = button.dataset.programId;
+        const program = getProgramById(programId);
+        if (!program) { console.error("Programa não encontrado para atribuir:", programId); alert("Erro: Programa não encontrado."); return; }
+        const assignedProgramIds = selectedPatient.assigned_program_ids || [];
+        if (assignedProgramIds.includes(programId)) { console.warn(`Programa ${programId} já atribuído ao paciente ${selectedPatient.id}.`); return; }
+        console.log(`Atribuindo programa ${programId} (${program.title}) ao paciente ${selectedPatient.id} (${selectedPatient.name})`);
+        button.disabled = true; 
+        button.innerHTML = '<i class="fas fa-spinner fa-spin mr-1"></i> Atribuindo...';
+        try {
+            const response = await fetch(`${API_BASE_URL}/patients/${selectedPatient.id}/programs`, { method: 'POST', headers: { 'Authorization': `Bearer ${authToken}`, 'Content-Type': 'application/json' }, body: JSON.stringify({ programId: programId }) });
+            if (response.ok) {
+                alert(`Programa "${program.title}" atribuído a ${selectedPatient.name}.`);
+                if (!selectedPatient.assigned_program_ids) selectedPatient.assigned_program_ids = [];
+                selectedPatient.assigned_program_ids.push(programId);
+                renderAssignedPrograms(selectedPatient.assigned_program_ids); 
+                button.classList.remove('bg-indigo-100', 'text-indigo-700', 'hover:bg-indigo-200');
+                button.classList.add('assigned', 'bg-emerald-500', 'text-white', 'cursor-default');
+                button.innerHTML = `<i class="fas fa-check mr-1"></i> Atribuído`;
+                button.title = 'Programa Já Atribuído';
+            } else { const result = await response.json().catch(() => ({ errors: [{ msg: "Erro ao processar resposta do servidor." }] })); console.error('Erro ao atribuir programa:', result.errors?.[0]?.msg || response.statusText); alert(`Erro ao atribuir programa: ${result.errors?.[0]?.msg || 'Falha na operação.'}`); button.disabled = false; button.innerHTML = `<i class="fas fa-plus mr-1"></i> Atribuir`; }
+        } catch (error) { console.error('Erro de rede ao atribuir programa:', error); alert("Erro de conexão ao tentar atribuir o programa."); button.disabled = false; button.innerHTML = `<i class="fas fa-plus mr-1"></i> Atribuir`; }
+    }
+    async function handleRemoveProgram(e) {
+        if (!isAuthenticated || !selectedPatient || !authToken) return;
+        const button = e.currentTarget;
+        const programIdToRemove = button.dataset.programId;
+        const program = getProgramById(programIdToRemove);
+        const programTitle = program ? program.title : 'este programa';
+        if (confirm(`Tem certeza que deseja remover o programa "${programTitle}" de ${selectedPatient.name}?`)) {
+            console.log(`Removendo programa ${programIdToRemove} do paciente ${selectedPatient.id}`);
+            button.disabled = true; 
+            try {
+                const response = await fetch(`${API_BASE_URL}/patients/${selectedPatient.id}/programs/${programIdToRemove}`, { method: 'DELETE', headers: { 'Authorization': `Bearer ${authToken}` } });
+                if (response.ok || response.status === 204) {
+                    alert(`Programa "${programTitle}" removido de ${selectedPatient.name}.`);
+                    selectedPatient.assigned_program_ids = (selectedPatient.assigned_program_ids || []).filter(id => id !== programIdToRemove);
+                    renderAssignedPrograms(selectedPatient.assigned_program_ids); 
+                    const programCardButton = programLibraryListDiv.querySelector(`.assign-program-btn[data-program-id="${programIdToRemove}"]`);
+                    if (programCardButton) {
+                        programCardButton.classList.remove('assigned', 'bg-emerald-500', 'text-white', 'cursor-default');
+                        programCardButton.classList.add('bg-indigo-100', 'text-indigo-700', 'hover:bg-indigo-200');
+                        programCardButton.innerHTML = `<i class="fas fa-plus mr-1"></i> Atribuir`;
+                        programCardButton.disabled = false;
+                        programCardButton.title = 'Atribuir ao Cliente';
+                    }
+                    if (selectedProgramForProgress?.id === programIdToRemove) {
+                        if(progressDetailsAreaDiv) progressDetailsAreaDiv.innerHTML = `<div class="text-center text-gray-500 py-6"><i class="fas fa-tasks text-3xl mb-3 text-gray-400"></i><p class="text-sm">Selecione um programa atribuído na lista ao lado para registrar uma sessão ou ver o gráfico de progresso.</p></div>`;
+                        selectedProgramForProgress = null;
+                    }
+                } else { const result = await response.json().catch(() => ({ errors: [{ msg: "Erro ao processar resposta do servidor." }] })); console.error('Erro ao remover programa:', result.errors?.[0]?.msg || response.statusText); alert(`Erro ao remover programa: ${result.errors?.[0]?.msg || 'Falha na operação.'}`); button.disabled = false; }
+            } catch (error) { console.error('Erro de rede ao remover programa:', error); alert("Erro de conexão ao tentar remover o programa."); button.disabled = false; }
+        }
+    }
+    function renderAssignedPrograms(assignedProgramIds) {
+        if (!assignedProgramsListUl || !noAssignedProgramsLi) return;
+        assignedProgramsListUl.innerHTML = ''; 
+        if (!assignedProgramIds || assignedProgramIds.length === 0) {
+            noAssignedProgramsLi.classList.remove('hidden');
+            assignedProgramsListUl.appendChild(noAssignedProgramsLi);
+        } else {
+            noAssignedProgramsLi.classList.add('hidden');
+            const assignedProgramsDetails = assignedProgramIds.map(id => getProgramById(id)).filter(p => p).sort((a, b) => a.title.localeCompare(b.title, 'pt-BR'));
+            assignedProgramsDetails.forEach(program => {
+                const li = document.createElement('li');
+                const isSelectedForProgress = selectedProgramForProgress?.id === program.id;
+                li.className = `assigned-program-item flex justify-between items-center p-2 rounded hover:bg-gray-50 ${isSelectedForProgress ? 'active bg-indigo-100' : ''}`;
+                li.dataset.programId = program.id;
+                const fullTitle = `${program.title} (${program.tag || 'N/A'})`;
+                li.innerHTML = `
+                    <span class="program-title-span text-sm font-medium text-gray-700 truncate pr-2" title="${fullTitle}">
+                        ${program.title} <span class="text-xs text-gray-500">(${program.tag || 'N/A'})</span>
+                    </span>
+                    <div class="program-actions flex space-x-1 sm:space-x-2 flex-shrink-0 no-print">
+                        <button class="view-progress-btn text-xs font-medium text-indigo-600 hover:text-indigo-800 px-1.5 py-1 sm:px-2 rounded hover:bg-indigo-50 flex items-center" title="Ver Progresso/Registrar Sessão" data-program-id="${program.id}">
+                            <i class="fas fa-chart-line fa-fw mr-1"></i> <span class="hidden sm:inline">Ver/Reg.</span>
+                        </button>
+                        <button class="remove-program-btn text-xs font-medium text-red-500 hover:text-red-700 px-1.5 py-1 sm:px-2 rounded hover:bg-red-50 flex items-center" title="Remover Programa" data-program-id="${program.id}">
+                            <i class="fas fa-times-circle fa-fw mr-1"></i> <span class="hidden sm:inline">Remover</span>
+                        </button>
+                    </div>`;
+                const viewBtn = li.querySelector('.view-progress-btn');
+                const removeBtn = li.querySelector('.remove-program-btn');
+                viewBtn.removeEventListener('click', handleViewProgramProgress); 
+                viewBtn.addEventListener('click', handleViewProgramProgress);   
+                removeBtn.removeEventListener('click', handleRemoveProgram);
+                removeBtn.addEventListener('click', handleRemoveProgram);
+                assignedProgramsListUl.appendChild(li);
+            });
         }
     }
 
-    // MODIFICADO: Função getTagColor atualizada com novas cores para todas as áreas
-    function getTagColor(tag) {
-        const colors = {
-            // Psicologia
-            "Mando": "bg-blue-100 text-blue-800",
-            "Tato": "bg-green-100 text-green-800",
-            "Ecoico": "bg-yellow-100 text-yellow-800",
-            "Intraverbal": "bg-purple-100 text-purple-800",
-            "Imitação": "bg-pink-100 text-pink-800",
-            "Contato Visual": "bg-red-100 text-red-800",
-            "Comportamento Ouvinte": "bg-orange-100 text-orange-800",
-            "Brincar": "bg-teal-100 text-teal-800",
-            "Habilidades Sociais": "bg-cyan-100 text-cyan-800",
-            "Pareamento": "bg-gray-300 text-gray-800",
-
-            // Terapia Ocupacional
-            "Coordenação Fina": "bg-lime-200 text-lime-800", // Ajustado para melhor contraste
-            "Coordenação Grossa": "bg-emerald-200 text-emerald-800",
-            "Processamento Sensorial": "bg-amber-200 text-amber-800",
-            "Percepção Visual": "bg-sky-200 text-sky-800",
-            "AVDs": "bg-violet-200 text-violet-800",
-            "Brincar T.O.": "bg-fuchsia-200 text-fuchsia-800",
-            "Funções Executivas T.O.": "bg-rose-200 text-rose-800",
-
-            // Psicomotricidade
-            "Esquema Corporal": "bg-indigo-200 text-indigo-800",
-            "Lateralidade": "bg-yellow-300 text-yellow-900",
-            "Organização Espaço-Temporal": "bg-green-300 text-green-900",
-            "Coordenação Global": "bg-blue-300 text-blue-900",
-            "Coordenação Fina Psicomot.": "bg-lime-300 text-lime-900",
-            "Equilíbrio e Ritmo": "bg-pink-300 text-pink-900",
-            "Grafomotricidade": "bg-purple-300 text-purple-900",
-
-            // Psicopedagogia
-            "Pré-Alfabetização": "bg-red-300 text-red-900",
-            "Leitura e Escrita": "bg-orange-300 text-orange-900",
-            "Matemática Psicoped.": "bg-teal-300 text-teal-900",
-            "Atenção e Memória": "bg-cyan-300 text-cyan-900",
-            "Organização de Estudos": "bg-gray-400 text-gray-900",
-
-            // Musicoterapia
-            "Percepção Auditiva": "bg-fuchsia-300 text-fuchsia-900",
-            "Expressão Vocal/Musical": "bg-rose-300 text-rose-900",
-            "Ritmo e Movimento": "bg-sky-300 text-sky-900",
-            "Interação Musical": "bg-violet-300 text-violet-900",
-            "Relaxamento Musical": "bg-emerald-300 text-emerald-900",
-
-            // Fonoaudiologia
-            "Linguagem Receptiva": "bg-blue-400 text-blue-900", // Usando tons mais escuros para diferenciação
-            "Linguagem Expressiva": "bg-green-400 text-green-900",
-            "Articulação/Fonologia": "bg-yellow-400 text-yellow-900",
-            "Fluência": "bg-purple-400 text-purple-900",
-            "Motricidade Orofacial": "bg-pink-400 text-pink-900",
-            "Pragmática (Fono)": "bg-orange-400 text-orange-900"
-        };
-        return colors[tag] || "bg-gray-200 text-gray-700"; // Cor padrão ajustada
-    }
-
-    function createProgramCardElement(program, currentSelectedPatient) { const card = document.createElement('div'); card.className = 'program-card bg-white rounded-lg shadow p-5 flex flex-col justify-between transition hover:shadow-md border border-gray-200'; card.dataset.programId = program.id; const procedurePreviewHTML = program.procedure?.slice(0, 2).map(step => `<p class="text-xs text-gray-600 mb-1 truncate"><strong class="font-medium text-gray-800">${step.term}:</strong> ${step.description}</p>`).join('') + (program.procedure?.length > 2 ? '<p class="text-xs text-gray-400 italic mt-1">...</p>' : '') || '<p class="text-xs text-gray-400 italic">Procedimento não detalhado.</p>'; const materialsHTML = program.materials?.length > 0 ? `<div class="mt-2"><h4 class="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1">Materiais</h4><ul class="list-disc list-inside text-xs text-gray-600 space-y-0.5">${program.materials.slice(0, 3).map(item => `<li class="truncate">${item}</li>`).join('')}${program.materials.length > 3 ? '<li class="text-gray-400 italic">...</li>' : ''}</ul></div>` : ''; const assignedProgramIds = currentSelectedPatient?.assigned_program_ids || []; const isAssigned = currentSelectedPatient && assignedProgramIds.includes(program.id); const assignButtonHTML = currentSelectedPatient ? `<button class="assign-program-btn text-xs font-medium py-1 px-3 rounded ${isAssigned ? 'assigned bg-emerald-500 text-white cursor-default' : 'bg-indigo-100 text-indigo-700 hover:bg-indigo-200'}" data-program-id="${program.id}" title="${isAssigned ? 'Programa Já Atribuído' : 'Atribuir ao Cliente'}" ${isAssigned ? 'disabled' : ''}><i class="fas ${isAssigned ? 'fa-check' : 'fa-plus'} mr-1"></i> ${isAssigned ? 'Atribuído' : 'Atribuir'}</button>` : `<button class="text-xs font-medium py-1 px-3 rounded bg-gray-100 text-gray-500 cursor-not-allowed" disabled title="Selecione um cliente"><i class="fas fa-plus mr-1"></i> Atribuir</button>`; card.innerHTML = `<div><div class="flex justify-between items-start mb-2"><h3 class="text-base font-semibold text-gray-800 leading-tight">${program.title}</h3><span class="tag text-xs font-semibold uppercase px-2 py-0.5 rounded-full ${getTagColor(program.tag || 'N/A')} flex-shrink-0 ml-2">${program.tag || 'N/A'}</span></div><p class="text-xs font-medium text-indigo-600 mb-1">Objetivo:</p><p class="text-xs text-gray-600 mb-3 line-clamp-2" title="${program.objective || ''}">${program.objective || 'Não definido'}</p>${materialsHTML}<div class="mt-3"><h4 class="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1">Procedimento (Prévia)</h4>${procedurePreviewHTML}</div></div><div class="program-card-actions mt-4 pt-3 border-t border-gray-100 text-right">${assignButtonHTML}</div>`; const assignButton = card.querySelector('.assign-program-btn'); if (assignButton && !assignButton.disabled) { assignButton.removeEventListener('click', handleAssignProgram); assignButton.addEventListener('click', handleAssignProgram); } return card; }
-
-    async function handleAssignProgram(e) { if (!isAuthenticated || !selectedPatient || !authToken) { alert("Selecione um cliente."); return; } const button = e.currentTarget; const programId = button.dataset.programId; const program = getProgramById(programId);
-        if (!program) { console.error("Programa não encontrado para atribuir:", programId); return; } const assignedProgramIds = selectedPatient?.assigned_program_ids || []; if (assignedProgramIds.includes(programId)) return; console.log(`Atribuindo programa ${programId} ao paciente ${selectedPatient.id}`); try { const response = await fetch(`${API_BASE_URL}/patients/${selectedPatient.id}/programs`, { method: 'POST', headers: { 'Authorization': `Bearer ${authToken}`, 'Content-Type': 'application/json', }, body: JSON.stringify({ programId: programId }) }); if (response.ok) { alert(`Programa "${program.title}" atribuído a ${selectedPatient.name}.`); if (!selectedPatient.assigned_program_ids) selectedPatient.assigned_program_ids = []; selectedPatient.assigned_program_ids.push(programId); renderAssignedPrograms(selectedPatient.assigned_program_ids); button.classList.remove('bg-indigo-100', 'text-indigo-700', 'hover:bg-indigo-200'); button.classList.add('assigned', 'bg-emerald-500', 'text-white', 'cursor-default'); button.innerHTML = `<i class="fas fa-check mr-1"></i> Atribuído`; button.disabled = true; button.title = 'Programa Já Atribuído'; } else { const result = await response.json().catch(() => ({ errors: [{msg: response.statusText}] })); console.error('Erro ao atribuir:', result.errors?.[0]?.msg || response.statusText); alert(`Erro: ${result.errors?.[0]?.msg || 'Falha.'}`); } } catch (error) { console.error('Erro de rede ao atribuir:', error); alert("Erro de conexão."); } }
-
-    async function handleRemoveProgram(e) { if (!isAuthenticated || !selectedPatient || !authToken) return; const button = e.currentTarget; const programIdToRemove = button.dataset.programId; const program = getProgramById(programIdToRemove);
-        const programTitle = program ? program.title : 'este programa'; if (confirm(`Remover "${programTitle}" de ${selectedPatient.name}?`)) { console.log(`Removendo programa ${programIdToRemove} do paciente ${selectedPatient.id}`); try { const response = await fetch(`${API_BASE_URL}/patients/${selectedPatient.id}/programs/${programIdToRemove}`, { method: 'DELETE', headers: { 'Authorization': `Bearer ${authToken}`, } }); if (response.ok || response.status === 204) { alert(`Programa "${programTitle}" removido.`); selectedPatient.assigned_program_ids = (selectedPatient.assigned_program_ids || []).filter(id => id !== programIdToRemove); renderAssignedPrograms(selectedPatient.assigned_program_ids); const programCardButton = programLibraryListDiv.querySelector(`.assign-program-btn[data-program-id="${programIdToRemove}"]`); if (programCardButton) { programCardButton.classList.remove('assigned', 'bg-emerald-500', 'text-white', 'cursor-default'); programCardButton.classList.add('bg-indigo-100', 'text-indigo-700', 'hover:bg-indigo-200'); programCardButton.innerHTML = `<i class="fas fa-plus mr-1"></i> Atribuir`; programCardButton.disabled = false; programCardButton.title = 'Atribuir ao Cliente'; } if (selectedProgramForProgress?.id === programIdToRemove) { clearSessionProgressArea(); } } else { const result = await response.json().catch(() => ({ errors: [{msg: response.statusText}] })); console.error('Erro ao remover:', result.errors?.[0]?.msg || response.statusText); alert(`Erro: ${result.errors?.[0]?.msg || 'Falha.'}`); } } catch (error) { console.error('Erro de rede ao remover:', error); alert("Erro de conexão."); } } }
-
-    function renderAssignedPrograms(assignedProgramIds) { assignedProgramsListUl.innerHTML = ''; if (!assignedProgramIds || assignedProgramIds.length === 0) { noAssignedProgramsLi.classList.remove('hidden'); assignedProgramsListUl.appendChild(noAssignedProgramsLi); } else { noAssignedProgramsLi.classList.add('hidden'); const assignedProgramsDetails = assignedProgramIds.map(id => getProgramById(id)).filter(p => p).sort((a, b) => a.title.localeCompare(b.title, 'pt-BR'));
-            assignedProgramsDetails.forEach(program => { const li = document.createElement('li'); const isSelectedForProgress = selectedProgramForProgress?.id === program.id; li.className = `assigned-program-item flex justify-between items-center p-2 rounded hover:bg-gray-50 ${isSelectedForProgress ? 'active' : ''}`; li.dataset.programId = program.id; const fullTitle = `${program.title} (${program.tag || 'N/A'})`; li.innerHTML = `<span class="program-title-span text-sm font-medium text-gray-700 truncate pr-2" title="${fullTitle}">${program.title} <span class="text-xs text-gray-500">(${program.tag || 'N/A'})</span></span><div class="program-actions flex space-x-2 flex-shrink-0 no-print"><button class="view-progress-btn text-xs font-medium text-indigo-600 hover:text-indigo-800 px-2 py-1 rounded hover:bg-indigo-50 flex items-center" title="Ver Progresso/Registrar Sessão" data-program-id="${program.id}"><i class="fas fa-chart-line fa-fw mr-1"></i> Ver/Registrar</button><button class="remove-program-btn text-xs font-medium text-red-500 hover:text-red-700 px-2 py-1 rounded hover:bg-red-50 flex items-center" title="Remover Programa" data-program-id="${program.id}"><i class="fas fa-times-circle fa-fw mr-1"></i> Remover</button></div>`; const viewBtn = li.querySelector('.view-progress-btn'); const removeBtn = li.querySelector('.remove-program-btn'); viewBtn.removeEventListener('click', handleViewProgramProgress); viewBtn.addEventListener('click', handleViewProgramProgress); removeBtn.removeEventListener('click', handleRemoveProgram); removeBtn.addEventListener('click', handleRemoveProgram); assignedProgramsListUl.appendChild(li); }); } }
-
     // --- Gerenciamento de Sessão e Progresso ---
-    // MODIFICADO: renderSessionEntryForm para usar "Nº de Acertos"
-    function renderSessionEntryForm(program) {
+    function handleViewProgramProgress(e) {
         if (!isAuthenticated || !selectedPatient) return;
-
-        const totalTrials = program.trials || 0; // Pega o número de tentativas do programa
+        const button = e.currentTarget;
+        const programId = button.dataset.programId;
+        selectedProgramForProgress = getProgramById(programId);
+        if (selectedProgramForProgress) {
+            renderSessionEntryForm(selectedProgramForProgress);
+            assignedProgramsListUl.querySelectorAll('.assigned-program-item').forEach(item => {
+                item.classList.toggle('active', item.dataset.programId === programId);
+                item.classList.toggle('bg-indigo-100', item.dataset.programId === programId);
+            });
+        } else { console.error("Programa selecionado para progresso não encontrado:", programId); clearSessionProgressArea(); }
+    }
+    function renderSessionEntryForm(program) {
+        if (!isAuthenticated || !selectedPatient || !program) return;
+        const totalTrials = program.trials || 0;
         const criteriaHTML = program.criteria_for_advancement ? `<div class="mb-6 p-3 bg-blue-50 border border-blue-200 rounded-md"><h5 class="text-sm font-semibold text-blue-800 mb-1">Critério para Avanço:</h5><p class="text-xs text-blue-700">${program.criteria_for_advancement}</p></div>` : '';
-
         progressDetailsAreaDiv.innerHTML = `
             <h4 class="text-base font-semibold text-gray-700 mb-3">Registrar Sessão: <span class="font-normal">${program.title}</span></h4>
             ${criteriaHTML}
-            <form id="add-session-form" data-program-id="${program.id}" class="space-y-3 mb-6 border-b pb-6 border-gray-200">
+            <form id="add-session-form" data-program-id="${program.id}" class="space-y-3 mb-6 pb-6 border-b border-gray-200">
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
                     <div>
                         <label for="session-date" class="block text-xs font-medium text-gray-600 mb-1">Data:</label>
@@ -497,149 +1124,392 @@ document.addEventListener('DOMContentLoaded', () => {
                 <div class="relative h-64 md:h-72 bg-gray-50 rounded border border-gray-200">
                     <canvas id="progressChartCanvas" class="absolute inset-0"></canvas>
                 </div>
-                <p id="no-progress-data-message" class="hidden text-center text-sm text-gray-500 mt-4">Nenhum dado de sessão registrado.</p>
+                <p id="no-progress-data-message" class="hidden text-center text-sm text-gray-500 mt-4">Nenhum dado de sessão registrado para este programa.</p>
             </div>`;
-
         const form = document.getElementById('add-session-form');
         const cancelBtn = document.getElementById('cancel-session-entry');
-        form.removeEventListener('submit', handleAddSession);
+        form.removeEventListener('submit', handleAddSession); 
         form.addEventListener('submit', handleAddSession);
-        cancelBtn.removeEventListener('click', clearSessionProgressArea);
+        cancelBtn.removeEventListener('click', clearSessionProgressArea); 
         cancelBtn.addEventListener('click', clearSessionProgressArea);
         renderProgressChart(program.id);
     }
-
-    // MODIFICADO: handleAddSession para calcular percentual
     async function handleAddSession(e) {
         e.preventDefault();
         if (!isAuthenticated || !selectedPatient || !selectedProgramForProgress || !authToken) return;
-
         const form = e.target;
         const programId = form.dataset.programId;
-        const programDetails = getProgramById(programId); // Obter detalhes do programa, incluindo 'trials'
-
-        if (!programDetails || typeof programDetails.trials !== 'number' || programDetails.trials <= 0) {
-            alert("Número total de tentativas não definido ou inválido para este programa. Não é possível calcular o percentual.");
-            return;
-        }
-
+        const programDetails = getProgramById(programId);
+        if (!programDetails || typeof programDetails.trials !== 'number' || programDetails.trials <= 0) { alert("Número total de tentativas não definido ou inválido para este programa."); return; }
         const correctTrialsInput = form.querySelector('#session-correct-trials');
         const correctTrials = parseInt(correctTrialsInput.value, 10);
-
-        if (isNaN(correctTrials) || correctTrials < 0 || correctTrials > programDetails.trials) {
-            alert(`Número de acertos inválido. Deve ser entre 0 e ${programDetails.trials}.`);
-            correctTrialsInput.focus();
-            return;
-        }
-
-        // Calcula o percentual
+        if (isNaN(correctTrials) || correctTrials < 0 || correctTrials > programDetails.trials) { alert(`Número de acertos inválido. Deve ser entre 0 e ${programDetails.trials}.`); correctTrialsInput.focus(); return; }
         const scorePercentage = (correctTrials / programDetails.trials) * 100;
-
-        const sessionData = {
-            programId: programId,
-            date: form.querySelector('#session-date').value,
-            score: parseFloat(scorePercentage.toFixed(2)), // Armazena o percentual calculado
-            notes: form.querySelector('#session-notes').value.trim(),
-            isBaseline: form.querySelector('#session-is-baseline').checked
-        };
-
-        if (!sessionData.date) { // 'score' agora é calculado, então não precisa verificar se está vazio
-            alert("Preencha a data.");
-            return;
-        }
-
+        const sessionData = { programId: programId, date: form.querySelector('#session-date').value, score: parseFloat(scorePercentage.toFixed(2)), notes: form.querySelector('#session-notes').value.trim(), isBaseline: form.querySelector('#session-is-baseline').checked };
+        if (!sessionData.date) { alert("Preencha a data da sessão."); return; }
         console.log(`Salvando sessão para paciente ${selectedPatient.id}, programa ${programId}, Acertos: ${correctTrials}, %: ${sessionData.score}`);
+        const submitButton = form.querySelector('button[type="submit"]');
+        submitButton.disabled = true;
+        submitButton.innerHTML = '<i class="fas fa-spinner fa-spin mr-1"></i> Salvando...';
         try {
-            const response = await fetch(`${API_BASE_URL}/patients/${selectedPatient.id}/sessions`, {
-                method: 'POST',
-                headers: {
-                    'Authorization': `Bearer ${authToken}`,
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify(sessionData) // Envia o 'score' como percentual
-            });
-
+            const response = await fetch(`${API_BASE_URL}/patients/${selectedPatient.id}/sessions`, { method: 'POST', headers: { 'Authorization': `Bearer ${authToken}`, 'Content-Type': 'application/json' }, body: JSON.stringify(sessionData) });
             if (response.ok) {
-                const newSession = await response.json();
+                const newSession = await response.json(); 
                 console.log("Sessão salva:", newSession);
                 if (!selectedPatient.sessionData) selectedPatient.sessionData = [];
-                selectedPatient.sessionData.push({ ...newSession, score: parseFloat(newSession.score) }); // Garante que o score é float
-
-                correctTrialsInput.value = ''; // Limpa o campo de acertos
+                selectedPatient.sessionData.push({ id: newSession.id, program_id: newSession.program_id || newSession.programId, session_date: newSession.session_date || newSession.date, score: parseFloat(newSession.score), notes: newSession.notes, is_baseline: newSession.is_baseline || newSession.isBaseline });
+                correctTrialsInput.value = '';
                 form.querySelector('#session-notes').value = '';
                 form.querySelector('#session-is-baseline').checked = false;
-                renderProgressChart(programId);
-            } else {
-                const result = await response.json().catch(() => ({ errors: [{msg: response.statusText}] }));
-                console.error('Erro ao salvar sessão:', result.errors?.[0]?.msg || response.statusText);
-                alert(`Erro: ${result.errors?.[0]?.msg || 'Falha.'}`);
-            }
-        } catch (error) {
-            console.error('Erro de rede ao salvar sessão:', error);
-            alert("Erro de conexão.");
-        }
+                renderProgressChart(programId); 
+                alert("Registro de sessão salvo com sucesso!");
+            } else { const result = await response.json().catch(() => ({ errors: [{ msg: "Erro ao processar resposta do servidor." }] })); console.error('Erro ao salvar sessão:', result.errors?.[0]?.msg || response.statusText); alert(`Erro ao salvar sessão: ${result.errors?.[0]?.msg || 'Falha.'}`); }
+        } catch (error) { console.error('Erro de rede ao salvar sessão:', error); alert("Erro de conexão."); }
+        finally { submitButton.disabled = false; submitButton.innerHTML = '<i class="fas fa-save mr-1"></i> Salvar Registro'; }
     }
-
-    function handleViewProgramProgress(e) { if (!isAuthenticated || !selectedPatient) return; const button = e.currentTarget; const programId = button.dataset.programId; selectedProgramForProgress = getProgramById(programId);
-        if (selectedProgramForProgress) { renderSessionEntryForm(selectedProgramForProgress); assignedProgramsListUl.querySelectorAll('.assigned-program-item').forEach(item => { item.classList.toggle('active', item.dataset.programId === programId); }); } else { console.error("Programa selecionado não encontrado:", programId); clearSessionProgressArea(); } }
-    function clearSessionProgressArea() { progressDetailsAreaDiv.innerHTML = `<div class="text-center text-gray-500 py-6"><i class="fas fa-tasks text-3xl mb-3 text-gray-400"></i><p class="text-sm">Selecione um programa atribuído na lista ao lado para registrar uma sessão ou ver o gráfico de progresso.</p></div>`; selectedProgramForProgress = null; if (progressChartInstance) { progressChartInstance.destroy(); progressChartInstance = null; } assignedProgramsListUl.querySelectorAll('.assigned-program-item').forEach(item => { item.classList.remove('active'); }); }
-
-    function renderProgressChart(programId) { if (!isAuthenticated || !selectedPatient) return; const canvasContainer = document.getElementById('program-progress-chart'); const canvas = document.getElementById('progressChartCanvas'); const noDataMessage = document.getElementById('no-progress-data-message'); const chartArea = canvasContainer?.querySelector('.relative'); if (!canvas || !noDataMessage || !chartArea) { console.error("Elementos do gráfico não encontrados."); return; } if (progressChartInstance) { progressChartInstance.destroy(); progressChartInstance = null; } const programSessionData = selectedPatient.sessionData?.filter(session => String(session.program_id || session.programId) === String(programId)).sort((a, b) => new Date(a.session_date || a.date) - new Date(b.session_date || b.date)).map(s => ({ ...s, score: parseFloat(s.score) })) || []; if (programSessionData.length === 0) { noDataMessage.classList.remove('hidden'); chartArea.classList.add('hidden'); return; } noDataMessage.classList.add('hidden'); chartArea.classList.remove('hidden'); const dates = programSessionData.map(session => formatDate(session.session_date || session.date, 'short')); const scores = programSessionData.map(session => session.score); const pointStyles = programSessionData.map(session => session.is_baseline || session.isBaseline ? 'rect' : 'circle'); const pointBackgroundColors = programSessionData.map(session => session.is_baseline || session.isBaseline ? '#fbbf24' : '#4f46e5'); const pointRadii = programSessionData.map(session => session.is_baseline || session.isBaseline ? 5 : 4); const ctx = canvas.getContext('2d'); const primaryColor = '#4f46e5'; const baselineColor = '#fbbf24'; const primaryLight = 'rgba(79, 70, 229, 0.1)'; const textColor = '#4b5563'; const gridColor = '#e5e7eb'; const pointBorderColor = '#ffffff'; progressChartInstance = new Chart(ctx, { type: 'line', data: { labels: dates, datasets: [{ label: 'Pontuação (%)', data: scores, borderColor: primaryColor, backgroundColor: primaryLight, pointStyle: pointStyles, pointBackgroundColor: pointBackgroundColors, pointRadius: pointRadii, pointBorderColor: pointBorderColor, pointHoverBackgroundColor: pointBackgroundColors, pointHoverBorderColor: pointBorderColor, pointHoverRadius: pointRadii.map(r => r + 2), pointHoverBorderWidth: 2, fill: true, tension: 0.2, borderWidth: 2, }] }, options: { responsive: true, maintainAspectRatio: false, scales: { y: { beginAtZero: true, max: 100, ticks: { color: textColor, font: { size: 10 } }, grid: { color: gridColor, drawBorder: false } }, x: { ticks: { color: textColor, font: { size: 10 } }, grid: { display: false } } }, plugins: { legend: { display: false }, tooltip: { enabled: true, backgroundColor: '#1f2937', titleColor: '#fff', bodyColor: '#fff', padding: 10, cornerRadius: 4, displayColors: true, borderColor: (tooltipItem) => { const index = tooltipItem.tooltip.dataPoints[0].dataIndex; return programSessionData[index]?.is_baseline || programSessionData[index]?.isBaseline ? baselineColor : primaryColor; }, borderWidth: 1, callbacks: { title: function(tooltipItems) { const index = tooltipItems[0].dataIndex; if (index < 0 || index >= programSessionData.length) return ''; const session = programSessionData[index]; const baselinePrefix = session.is_baseline || session.isBaseline ? '[Linha de Base] ' : ''; return `${baselinePrefix}Data: ${formatDate(session.session_date || session.date)}`; }, label: function(context) { let label = context.dataset.label || ''; if (label) { label += ': '; } if (context.parsed.y !== null) { label += context.parsed.y + '%'; } const index = context.dataIndex; if (index >= 0 && index < programSessionData.length) { const notes = programSessionData[index].notes; if(notes) { const truncatedNotes = notes.length > 50 ? notes.substring(0, 47) + '...' : notes; label += `\nObs: ${truncatedNotes}`; } } return label; }, labelColor: function(context) { const index = context.dataIndex; if (index < 0 || index >= programSessionData.length) return { borderColor: primaryColor, backgroundColor: primaryColor }; const isBaseline = programSessionData[index].is_baseline || programSessionData[index].isBaseline; return { borderColor: isBaseline ? baselineColor : primaryColor, backgroundColor: isBaseline ? baselineColor : primaryColor, borderWidth: 2, borderRadius: isBaseline ? 0 : '50%' }; }, } } }, hover: { mode: 'index', intersect: false }, interaction: { mode: 'index', intersect: false }, } }); }
-
-    // --- Dashboard ---
-    function renderDashboard() { if (!isAuthenticated) return; if (selectedPatient) { dashboardContent.classList.add('hidden'); clientDashboardContent.classList.remove('hidden'); clientDashboardContent.innerHTML = `<h2 class="text-xl font-semibold text-gray-700 mb-4">Dashboard: ${selectedPatient.name}</h2><div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4"><div class="bg-white p-4 rounded-lg shadow"><h3 class="text-sm font-medium text-gray-500 mb-1">Programas Ativos</h3><p class="text-2xl font-semibold text-indigo-600">${(selectedPatient.assigned_program_ids)?.length || 0}</p></div><div class="bg-white p-4 rounded-lg shadow"><h3 class="text-sm font-medium text-gray-500 mb-1">Sessões Registradas</h3><p class="text-2xl font-semibold text-emerald-600">${selectedPatient.sessionData?.length || 0}</p></div><div class="bg-white p-4 rounded-lg shadow"><h3 class="text-sm font-medium text-gray-500 mb-1">Progresso Médio (Interv.)</h3><p class="text-2xl font-semibold text-amber-600">${calculateOverallAverageProgress(selectedPatient)}%</p></div></div>`; } else { dashboardContent.classList.remove('hidden'); clientDashboardContent.classList.add('hidden'); clientDashboardContent.innerHTML = ''; dashboardContent.innerHTML = `<h2 class="text-xl font-semibold text-gray-700 mb-4">Dashboard Geral - ${currentUser.full_name}</h2><div class="grid grid-cols-1 md:grid-cols-2 gap-4"><div class="bg-white p-4 rounded-lg shadow"><h3 class="text-sm font-medium text-gray-500 mb-1">Total de Clientes</h3><p class="text-2xl font-semibold text-indigo-600">${patients.length} / ${currentUser.max_patients || 0}</p></div><div class="bg-white p-4 rounded-lg shadow"><h3 class="text-sm font-medium text-gray-500 mb-1">Total de Sessões (Todos Clientes)</h3><p class="text-2xl font-semibold text-emerald-600">${calculateTotalSessions(patients)}</p></div></div><p class="text-center text-gray-500 mt-8">Selecione um cliente na barra lateral para ver detalhes.</p>`; } }
-    function calculateOverallAverageProgress(patient) { if (!patient?.sessionData?.length) return '--'; const interventionScores = patient.sessionData.filter(s => !(s.is_baseline || s.isBaseline) && typeof s.score === 'number').map(s => s.score); if (interventionScores.length === 0) return '--'; const totalScore = interventionScores.reduce((sum, score) => sum + score, 0); const average = totalScore / interventionScores.length; return average.toFixed(1); }
-    function calculateTotalSessions(userPatients) { return userPatients.reduce((total, patient) => total + (patient.sessionData?.length || 0), 0); }
-
-    // --- Modal Relatório Consolidado ---
-    function openConsolidatedReportModal() { if (!selectedPatient) { alert("Selecione um cliente."); return; } const printTitle = document.getElementById('consolidated-report-print-title'); const printClientName = document.getElementById('consolidated-report-client-name-print'); const printClientId = document.getElementById('consolidated-report-client-id-print'); const reportTitle = `Relatório Consolidado - ${selectedPatient.name}`; consolidatedReportTitle.textContent = reportTitle; if(printTitle) printTitle.textContent = reportTitle; if(printClientName) printClientName.textContent = `Cliente: ${selectedPatient.name}`; if(printClientId) printClientId.textContent = `ID: ${selectedPatient.id}`; renderConsolidatedCharts(selectedPatient); consolidatedReportModal.classList.remove('hidden'); document.body.style.overflow = 'hidden'; }
-    function closeConsolidatedReportModal() { consolidatedReportModal.classList.add('hidden'); consolidatedChartsContainer.innerHTML = ''; Object.values(consolidatedChartInstances).forEach(chart => chart.destroy()); consolidatedChartInstances = {}; document.body.style.overflow = ''; }
-    function renderConsolidatedCharts(patient) { consolidatedChartsContainer.innerHTML = ''; Object.values(consolidatedChartInstances).forEach(chart => chart.destroy()); consolidatedChartInstances = {}; const assignedProgramIds = patient.assigned_program_ids || []; if (!assignedProgramIds?.length) { consolidatedChartsContainer.innerHTML = '<p class="text-center text-gray-500 py-6 col-span-full">Nenhum programa atribuído.</p>'; return; } const assignedProgramsDetails = assignedProgramIds.map(id => getProgramById(id)).filter(p => p).sort((a, b) => a.title.localeCompare(b.title, 'pt-BR'));
-        if (assignedProgramsDetails.length === 0) { consolidatedChartsContainer.innerHTML = '<p class="text-center text-gray-500 py-6 col-span-full">Detalhes dos programas não encontrados.</p>'; return; } assignedProgramsDetails.forEach((program, index) => { const chartId = `consolidated-chart-${index}`; const wrapper = document.createElement('div'); wrapper.className = 'consolidated-chart-wrapper border border-gray-200 rounded-md p-4 bg-gray-50 flex flex-col items-center shadow-sm print:border-none print:shadow-none print:bg-white print:break-inside-avoid'; wrapper.innerHTML = `<h4 class="text-sm font-medium text-gray-600 mb-2 text-center">${program.title} (${program.tag || 'N/A'})</h4><div class="w-full h-48 relative"> <canvas id="${chartId}"></canvas> </div><p class="no-data-message text-xs text-gray-500 italic mt-2 hidden">Nenhum dado.</p>`; consolidatedChartsContainer.appendChild(wrapper); renderSingleConsolidatedChart(patient, program.id, chartId); }); }
-    function renderSingleConsolidatedChart(patient, programId, canvasId) { const canvas = document.getElementById(canvasId); const canvasContainer = canvas?.parentElement; const noDataMsg = canvasContainer?.nextElementSibling; if (!canvas || !canvasContainer || !noDataMsg) { console.warn(`Elementos do gráfico consolidado não encontrados para ${canvasId}`); return; } const sessionData = patient.sessionData?.filter(session => String(session.program_id || session.programId) === String(programId)).sort((a, b) => new Date(a.session_date || a.date) - new Date(b.session_date || b.date)).map(s => ({ ...s, score: parseFloat(s.score) })) || []; if (sessionData.length === 0) { noDataMsg.classList.remove('hidden'); canvasContainer.style.display = 'none'; return; } noDataMsg.classList.add('hidden'); canvasContainer.style.display = 'block'; const dates = sessionData.map(session => formatDate(session.session_date || session.date, 'short')); const scores = sessionData.map(session => session.score); const pointStyles = sessionData.map(session => session.is_baseline || session.isBaseline ? 'rect' : 'circle'); const pointBackgroundColors = sessionData.map(session => session.is_baseline || session.isBaseline ? '#fbbf24' : '#4f46e5'); const pointRadii = sessionData.map(session => session.is_baseline || session.isBaseline ? 3 : 2); const ctx = canvas.getContext('2d'); const primaryColor = '#4f46e5'; const baselineColor = '#fbbf24'; const primaryLight = 'rgba(79, 70, 229, 0.1)'; const textColor = '#4b5563'; const gridColor = '#e5e7eb'; consolidatedChartInstances[canvasId] = new Chart(ctx, { type: 'line', data: { labels: dates, datasets: [{ label: 'Pontuação (%)', data: scores, borderColor: primaryColor, backgroundColor: primaryLight, pointStyle: pointStyles, pointBackgroundColor: pointBackgroundColors, pointRadius: pointRadii, pointBorderColor: '#fff', fill: true, tension: 0.1, borderWidth: 1.5, pointHoverRadius: pointRadii.map(r => r + 2) }] }, options: { responsive: true, maintainAspectRatio: false, scales: { y: { beginAtZero: true, max: 100, ticks: { color: textColor, font: { size: 9 } }, grid: { color: gridColor, drawBorder: false } }, x: { ticks: { color: textColor, font: { size: 9 }, maxRotation: 0, autoSkipPadding: 10 }, grid: { display: false } } }, plugins: { legend: { display: false }, tooltip: { backgroundColor: '#1f2937', titleColor: '#fff', bodyColor: '#fff', padding: 8, cornerRadius: 3, displayColors: true, borderColor: (tooltipItem) => { const index = tooltipItem.tooltip.dataPoints[0].dataIndex; return sessionData[index]?.is_baseline || sessionData[index]?.isBaseline ? baselineColor : primaryColor; }, borderWidth: 1, callbacks: { title: (tooltipItems) => { const index = tooltipItems[0].dataIndex; if(index < 0 || index >= sessionData.length) return ''; const session = sessionData[index]; const prefix = session.is_baseline || session.isBaseline ? '[LB] ' : ''; return `${prefix}${formatDate(session.session_date || session.date)}`; }, label: (context) => `Pont.: ${context.parsed.y}%`, labelColor: function(context) { const index = context.dataIndex; if(index < 0 || index >= sessionData.length) return { borderColor: primaryColor, backgroundColor: primaryColor }; const isBaseline = sessionData[index].is_baseline || sessionData[index].isBaseline; return { borderColor: isBaseline ? baselineColor : primaryColor, backgroundColor: isBaseline ? baselineColor : primaryColor, borderWidth: 2, borderRadius: isBaseline ? 0 : '50%' }; }, } } } } }); }
-
-    // --- Geração de PDF ---
-    function handlePrintConsolidatedReport() { if (!selectedPatient) { alert("Selecione um cliente primeiro."); return; } console.log("Iniciando geração do PDF do Relatório Consolidado..."); generateConsolidatedReportPDF(selectedPatient); }
-    async function generateConsolidatedReportPDF(patient) {
-        if (!patient) return;
-        const assignedProgramIds = patient.assigned_program_ids || [];
-        if (assignedProgramIds.length === 0) { alert("Nenhum programa atribuído para gerar o relatório."); return; }
-        const { jsPDF } = window.jspdf; const doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' }); const margin = 15; const pageWidth = doc.internal.pageSize.getWidth(); const pageHeight = doc.internal.pageSize.getHeight(); const contentWidth = pageWidth - margin * 2; let y = margin; let pageCount = 1;
-        const addHeader = (pdfDoc, patientData, currentPage) => { pdfDoc.setFontSize(16); pdfDoc.setFont(undefined, 'bold'); pdfDoc.text("Relatório Consolidado de Progresso", pdfDoc.internal.pageSize.getWidth() / 2, y, { align: 'center' }); y += 8; pdfDoc.setFontSize(10); pdfDoc.setFont(undefined, 'normal'); pdfDoc.text(`Cliente: ${patientData.name}`, margin, y); pdfDoc.text(`ID: ${patientData.id}`, margin + contentWidth / 2, y); y += 5; pdfDoc.text(`Data Nasc.: ${patientData.dob ? formatDate(patientData.dob) : 'N/I'}`, margin, y); pdfDoc.text(`Diagnóstico: ${patientData.diagnosis || 'N/I'}`, margin + contentWidth / 2, y); y += 5; pdfDoc.text(`Gerado em: ${formatDate(new Date().toISOString().split('T')[0])}`, margin, y); y += 7; pdfDoc.setLineWidth(0.3); pdfDoc.line(margin, y, pageWidth - margin, y); y += 8; };
-        const addFooter = (pdfDoc, currentPage, totalPages) => { pdfDoc.setFontSize(8); pdfDoc.setTextColor(100); const footerY = pdfDoc.internal.pageSize.getHeight() - margin / 1.5; pdfDoc.text(`Página ${currentPage} de ${totalPages}`, pdfDoc.internal.pageSize.getWidth() / 2, footerY, { align: 'center' }); pdfDoc.setTextColor(0); };
-        addHeader(doc, patient, pageCount);
-        const assignedProgramsDetails = assignedProgramIds.map(id => getProgramById(id)).filter(p => p).sort((a, b) => a.title.localeCompare(b.title, 'pt-BR'));
-        for (const program of assignedProgramsDetails) {
-            const programTitle = `${program.title} (${program.tag || 'N/A'})`;
-            const sessionData = patient.sessionData?.filter(session => String(session.program_id || session.programId) === String(program.id)).sort((a, b) => new Date(a.session_date || a.date) - new Date(b.session_date || b.date)).map(s => ({ ...s, score: parseFloat(s.score) })) || [];
-            const chartHeightMM = 70; const titleHeightMM = 8; const spaceBetweenMM = 8; const requiredHeight = titleHeightMM + chartHeightMM + spaceBetweenMM;
-            if (y + requiredHeight > pageHeight - margin) { addFooter(doc, pageCount, '{totalPages}'); doc.addPage(); pageCount++; y = margin; doc.setFontSize(10); doc.setFont(undefined, 'italic'); doc.text(`Relatório Consolidado - ${patient.name} (Continuação)`, margin, y); y += 10; }
-            doc.setFontSize(11); doc.setFont(undefined, 'bold'); doc.setTextColor(50, 50, 50); doc.text(programTitle, margin, y); y += titleHeightMM;
-            if (sessionData.length > 0) {
-                try {
-                    const tempCanvas = document.createElement('canvas'); tempCanvas.width = 600; tempCanvas.height = chartHeightMM * (600 / contentWidth); const tempCtx = tempCanvas.getContext('2d');
-                    const dates = sessionData.map(session => formatDate(session.session_date || session.date, 'short')); const scores = sessionData.map(session => session.score); const pointStyles = sessionData.map(session => session.is_baseline || session.isBaseline ? 'rect' : 'circle'); const pointBackgroundColors = sessionData.map(session => session.is_baseline || session.isBaseline ? '#fbbf24' : '#4f46e5'); const pointRadii = sessionData.map(session => session.is_baseline || session.isBaseline ? 3 : 2); const primaryColor = '#4f46e5'; const primaryLight = 'rgba(79, 70, 229, 0.1)'; const textColor = '#333'; const gridColor = '#ddd';
-                    const chartInstance = new Chart(tempCtx, { type: 'line', data: { labels: dates, datasets: [{ label: 'Pontuação (%)', data: scores, borderColor: primaryColor, backgroundColor: primaryLight, pointStyle: pointStyles, pointBackgroundColor: pointBackgroundColors, pointRadius: pointRadii, pointBorderColor: '#fff', fill: true, tension: 0.1, borderWidth: 1.5 }] }, options: { responsive: false, animation: false, devicePixelRatio: 2, scales: { y: { beginAtZero: true, max: 100, ticks: { color: textColor, font: { size: 10 } }, grid: { color: gridColor } }, x: { ticks: { color: textColor, font: { size: 10 } }, grid: { display: false } } }, plugins: { legend: { display: false }, tooltip: { enabled: false } } } });
-                    const imageDataUrl = tempCanvas.toDataURL('image/png', 1.0); doc.addImage(imageDataUrl, 'PNG', margin, y, contentWidth, chartHeightMM); y += chartHeightMM; chartInstance.destroy();
-                } catch (chartError) { console.error("Erro ao renderizar gráfico para PDF:", chartError); doc.setFontSize(9); doc.setTextColor(150, 0, 0); doc.text("Erro ao gerar gráfico.", margin + 5, y + chartHeightMM / 2); y += chartHeightMM; }
-            } else { doc.setFontSize(9); doc.setTextColor(100); doc.text("Nenhum dado de sessão registrado para este programa.", margin + 5, y + chartHeightMM / 2); y += chartHeightMM; }
-            y += spaceBetweenMM;
-        }
-        const totalPages = doc.internal.getNumberOfPages(); for (let i = 1; i <= totalPages; i++) { doc.setPage(i); addFooter(doc, i, totalPages); }
-        try { const filename = `Relatorio_Consolidado_${patient.name.replace(/[^a-z0-9]/gi, '_').toLowerCase()}.pdf`; doc.save(filename); console.log("PDF gerado com sucesso:", filename); } catch (error) { console.error("Erro ao salvar PDF:", error); alert("Erro ao gerar ou salvar o PDF."); }
+    function renderProgressChart(programId) {
+        if (!isAuthenticated || !selectedPatient) return;
+        const canvasContainer = document.getElementById('program-progress-chart');
+        const canvas = document.getElementById('progressChartCanvas');
+        const noDataMessage = document.getElementById('no-progress-data-message');
+        const chartArea = canvasContainer?.querySelector('.relative');
+        if (!canvas || !noDataMessage || !chartArea) { console.error("Elementos do gráfico não encontrados."); return; }
+        if (progressChartInstance) { progressChartInstance.destroy(); progressChartInstance = null; }
+        const programSessionData = (selectedPatient.sessionData || []).filter(session => String(session.program_id || session.programId) === String(programId)).sort((a, b) => new Date(a.session_date || a.date) - new Date(b.session_date || b.date)).map(s => ({ ...s, score: parseFloat(s.score) }));
+        if (programSessionData.length === 0) { noDataMessage.classList.remove('hidden'); chartArea.classList.add('hidden'); return; }
+        noDataMessage.classList.add('hidden'); chartArea.classList.remove('hidden');
+        const dates = programSessionData.map(session => formatDate(session.session_date || session.date, 'short'));
+        const scores = programSessionData.map(session => session.score);
+        const pointStyles = programSessionData.map(session => session.is_baseline || session.isBaseline ? 'rect' : 'circle');
+        const pointBackgroundColors = programSessionData.map(session => session.is_baseline || session.isBaseline ? '#fbbf24' : '#4f46e5');
+        const pointRadii = programSessionData.map(session => session.is_baseline || session.isBaseline ? 5 : 4);
+        const ctx = canvas.getContext('2d');
+        const primaryColor = '#4f46e5', baselineColor = '#fbbf24', primaryLight = 'rgba(79, 70, 229, 0.1)', textColor = '#4b5563', gridColor = '#e5e7eb', pointBorderColor = '#ffffff';
+        progressChartInstance = new Chart(ctx, {
+            type: 'line', data: { labels: dates, datasets: [{ label: 'Pontuação (%)', data: scores, borderColor: primaryColor, backgroundColor: primaryLight, pointStyle: pointStyles, pointBackgroundColor: pointBackgroundColors, pointRadius: pointRadii, pointBorderColor: pointBorderColor, pointHoverBackgroundColor: pointBackgroundColors, pointHoverBorderColor: pointBorderColor, pointHoverRadius: pointRadii.map(r => r + 2), pointHoverBorderWidth: 2, fill: true, tension: 0.2, borderWidth: 2, }] },
+            options: { responsive: true, maintainAspectRatio: false, scales: { y: { beginAtZero: true, max: 100, ticks: { color: textColor, font: { size: 10 } }, grid: { color: gridColor, drawBorder: false } }, x: { ticks: { color: textColor, font: { size: 10 } }, grid: { display: false } } }, plugins: { legend: { display: false }, tooltip: { enabled: true, backgroundColor: '#1f2937', titleColor: '#fff', bodyColor: '#fff', padding: 10, cornerRadius: 4, displayColors: true, borderColor: (tooltipItem) => { const index = tooltipItem.tooltip.dataPoints[0].dataIndex; if (index < 0 || index >= programSessionData.length) return primaryColor; return programSessionData[index]?.is_baseline || programSessionData[index]?.isBaseline ? baselineColor : primaryColor; }, borderWidth: 1, callbacks: { title: function(tooltipItems) { const index = tooltipItems[0].dataIndex; if (index < 0 || index >= programSessionData.length) return ''; const session = programSessionData[index]; const baselinePrefix = session.is_baseline || session.isBaseline ? '[Linha de Base] ' : ''; return `${baselinePrefix}Data: ${formatDate(session.session_date || session.date)}`; }, label: function(context) { let label = context.dataset.label || ''; if (label) { label += ': '; } if (context.parsed.y !== null) { label += context.parsed.y + '%'; } const index = context.dataIndex; if (index >= 0 && index < programSessionData.length) { const notes = programSessionData[index].notes; if(notes) { const truncatedNotes = notes.length > 50 ? notes.substring(0, 47) + '...' : notes; label += `\nObs: ${truncatedNotes}`; } } return label; }, labelColor: function(context) { const index = context.dataIndex; if (index < 0 || index >= programSessionData.length) return { borderColor: primaryColor, backgroundColor: primaryColor }; const isBaseline = programSessionData[index].is_baseline || programSessionData[index].isBaseline; return { borderColor: isBaseline ? baselineColor : primaryColor, backgroundColor: isBaseline ? baselineColor : primaryColor, borderWidth: 2, borderRadius: isBaseline ? 0 : '50%' }; }, } } }, hover: { mode: 'index', intersect: false }, interaction: { mode: 'index', intersect: false }, }
+        });
     }
-    function generateProgramGradePDF(patient) { if (typeof jspdf === 'undefined' || typeof jspdf.jsPDF === 'undefined') { console.error("jsPDF não carregado."); alert("Erro: PDF não disponível."); return; } if (!patient) { alert("Nenhum cliente selecionado."); return; } const assignedProgramIds = patient.assigned_program_ids || []; if (assignedProgramIds.length === 0) { alert("Nenhum programa atribuído para gerar a Grade."); return; } const { jsPDF } = window.jspdf; const doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' }); const margin = 15; const pageWidth = doc.internal.pageSize.getWidth(); const pageHeight = doc.internal.pageSize.getHeight(); const contentWidth = pageWidth - margin * 2; let y = margin + 10; const lineHeight = 4.5; const titleFontSize = 16; const headerFontSize = 10; const sectionTitleFontSize = 12; const programTitleFontSize = 10; const programDetailFontSize = 9; const footerFontSize = 8; let pageCount = 1; const addWrappedText = (text, x, startY, maxWidth, options = {}) => { doc.setFontSize(options.fontSize || programDetailFontSize); doc.setFont(undefined, options.fontStyle || 'normal'); const lines = doc.splitTextToSize(text, maxWidth); doc.text(lines, x, startY); return startY + lines.length * lineHeight; }; const checkAndAddPage = (currentY, requiredHeight) => { if (currentY + requiredHeight > pageHeight - margin - 5) { addFooter(doc, pageCount, margin, pageHeight, footerFontSize, "{totalPages}"); doc.addPage(); pageCount++; currentY = margin; doc.setFontSize(headerFontSize); doc.setFont(undefined, 'italic'); doc.text(`Grade de Programas - ${patient.name} (Continuação - Pág. ${pageCount})`, margin, currentY); currentY += 10; doc.setFont(undefined, 'normal'); } return currentY; }; const addFooter = (pdfDoc, currentPage, docMargin, docPageHeight, fontSize, totalPagesPlaceholder) => { pdfDoc.setFontSize(fontSize); pdfDoc.setTextColor(100); pdfDoc.text(`Página ${currentPage} de ${totalPagesPlaceholder}`, pdfDoc.internal.pageSize.getWidth() / 2, docPageHeight - docMargin / 2, { align: 'center' }); pdfDoc.text(`Gerado em: ${formatDate(new Date().toISOString().split('T')[0])}`, docMargin, docPageHeight - docMargin / 2); pdfDoc.setTextColor(0); }; doc.setFontSize(titleFontSize); doc.setFont(undefined, 'bold'); doc.text(`Grade de Programas - ${patient.name}`, pageWidth / 2, y, { align: 'center' }); y += 8; doc.setFontSize(headerFontSize); doc.setFont(undefined, 'normal'); const dobText = `Nasc: ${patient.dob ? formatDate(patient.dob) : 'Não informado'}`; const diagText = `Diag: ${patient.diagnosis || 'Não informado'}`; doc.text(`ID: ${patient.id}`, margin, y); const dobWidth = doc.getTextWidth(dobText); doc.text(dobText, margin + (contentWidth / 3), y); doc.text(diagText, pageWidth - margin, y, { align: 'right' }); y += 10; doc.setLineWidth(0.2); doc.line(margin, y, pageWidth - margin, y); y += 8; doc.setFontSize(sectionTitleFontSize); doc.setFont(undefined, 'bold'); y = checkAndAddPage(y, lineHeight * 2); doc.text("Programas Atribuídos:", margin, y); y += 6; const assignedProgramsDetails = assignedProgramIds.map(id => getProgramById(id)).filter(p => p).sort((a, b) => a.title.localeCompare(b.title, 'pt-BR'));
-        if (assignedProgramsDetails.length === 0) { doc.setFontSize(programDetailFontSize); doc.setFont(undefined, 'normal'); y = checkAndAddPage(y, lineHeight); doc.text("Nenhum programa atribuído.", margin + 4, y); y += lineHeight; } else { assignedProgramsDetails.forEach(program => { let requiredHeight = 0; const titleTagText = `• ${program.title} (${program.tag || 'N/A'})`; doc.setFontSize(programTitleFontSize); doc.setFont(undefined, 'bold'); requiredHeight += doc.splitTextToSize(titleTagText, contentWidth - 4).length * lineHeight + 2; doc.setFontSize(programDetailFontSize); doc.setFont(undefined, 'normal'); const objectiveLines = doc.splitTextToSize(`Objetivo: ${program.objective || 'Não definido'}`, contentWidth - 8); requiredHeight += objectiveLines.length * lineHeight + 2; let criteriaLines = []; if (program.criteria_for_advancement) { criteriaLines = doc.splitTextToSize(`Critério de Avanço: ${program.criteria_for_advancement}`, contentWidth - 8); requiredHeight += criteriaLines.length * lineHeight + 2; } const firstStep = program.procedure && Array.isArray(program.procedure) && program.procedure.length > 0 ? program.procedure.find(step => step.term.toUpperCase() === 'SD') || program.procedure[0] : null; if (firstStep) { const procLines = doc.splitTextToSize(`Procedimento (Início - ${firstStep.term}): ${firstStep.description}`, contentWidth - 8); requiredHeight += procLines.length * lineHeight + 2; } requiredHeight += 4; y = checkAndAddPage(y, requiredHeight); y = addWrappedText(`• ${program.title} (${program.tag || 'N/A'})`, margin + 4, y, contentWidth - 4, { fontSize: programTitleFontSize, fontStyle: 'bold' }); y += 1; y = addWrappedText(`Objetivo: ${program.objective || 'Não definido'}`, margin + 8, y, contentWidth - 8, { fontSize: programDetailFontSize, fontStyle: 'normal' }); y += 1; if (program.criteria_for_advancement) { doc.setFont(undefined, 'italic'); y = addWrappedText(`Critério de Avanço: ${program.criteria_for_advancement}`, margin + 8, y, contentWidth - 8, { fontSize: programDetailFontSize - 1 }); doc.setFont(undefined, 'normal'); y += 1; } if (firstStep) { y = addWrappedText(`Procedimento (Início - ${firstStep.term}): ${firstStep.description}`, margin + 8, y, contentWidth - 8, { fontSize: programDetailFontSize, fontStyle: 'normal' }); y += 1; } y += 4; }); } const totalPages = doc.internal.getNumberOfPages(); for (let i = 1; i <= totalPages; i++) { doc.setPage(i); addFooter(doc, i, margin, pageHeight, footerFontSize, totalPages); } try { const filename = `Grade_Programas_${patient.name.replace(/[^a-z0-9]/gi, '_').toLowerCase()}.pdf`; doc.save(filename); } catch (error) { console.error("Erro ao salvar PDF da Grade:", error); alert("Erro ao salvar PDF da Grade."); } }
-    function generateWeeklyRecordSheetPDF(patient) { if (typeof jspdf === 'undefined' || typeof jspdf.jsPDF === 'undefined') { console.error("jsPDF não carregado."); alert("Erro: PDF não disponível."); return; } if (!patient) { alert("Nenhum cliente selecionado."); return; } const assignedProgramIds = patient.assigned_program_ids || []; if (assignedProgramIds.length === 0) { alert("Nenhum programa atribuído para gerar Folha de Registro."); return; } const { jsPDF } = window.jspdf; const doc = new jsPDF({ orientation: 'landscape', unit: 'mm', format: 'a4' }); const margin = 10; const pageWidth = doc.internal.pageSize.getWidth(); const pageHeight = doc.internal.pageSize.getHeight(); const contentWidth = pageWidth - margin * 2; let y = margin + 10; const titleFontSize = 14; const headerFontSize = 10; const tableHeaderFontSize = 9; const tableCellFontSize = 8; const footerFontSize = 8; const defaultRowHeight = 10; let pageCount = 1; const addCenteredWrappedText = (text, x, startY, cellWidth, cellHeight) => { doc.setFontSize(tableCellFontSize); doc.setFont(undefined, 'normal'); const lines = doc.splitTextToSize(text, cellWidth - 4); const textHeight = lines.length * (tableCellFontSize * 0.35); const textOffsetY = (cellHeight - textHeight) / 2 + (tableCellFontSize * 0.35); doc.text(lines, x + 2, startY + textOffsetY); return Math.max(defaultRowHeight, lines.length * 3.5 + 4); }; const drawTableHeader = (currentY) => { doc.setFontSize(tableHeaderFontSize); doc.setFont(undefined, 'bold'); doc.setDrawColor(0); doc.setLineWidth(0.2); doc.setFillColor(230, 230, 230); doc.rect(margin, currentY, contentWidth, defaultRowHeight, 'FD'); doc.setTextColor(0); const programColWidth = contentWidth * 0.45; const dayColWidth = (contentWidth - programColWidth) / 7; const textY = currentY + defaultRowHeight / 2 + (tableHeaderFontSize * 0.35 / 2); doc.line(margin + programColWidth, currentY, margin + programColWidth, currentY + defaultRowHeight); doc.text("Programa", margin + 2, textY); const days = ["Seg", "Ter", "Qua", "Qui", "Sex", "Sáb", "Dom"]; let currentX = margin + programColWidth; days.forEach(day => { doc.line(currentX, currentY, currentX, currentY + defaultRowHeight); doc.text(day, currentX + dayColWidth / 2, textY, { align: 'center' }); currentX += dayColWidth; }); return currentY + defaultRowHeight; }; const addFooter = (pdfDoc, currentPage, docMargin, docPageHeight, fontSize, totalPagesPlaceholder) => { pdfDoc.setFontSize(fontSize); pdfDoc.setTextColor(100); pdfDoc.text(`Página ${currentPage} de ${totalPagesPlaceholder}`, pdfDoc.internal.pageSize.getWidth() / 2, docPageHeight - docMargin / 2, { align: 'center' }); pdfDoc.text(`Gerado em: ${formatDate(new Date().toISOString().split('T')[0])}`, docMargin, docPageHeight - docMargin / 2); pdfDoc.setTextColor(0); }; doc.setFontSize(titleFontSize); doc.setFont(undefined, 'bold'); doc.text(`Folha de Registro Semanal - ${patient.name}`, pageWidth / 2, y, { align: 'center' }); y += 8; doc.setFontSize(headerFontSize); doc.setFont(undefined, 'normal'); doc.text(`ID: ${patient.id}`, margin, y); doc.text(`Semana de: ____ / ____ / ________`, pageWidth - margin, y, { align: 'right' }); y += 10; const programColWidth = contentWidth * 0.45; const dayColWidth = (contentWidth - programColWidth) / 7; y = drawTableHeader(y); const assignedProgramsDetails = assignedProgramIds.map(id => getProgramById(id)).filter(p => p).sort((a, b) => a.title.localeCompare(b.title, 'pt-BR'));
-        doc.setFontSize(tableCellFontSize); doc.setFont(undefined, 'normal'); doc.setTextColor(0); doc.setDrawColor(150); doc.setLineWidth(0.1); assignedProgramsDetails.forEach(program => { const numTrials = (typeof program.trials === 'number' && program.trials > 0) ? program.trials : 10; const trialCellWidth = dayColWidth / numTrials; const programText = `${program.title} (${program.tag || 'N/A'})`; const requiredHeight = addCenteredWrappedText(programText, margin, y, programColWidth, defaultRowHeight); if (y + requiredHeight > pageHeight - margin - 5) { addFooter(doc, pageCount, margin, pageHeight, footerFontSize, "{totalPages}"); doc.addPage(); pageCount++; y = margin; y = drawTableHeader(y); doc.setFontSize(tableCellFontSize); doc.setFont(undefined, 'normal'); doc.setTextColor(0); doc.setDrawColor(150); doc.setLineWidth(0.1); } doc.line(margin, y + requiredHeight, margin + contentWidth, y + requiredHeight); addCenteredWrappedText(programText, margin, y, programColWidth, requiredHeight); let currentX = margin + programColWidth; doc.line(currentX, y, currentX, y + requiredHeight); for (let i = 0; i < 7; i++) { let trialLineX = currentX; if (numTrials > 1) { for (let j = 1; j < numTrials; j++) { trialLineX += trialCellWidth; doc.line(trialLineX, y, trialLineX, y + requiredHeight); } } currentX += dayColWidth; if (i < 6) { doc.line(currentX, y, currentX, y + requiredHeight); } } doc.line(margin + contentWidth, y, margin + contentWidth, y + requiredHeight); y += requiredHeight; }); const totalPages = doc.internal.getNumberOfPages(); for (let i = 1; i <= totalPages; i++) { doc.setPage(i); addFooter(doc, i, margin, pageHeight, footerFontSize, totalPages); } try { const filename = `Folha_Registro_${patient.name.replace(/[^a-z0-9]/gi, '_').toLowerCase()}.pdf`; doc.save(filename); } catch (error) { console.error("Erro ao salvar PDF da Folha de Registro:", error); alert("Erro ao salvar PDF."); } }
-
-    // --- Funções Utilitárias ---
-    function formatDate(dateString, format = 'long') { if (!dateString) return 'N/A'; let date; if (/^\d{4}-\d{2}-\d{2}/.test(dateString)) { date = new Date(dateString.split('T')[0] + 'T00:00:00'); } else { date = new Date(dateString); } if (isNaN(date.getTime())) { return 'Data inválida'; } const options = format === 'short' ? { day: '2-digit', month: '2-digit', year: '2-digit' } : { day: '2-digit', month: '2-digit', year: 'numeric' }; try { return date.toLocaleDateString('pt-BR', options); } catch (e) { console.error("Erro ao formatar data:", e, "Input:", dateString); return dateString; } }
+    function clearSessionProgressArea() {
+        if (progressDetailsAreaDiv) { progressDetailsAreaDiv.innerHTML = `<div class="text-center text-gray-500 py-6"><i class="fas fa-tasks text-3xl mb-3 text-gray-400"></i><p class="text-sm">Selecione um programa atribuído na lista ao lado para registrar uma sessão ou ver o gráfico de progresso.</p></div>`; }
+        selectedProgramForProgress = null;
+        if (progressChartInstance) { progressChartInstance.destroy(); progressChartInstance = null; }
+        if (assignedProgramsListUl) { assignedProgramsListUl.querySelectorAll('.assigned-program-item.active').forEach(item => { item.classList.remove('active', 'bg-indigo-100'); }); }
+    }
 
     // --- Anotações ---
-    async function saveNotes() { if (!selectedPatient || !authToken) { alert("Nenhum cliente selecionado."); return; } const newNotes = notesViewTextarea.value; console.log(`Salvando notas para paciente ${selectedPatient.id}`); try { const response = await fetch(`${API_BASE_URL}/patients/${selectedPatient.id}/notes`, { method: 'PUT', headers: { 'Authorization': `Bearer ${authToken}`, 'Content-Type': 'application/json', }, body: JSON.stringify({ generalNotes: newNotes }) }); if (response.ok) { alert("Anotações salvas!"); selectedPatient.general_notes = newNotes; saveNotesBtn.classList.add('bg-emerald-500', 'hover:bg-emerald-600'); saveNotesBtn.innerHTML = '<i class="fas fa-check mr-1"></i> Salvo!'; setTimeout(() => { saveNotesBtn.classList.remove('bg-emerald-500', 'hover:bg-emerald-600'); saveNotesBtn.innerHTML = '<i class="fas fa-save mr-1"></i> Salvar Anotações'; }, 1500); } else { const result = await response.json().catch(() => ({ errors: [{msg: response.statusText}] })); console.error('Erro ao salvar anotações:', result.errors?.[0]?.msg || response.statusText); alert(`Erro: ${result.errors?.[0]?.msg || 'Falha.'}`); } } catch (error) { console.error('Erro de rede ao salvar anotações:', error); alert("Erro de conexão."); } }
+    async function handleSaveNotes() {
+        if (!selectedPatient || !authToken) { alert("Nenhum cliente selecionado para salvar anotações."); saveNotesBtn.disabled = true; return; }
+        const newNotes = notesViewTextarea.value;
+        console.log(`Salvando anotações para paciente ${selectedPatient.id}`);
+        saveNotesBtn.disabled = true;
+        saveNotesBtn.innerHTML = '<i class="fas fa-spinner fa-spin mr-1.5"></i> Salvando...';
+        try {
+            const response = await fetch(`${API_BASE_URL}/patients/${selectedPatient.id}/notes`, { method: 'PUT', headers: { 'Authorization': `Bearer ${authToken}`, 'Content-Type': 'application/json', }, body: JSON.stringify({ generalNotes: newNotes }) });
+            if (response.ok) {
+                selectedPatient.general_notes = newNotes; 
+                if (detailClientNotesSpan && !clientDetailsPanel.classList.contains('hidden')) { detailClientNotesSpan.textContent = newNotes || 'Sem anotações'; }
+                saveNotesBtn.classList.add('bg-emerald-500', 'hover:bg-emerald-600');
+                saveNotesBtn.classList.remove('bg-indigo-600', 'hover:bg-indigo-700');
+                saveNotesBtn.innerHTML = '<i class="fas fa-check mr-1.5"></i> Salvo!';
+                setTimeout(() => { saveNotesBtn.classList.remove('bg-emerald-500', 'hover:bg-emerald-600'); saveNotesBtn.classList.add('bg-indigo-600', 'hover:bg-indigo-700'); saveNotesBtn.innerHTML = '<i class="fas fa-save mr-1.5"></i> Salvar Anotações'; saveNotesBtn.disabled = false; }, 2000);
+            } else { const result = await response.json().catch(() => ({ errors: [{ msg: "Erro ao processar resposta do servidor." }] })); console.error('Erro ao salvar anotações:', result.errors?.[0]?.msg || response.statusText); alert(`Erro ao salvar anotações: ${result.errors?.[0]?.msg || 'Falha.'}`); saveNotesBtn.disabled = false; saveNotesBtn.innerHTML = '<i class="fas fa-save mr-1.5"></i> Salvar Anotações'; }
+        } catch (error) { console.error('Erro de rede ao salvar anotações:', error); alert("Erro de conexão."); saveNotesBtn.disabled = false; saveNotesBtn.innerHTML = '<i class="fas fa-save mr-1.5"></i> Salvar Anotações'; }
+    }
+
+    // --- Dashboard ---
+    function renderDashboard() {
+        if (!isAuthenticated || !dashboardView) return;
+        if (selectedPatient) {
+            dashboardContent.classList.add('hidden'); 
+            clientDashboardContent.classList.remove('hidden'); 
+            const assignedProgramsCount = selectedPatient.assigned_program_ids?.length || 0;
+            const sessionsCount = selectedPatient.sessionData?.length || 0;
+            const averageProgress = calculateOverallAverageProgress(selectedPatient);
+            clientDashboardContent.innerHTML = `
+                <h2 class="text-xl font-semibold text-gray-700 mb-4">Dashboard: ${selectedPatient.name}</h2>
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                    <div class="bg-white p-4 rounded-lg shadow border border-gray-200"><h3 class="text-sm font-medium text-gray-500 mb-1">Programas Ativos</h3><p class="text-3xl font-semibold text-indigo-600">${assignedProgramsCount}</p></div>
+                    <div class="bg-white p-4 rounded-lg shadow border border-gray-200"><h3 class="text-sm font-medium text-gray-500 mb-1">Sessões Registradas</h3><p class="text-3xl font-semibold text-emerald-600">${sessionsCount}</p></div>
+                    <div class="bg-white p-4 rounded-lg shadow border border-gray-200"><h3 class="text-sm font-medium text-gray-500 mb-1">Progresso Médio (Interv.)</h3><p class="text-3xl font-semibold text-amber-600">${averageProgress}%</p></div>
+                </div>`;
+        } else {
+            clientDashboardContent.classList.add('hidden'); 
+            dashboardContent.classList.remove('hidden'); 
+            const totalUserSessions = calculateTotalSessions(patients);
+            const patientLimit = currentUser?.max_patients || 0;
+            dashboardContent.innerHTML = `
+                <h2 class="text-xl font-semibold text-gray-700 mb-4">Dashboard Geral - ${currentUser?.full_name || 'Usuário'}</h2>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div class="bg-white p-4 rounded-lg shadow border border-gray-200"><h3 class="text-sm font-medium text-gray-500 mb-1">Total de Clientes</h3><p class="text-3xl font-semibold text-indigo-600">${patients.length} / ${patientLimit}</p></div>
+                    <div class="bg-white p-4 rounded-lg shadow border border-gray-200"><h3 class="text-sm font-medium text-gray-500 mb-1">Total de Sessões (Todos Clientes)</h3><p class="text-3xl font-semibold text-emerald-600">${totalUserSessions}</p></div>
+                </div>
+                <div class="mt-8 text-center text-gray-500 placeholder-container"><i class="fas fa-user-friends"></i><p>Selecione um cliente na barra lateral para ver um dashboard mais detalhado.</p></div>`;
+        }
+        updateContextualSidebar('dashboard-view', currentActiveArea);
+    }
+    function calculateOverallAverageProgress(patient) {
+        if (!patient?.sessionData?.length) return '--';
+        const interventionScores = patient.sessionData.filter(s => !(s.is_baseline || s.isBaseline) && typeof s.score === 'number').map(s => s.score);
+        if (interventionScores.length === 0) return '--'; 
+        const totalScore = interventionScores.reduce((sum, score) => sum + score, 0);
+        const average = totalScore / interventionScores.length;
+        return average.toFixed(1);
+    }
+    function calculateTotalSessions(patientsArray) {
+        if (!patientsArray) return 0;
+        return patientsArray.reduce((total, patient) => total + (patient.sessionData?.length || 0), 0);
+    }
+
+    // --- Modal Relatório Consolidado ---
+    function openConsolidatedReportModal() {
+        if (!selectedPatient) { alert("Por favor, selecione um cliente para gerar o relatório."); return; }
+        const reportTitleText = `Relatório Consolidado - ${selectedPatient.name}`;
+        consolidatedReportTitle.textContent = reportTitleText;
+        if (consolidatedReportPrintTitle) consolidatedReportPrintTitle.textContent = reportTitleText;
+        if (consolidatedReportClientNamePrint) consolidatedReportClientNamePrint.textContent = selectedPatient.name;
+        if (consolidatedReportClientIdPrint) consolidatedReportClientIdPrint.textContent = selectedPatient.id;
+        renderConsolidatedCharts(selectedPatient);
+        consolidatedReportModal.classList.remove('hidden');
+        document.body.style.overflow = 'hidden'; 
+    }
+    function closeConsolidatedReportModal() {
+        consolidatedReportModal.classList.add('hidden');
+        consolidatedChartsContainer.innerHTML = ''; 
+        Object.values(consolidatedChartInstances).forEach(chart => chart.destroy()); 
+        consolidatedChartInstances = {}; 
+        document.body.style.overflow = ''; 
+    }
+    function renderConsolidatedCharts(patient) {
+        consolidatedChartsContainer.innerHTML = ''; 
+        Object.values(consolidatedChartInstances).forEach(chart => chart.destroy());
+        consolidatedChartInstances = {};
+        const assignedProgramIds = patient.assigned_program_ids || [];
+        if (!assignedProgramIds?.length) { consolidatedChartsContainer.innerHTML = '<p class="text-center text-gray-500 py-6 col-span-full">Nenhum programa atribuído a este cliente.</p>'; return; }
+        const assignedProgramsDetails = assignedProgramIds.map(id => getProgramById(id)).filter(p => p).sort((a, b) => a.title.localeCompare(b.title, 'pt-BR'));
+        if (assignedProgramsDetails.length === 0) { consolidatedChartsContainer.innerHTML = '<p class="text-center text-gray-500 py-6 col-span-full">Detalhes dos programas atribuídos não encontrados.</p>'; return; }
+        assignedProgramsDetails.forEach((program, index) => {
+            const chartId = `consolidated-chart-${program.id}-${index}`; 
+            const wrapper = document.createElement('div');
+            wrapper.className = 'consolidated-chart-wrapper border border-gray-200 rounded-md p-4 bg-gray-50 flex flex-col items-center shadow-sm print:border-gray-300 print:shadow-none print:bg-white print:break-inside-avoid';
+            wrapper.innerHTML = `
+                <h4 class="text-sm font-medium text-gray-600 mb-2 text-center">${program.title} <span class="text-xs text-gray-500">(${program.tag || 'N/A'})</span></h4>
+                <div class="w-full h-48 sm:h-56 relative"> <canvas id="${chartId}"></canvas> </div>
+                <p class="no-data-message text-xs text-gray-500 italic mt-2 hidden">Nenhum dado de sessão para este programa.</p>`;
+            consolidatedChartsContainer.appendChild(wrapper);
+            renderSingleConsolidatedChart(patient, program.id, chartId);
+        });
+    }
+    function renderSingleConsolidatedChart(patient, programId, canvasId) {
+        const canvas = document.getElementById(canvasId);
+        const canvasContainer = canvas?.parentElement; 
+        const noDataMsg = canvasContainer?.nextElementSibling; 
+        if (!canvas || !canvasContainer || !noDataMsg) { console.warn(`Elementos do gráfico consolidado não encontrados para ${canvasId}`); return; }
+        const sessionData = (patient.sessionData || []).filter(session => String(session.program_id || session.programId) === String(programId)).sort((a, b) => new Date(a.session_date || a.date) - new Date(b.session_date || b.date)).map(s => ({ ...s, score: parseFloat(s.score) }));
+        if (sessionData.length === 0) { noDataMsg.classList.remove('hidden'); canvasContainer.style.display = 'none'; return; }
+        noDataMsg.classList.add('hidden'); canvasContainer.style.display = 'block';
+        const dates = sessionData.map(session => formatDate(session.session_date || session.date, 'short'));
+        const scores = sessionData.map(session => session.score);
+        const pointStyles = sessionData.map(session => (session.is_baseline || session.isBaseline) ? 'rect' : 'circle');
+        const pointBackgroundColors = sessionData.map(session => (session.is_baseline || session.isBaseline) ? '#fbbf24' : '#4f46e5'); 
+        const pointRadii = sessionData.map(session => (session.is_baseline || session.isBaseline) ? 3 : 2.5); 
+        const ctx = canvas.getContext('2d');
+        const primaryColor = '#4f46e5', baselineColor = '#fbbf24', primaryLight = 'rgba(79, 70, 229, 0.05)', textColor = '#4b5563', gridColor = '#e5e7eb';
+        consolidatedChartInstances[canvasId] = new Chart(ctx, {
+            type: 'line', data: { labels: dates, datasets: [{ label: 'Pontuação (%)', data: scores, borderColor: primaryColor, backgroundColor: primaryLight, pointStyle: pointStyles, pointBackgroundColor: pointBackgroundColors, pointRadius: pointRadii, pointBorderColor: '#fff', fill: true, tension: 0.1, borderWidth: 1.5, pointHoverRadius: pointRadii.map(r => r + 2) }] },
+            options: { responsive: true, maintainAspectRatio: false, scales: { y: { beginAtZero: true, max: 100, ticks: { color: textColor, font: { size: 9 } }, grid: { color: gridColor, drawBorder: false } }, x: { ticks: { color: textColor, font: { size: 9 }, maxRotation: 0, autoSkipPadding: 10 }, grid: { display: false } } }, plugins: { legend: { display: false }, tooltip: { backgroundColor: '#1f2937', titleColor: '#fff', bodyColor: '#fff', padding: 8, cornerRadius: 3, displayColors: true, borderColor: (tooltipItem) => { const index = tooltipItem.tooltip.dataPoints[0].dataIndex; if (index < 0 || index >= sessionData.length) return primaryColor; return sessionData[index]?.is_baseline || sessionData[index]?.isBaseline ? baselineColor : primaryColor; }, borderWidth: 1, callbacks: { title: (tooltipItems) => { const index = tooltipItems[0].dataIndex; if(index < 0 || index >= sessionData.length) return ''; const session = sessionData[index]; const prefix = (session.is_baseline || session.isBaseline) ? '[LB] ' : ''; return `${prefix}${formatDate(session.session_date || session.date)}`; }, label: (context) => `Pont.: ${context.parsed.y}%`, labelColor: function(context) { const index = context.dataIndex; if(index < 0 || index >= sessionData.length) return { borderColor: primaryColor, backgroundColor: primaryColor }; const isBaseline = sessionData[index].is_baseline || sessionData[index].isBaseline; return { borderColor: isBaseline ? baselineColor : primaryColor, backgroundColor: isBaseline ? baselineColor : primaryColor, borderWidth: 2, borderRadius: isBaseline ? 0 : '50%' }; }, } } } }
+        });
+    }
+    
+    // --- Geração de PDF ---
+    function generateProgramGradePDF(patient) {
+        if (typeof jspdf === 'undefined' || typeof jspdf.jsPDF === 'undefined') { console.error("jsPDF não carregado."); alert("Erro: PDF não disponível."); return; }
+        if (!patient) { alert("Nenhum cliente selecionado."); return; }
+        const assignedProgramIds = patient.assigned_program_ids || [];
+        if (assignedProgramIds.length === 0) { alert("Nenhum programa atribuído para gerar a Grade."); return; }
+        const { jsPDF } = window.jspdf; const doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
+        const margin = 15, pageWidth = doc.internal.pageSize.getWidth(), pageHeight = doc.internal.pageSize.getHeight(), contentWidth = pageWidth - margin * 2;
+        let y = margin + 10, lineHeight = 4.5, titleFontSize = 16, headerFontSize = 10, sectionTitleFontSize = 12, programTitleFontSize = 10, programDetailFontSize = 9, footerFontSize = 8, pageCount = 1;
+        const totalPagesPlaceholder = "{totalPages}";
+        const addWrappedText = (text, x, startY, maxWidth, options = {}) => { doc.setFontSize(options.fontSize || programDetailFontSize); doc.setFont(undefined, options.fontStyle || 'normal'); const lines = doc.splitTextToSize(text, maxWidth); doc.text(lines, x, startY); return startY + lines.length * (options.lineHeight || lineHeight); };
+        const checkAndAddPage = (currentY, requiredHeight) => { if (currentY + requiredHeight > pageHeight - margin - 10) { addFooter(doc, pageCount, margin, pageHeight, footerFontSize, totalPagesPlaceholder); doc.addPage(); pageCount++; currentY = margin; doc.setFontSize(headerFontSize); doc.setFont(undefined, 'italic'); doc.text(`Grade de Programas - ${patient.name} (Continuação - Pág. ${pageCount})`, margin, currentY); currentY += 10; doc.setFont(undefined, 'normal'); } return currentY; };
+        const addFooter = (pdfDoc, currentPage, docMargin, docPageHeight, fontSize, totalPagesStr) => { pdfDoc.setFontSize(fontSize); pdfDoc.setTextColor(100); const footerText = `Página ${currentPage} de ${totalPagesStr}`; pdfDoc.text(footerText, pdfDoc.internal.pageSize.getWidth() / 2, docPageHeight - docMargin / 2, { align: 'center' }); pdfDoc.text(`Gerado em: ${formatDate(new Date().toISOString().split('T')[0])}`, docMargin, docPageHeight - docMargin / 2); pdfDoc.setTextColor(0); };
+        doc.setFontSize(titleFontSize); doc.setFont(undefined, 'bold'); doc.text(`Grade de Programas - ${patient.name}`, pageWidth / 2, y, { align: 'center' }); y += 8;
+        doc.setFontSize(headerFontSize); doc.setFont(undefined, 'normal'); const dobText = `Nasc: ${patient.dob ? formatDate(patient.dob) : 'Não informado'}`; const diagText = `Diag: ${patient.diagnosis || 'Não informado'}`; doc.text(`ID: ${patient.id}`, margin, y); doc.text(dobText, margin + (contentWidth / 3), y); doc.text(diagText, pageWidth - margin, y, { align: 'right' }); y += 10;
+        doc.setLineWidth(0.2); doc.line(margin, y, pageWidth - margin, y); y += 8;
+        doc.setFontSize(sectionTitleFontSize); doc.setFont(undefined, 'bold'); y = checkAndAddPage(y, lineHeight * 2); doc.text("Programas Atribuídos:", margin, y); y += 6;
+        const assignedProgramsDetails = assignedProgramIds.map(id => getProgramById(id)).filter(p => p).sort((a, b) => a.title.localeCompare(b.title, 'pt-BR'));
+        if (assignedProgramsDetails.length === 0) { doc.setFontSize(programDetailFontSize); doc.setFont(undefined, 'normal'); y = checkAndAddPage(y, lineHeight); doc.text("Nenhum programa atribuído.", margin + 4, y); y += lineHeight; }
+        else { assignedProgramsDetails.forEach(program => { let requiredHeight = 0; const titleTagText = `• ${program.title} (${program.tag || 'N/A'})`; doc.setFontSize(programTitleFontSize); doc.setFont(undefined, 'bold'); requiredHeight += doc.splitTextToSize(titleTagText, contentWidth - 4).length * (lineHeight + 0.5) + 2; doc.setFontSize(programDetailFontSize); doc.setFont(undefined, 'normal'); const objectiveLines = doc.splitTextToSize(`Objetivo: ${program.objective || 'Não definido'}`, contentWidth - 8); requiredHeight += objectiveLines.length * lineHeight + 2; let criteriaLines = []; if (program.criteria_for_advancement) { doc.setFont(undefined, 'italic'); criteriaLines = doc.splitTextToSize(`Critério de Avanço: ${program.criteria_for_advancement}`, contentWidth - 8); requiredHeight += criteriaLines.length * (lineHeight - 0.5) + 2; doc.setFont(undefined, 'normal'); } const firstStep = program.procedure && Array.isArray(program.procedure) && program.procedure.length > 0 ? program.procedure.find(step => step.term.toUpperCase() === 'SD') || program.procedure[0] : null; if (firstStep) { const procLines = doc.splitTextToSize(`Procedimento (Início - ${firstStep.term}): ${firstStep.description}`, contentWidth - 8); requiredHeight += procLines.length * lineHeight + 2; } requiredHeight += 4; y = checkAndAddPage(y, requiredHeight); y = addWrappedText(`• ${program.title} (${program.tag || 'N/A'})`, margin + 4, y, contentWidth - 4, { fontSize: programTitleFontSize, fontStyle: 'bold', lineHeight: lineHeight + 0.5 }); y += 1; y = addWrappedText(`Objetivo: ${program.objective || 'Não definido'}`, margin + 8, y, contentWidth - 8, { fontSize: programDetailFontSize, fontStyle: 'normal' }); y += 1; if (program.criteria_for_advancement) { doc.setFont(undefined, 'italic'); y = addWrappedText(`Critério de Avanço: ${program.criteria_for_advancement}`, margin + 8, y, contentWidth - 8, { fontSize: programDetailFontSize - 1, lineHeight: lineHeight -0.5 }); doc.setFont(undefined, 'normal'); y += 1; } if (firstStep) { y = addWrappedText(`Procedimento (Início - ${firstStep.term}): ${firstStep.description}`, margin + 8, y, contentWidth - 8, { fontSize: programDetailFontSize, fontStyle: 'normal' }); y += 1; } y += 4; }); }
+        const totalPages = doc.internal.getNumberOfPages(); for (let i = 1; i <= totalPages; i++) { doc.setPage(i); addFooter(doc, i, margin, pageHeight, footerFontSize, totalPages.toString()); }
+        try { const filename = `Grade_Programas_${patient.name.replace(/[^a-z0-9]/gi, '_').toLowerCase()}.pdf`; doc.save(filename); console.log("PDF da Grade gerado:", filename); } catch (error) { console.error("Erro ao salvar PDF da Grade:", error); alert("Erro ao gerar PDF."); }
+    }
+
+    function generateWeeklyRecordSheetPDF(patient) {
+        if (typeof jspdf === 'undefined' || typeof jspdf.jsPDF === 'undefined') { console.error("jsPDF não carregado."); alert("Erro: PDF não disponível."); return; }
+        if (!patient) { alert("Nenhum cliente selecionado."); return; }
+        const assignedProgramIds = patient.assigned_program_ids || [];
+        if (assignedProgramIds.length === 0) { alert("Nenhum programa atribuído para gerar Folha de Registro."); return; }
+        const { jsPDF } = window.jspdf; const doc = new jsPDF({ orientation: 'landscape', unit: 'mm', format: 'a4' });
+        const margin = 10, pageWidth = doc.internal.pageSize.getWidth(), pageHeight = doc.internal.pageSize.getHeight(), contentWidth = pageWidth - margin * 2;
+        let y = margin + 10, titleFontSize = 14, headerFontSize = 10, tableHeaderFontSize = 8, tableCellFontSize = 7, footerFontSize = 8, defaultRowHeight = 12, pageCount = 1;
+        const totalPagesPlaceholder = "{totalPages}", daysOfWeek = ["Seg", "Ter", "Qua", "Qui", "Sex", "Sáb", "Dom"];
+        const addWrappedTextToCell = (text, x, startY, cellWidth, cellHeight, options = {}) => { doc.setFontSize(options.fontSize || tableCellFontSize); doc.setFont(undefined, options.fontStyle || 'normal'); const lines = doc.splitTextToSize(text, cellWidth - (options.padding || 2) * 2); const textHeight = lines.length * (options.lineHeight || 3.5); const textOffsetY = (cellHeight - textHeight) / 2 + (options.fontSize || tableCellFontSize) * 0.35; doc.text(lines, x + (options.padding || 2), startY + textOffsetY); return Math.max(cellHeight, textHeight + (options.padding || 2) * 2); };
+        const drawTableHeader = (currentY) => { doc.setFontSize(tableHeaderFontSize); doc.setFont(undefined, 'bold'); doc.setDrawColor(50); doc.setLineWidth(0.3); doc.setFillColor(230, 230, 230); doc.rect(margin, currentY, contentWidth, defaultRowHeight, 'FD'); doc.setTextColor(0); const textY = currentY + defaultRowHeight / 2 + (tableHeaderFontSize * 0.35 / 2); doc.text("Programa", margin + 2, textY); doc.line(margin + programColWidth, currentY, margin + programColWidth, currentY + defaultRowHeight); let currentX = margin + programColWidth; daysOfWeek.forEach(day => { doc.text(day, currentX + dayColWidth / 2, textY, { align: 'center' }); if (day !== daysOfWeek[daysOfWeek.length - 1]) { doc.line(currentX + dayColWidth, currentY, currentX + dayColWidth, currentY + defaultRowHeight); } currentX += dayColWidth; }); return currentY + defaultRowHeight; };
+        const checkAndAddPageLandscape = (currentY, requiredHeight) => { if (currentY + requiredHeight > pageHeight - margin - 10) { addFooter(doc, pageCount, margin, pageHeight, footerFontSize, totalPagesPlaceholder); doc.addPage(); pageCount++; currentY = margin; doc.setFontSize(headerFontSize); doc.setFont(undefined, 'italic'); doc.text(`Folha de Registro Semanal - ${patient.name} (Continuação - Pág. ${pageCount})`, margin, currentY); currentY += 10; doc.setFont(undefined, 'normal'); currentY = drawTableHeader(currentY); } return currentY; };
+        const addFooter = (pdfDoc, currentPage, docMargin, docPageHeight, fontSize, totalPagesStr) => { pdfDoc.setFontSize(fontSize); pdfDoc.setTextColor(100); const footerText = `Página ${currentPage} de ${totalPagesStr}`; pdfDoc.text(footerText, pdfDoc.internal.pageSize.getWidth() / 2, docPageHeight - docMargin / 2, { align: 'center' }); pdfDoc.text(`Gerado em: ${formatDate(new Date().toISOString().split('T')[0])}`, docMargin, docPageHeight - docMargin / 2); pdfDoc.setTextColor(0); };
+        doc.setFontSize(titleFontSize); doc.setFont(undefined, 'bold'); doc.text(`Folha de Registro Semanal - ${patient.name}`, pageWidth / 2, y, { align: 'center' }); y += 8;
+        doc.setFontSize(headerFontSize); doc.setFont(undefined, 'normal'); doc.text(`ID: ${patient.id}`, margin, y); doc.text(`Semana de: ____ / ____ / ________`, pageWidth - margin, y, { align: 'right' }); y += 10;
+        const programColWidth = contentWidth * 0.30, dayColWidth = (contentWidth - programColWidth) / daysOfWeek.length;
+        y = drawTableHeader(y);
+        const assignedProgramsDetails = assignedProgramIds.map(id => getProgramById(id)).filter(p => p).sort((a, b) => a.title.localeCompare(b.title, 'pt-BR'));
+        doc.setFontSize(tableCellFontSize); doc.setFont(undefined, 'normal'); doc.setDrawColor(150); doc.setLineWidth(0.1);
+        assignedProgramsDetails.forEach(program => { const programText = `${program.title} (${program.tag || 'N/A'})`; const programCellHeight = addWrappedTextToCell(programText, margin, y, programColWidth, defaultRowHeight, {padding: 1, lineHeight: 3}); const actualRowHeight = Math.max(defaultRowHeight, programCellHeight); y = checkAndAddPageLandscape(y, actualRowHeight); doc.rect(margin, y, programColWidth, actualRowHeight, 'S'); addWrappedTextToCell(programText, margin, y, programColWidth, actualRowHeight, {padding: 1, lineHeight: 3}); let currentX = margin + programColWidth; const numTrials = (typeof program.trials === 'number' && program.trials > 0) ? program.trials : 1; const trialCellWidth = dayColWidth / numTrials; daysOfWeek.forEach(() => { doc.rect(currentX, y, dayColWidth, actualRowHeight, 'S'); if (numTrials > 1) { for (let j = 1; j < numTrials; j++) { doc.line(currentX + (trialCellWidth * j), y, currentX + (trialCellWidth * j), y + actualRowHeight); } } currentX += dayColWidth; }); y += actualRowHeight; });
+        const totalPages = doc.internal.getNumberOfPages(); for (let i = 1; i <= totalPages; i++) { doc.setPage(i); addFooter(doc, i, margin, pageHeight, footerFontSize, totalPages.toString()); }
+        try { const filename = `Folha_Registro_${patient.name.replace(/[^a-z0-9]/gi, '_').toLowerCase()}.pdf`; doc.save(filename); console.log("PDF da Folha de Registro gerado:", filename); } catch (error) { console.error("Erro ao salvar PDF da Folha de Registro:", error); alert("Erro ao gerar PDF."); }
+    }
+
+    async function generateConsolidatedReportPDF(patient) {
+        if (typeof jspdf === 'undefined' || typeof jspdf.jsPDF === 'undefined' || typeof Chart === 'undefined') {
+            console.error("jsPDF ou Chart.js não carregados.");
+            alert("Erro: A funcionalidade de PDF não está disponível.");
+            return;
+        }
+        if (!patient) { alert("Nenhum cliente selecionado."); return; }
+        const assignedProgramIds = patient.assigned_program_ids || [];
+        if (assignedProgramIds.length === 0) { alert("Nenhum programa atribuído para gerar o relatório."); return; }
+
+        const { jsPDF } = window.jspdf;
+        const doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
+        const margin = 15, pageWidth = doc.internal.pageSize.getWidth(), pageHeight = doc.internal.pageSize.getHeight(), contentWidth = pageWidth - margin * 2;
+        let y = margin, pageCount = 1;
+        const footerFontSize = 8, totalPagesPlaceholder = "{totalPages}";
+
+        const addHeaderToPage = (pdfDoc, patientData, currentPageY) => {
+            pdfDoc.setFontSize(16); pdfDoc.setFont(undefined, 'bold');
+            pdfDoc.text("Relatório Consolidado de Progresso", pageWidth / 2, currentPageY, { align: 'center' });
+            currentPageY += 8;
+            pdfDoc.setFontSize(10); pdfDoc.setFont(undefined, 'normal');
+            pdfDoc.text(`Cliente: ${patientData.name}`, margin, currentPageY);
+            pdfDoc.text(`ID: ${patientData.id}`, margin + contentWidth / 2, currentPageY);
+            currentPageY += 5;
+            pdfDoc.text(`Data Nasc.: ${patientData.dob ? formatDate(patientData.dob) : 'N/I'}`, margin, currentPageY);
+            pdfDoc.text(`Diagnóstico: ${patientData.diagnosis || 'N/I'}`, margin + contentWidth / 2, currentPageY);
+            currentPageY += 5;
+            pdfDoc.text(`Gerado em: ${formatDate(new Date().toISOString().split('T')[0])}`, margin, currentPageY);
+            currentPageY += 7;
+            pdfDoc.setLineWidth(0.3); pdfDoc.line(margin, currentPageY, pageWidth - margin, currentPageY);
+            currentPageY += 8;
+            return currentPageY;
+        };
+        const addFooterToPage = (pdfDoc, currentPage, totalPagesStr) => {
+            pdfDoc.setFontSize(footerFontSize); pdfDoc.setTextColor(100);
+            const footerText = `Página ${currentPage} de ${totalPagesStr}`;
+            pdfDoc.text(footerText, pageWidth / 2, pageHeight - margin / 1.5, { align: 'center' });
+            pdfDoc.setTextColor(0);
+        };
+
+        y = addHeaderToPage(doc, patient, y);
+
+        const assignedProgramsDetails = assignedProgramIds.map(id => getProgramById(id)).filter(p => p).sort((a, b) => a.title.localeCompare(b.title, 'pt-BR'));
+
+        for (const program of assignedProgramsDetails) {
+            const programTitle = `${program.title} (${program.tag || 'N/A'})`;
+            const sessionData = (patient.sessionData || []).filter(session => String(session.program_id || session.programId) === String(program.id)).sort((a, b) => new Date(a.session_date || a.date) - new Date(b.session_date || b.date)).map(s => ({ ...s, score: parseFloat(s.score) }));
+            
+            const chartHeightMM = 65; 
+            const titleHeightMM = 8;
+            const spaceBetweenMM = 8;
+            const requiredHeight = titleHeightMM + chartHeightMM + spaceBetweenMM;
+
+            if (y + requiredHeight > pageHeight - margin - 10) { 
+                addFooterToPage(doc, pageCount, totalPagesPlaceholder);
+                doc.addPage();
+                pageCount++;
+                y = margin;
+                y = addHeaderToPage(doc, patient, y); 
+            }
+
+            doc.setFontSize(11); doc.setFont(undefined, 'bold'); doc.setTextColor(50, 50, 50);
+            doc.text(programTitle, margin, y);
+            y += titleHeightMM;
+
+            if (sessionData.length > 0) {
+                try {
+                    const tempCanvas = document.createElement('canvas');
+                    const canvasWidthPx = 800; 
+                    const canvasHeightPx = chartHeightMM * (canvasWidthPx / contentWidth); 
+                    tempCanvas.width = canvasWidthPx;
+                    tempCanvas.height = canvasHeightPx;
+                    const tempCtx = tempCanvas.getContext('2d');
+
+                    const dates = sessionData.map(session => formatDate(session.session_date || session.date, 'short'));
+                    const scores = sessionData.map(session => session.score);
+                    const pointStyles = sessionData.map(session => (session.is_baseline || session.isBaseline) ? 'rect' : 'circle');
+                    const pointBackgroundColors = sessionData.map(session => (session.is_baseline || session.isBaseline) ? '#fbbf24' : '#4f46e5');
+                    const pointRadii = sessionData.map(session => (session.is_baseline || session.isBaseline) ? 4 : 3); 
+
+                    const chartInstance = new Chart(tempCtx, {
+                        type: 'line',
+                        data: { labels: dates, datasets: [{ label: 'Pontuação (%)', data: scores, borderColor: '#4f46e5', backgroundColor: 'rgba(79, 70, 229, 0.05)', pointStyle: pointStyles, pointBackgroundColor: pointBackgroundColors, pointRadius: pointRadii, pointBorderColor: '#fff', fill: true, tension: 0.1, borderWidth: 1.5 }] },
+                        options: {
+                            responsive: false, 
+                            animation: false,
+                            devicePixelRatio: 2, 
+                            scales: { y: { beginAtZero: true, max: 100, ticks: { font: { size: 10 } } }, x: { ticks: { font: { size: 10 } } } },
+                            plugins: { legend: { display: false }, tooltip: { enabled: false } } 
+                        }
+                    });
+                    
+                    const imageDataUrl = tempCanvas.toDataURL('image/png', 1.0); 
+                    doc.addImage(imageDataUrl, 'PNG', margin, y, contentWidth, chartHeightMM);
+                    y += chartHeightMM;
+                    chartInstance.destroy(); 
+                } catch (chartError) {
+                    console.error("Erro ao renderizar gráfico para PDF:", chartError);
+                    doc.setFontSize(9); doc.setTextColor(150, 0, 0);
+                    doc.text("Erro ao gerar gráfico.", margin + 5, y + chartHeightMM / 2);
+                    y += chartHeightMM;
+                }
+            } else {
+                doc.setFontSize(9); doc.setTextColor(100);
+                doc.text("Nenhum dado de sessão registrado para este programa.", margin + 5, y + chartHeightMM / 2);
+                y += chartHeightMM;
+            }
+            y += spaceBetweenMM;
+        }
+        
+        const totalPages = doc.internal.getNumberOfPages();
+        for (let i = 1; i <= totalPages; i++) {
+            doc.setPage(i);
+            addFooterToPage(doc, i, totalPages.toString());
+        }
+
+        try {
+            const filename = `Relatorio_Consolidado_${patient.name.replace(/[^a-z0-9]/gi, '_').toLowerCase()}.pdf`;
+            doc.save(filename);
+            console.log("PDF do Relatório Consolidado gerado:", filename);
+        } catch (error) {
+            console.error("Erro ao salvar PDF do Relatório Consolidado:", error);
+            alert("Erro ao gerar PDF do Relatório Consolidado.");
+        }
+    }
+
+
+    // --- Funções Utilitárias ---
+    function formatDate(dateString, format = 'long') {
+        if (!dateString) return 'N/A';
+        let date;
+        if (/^\d{4}-\d{2}-\d{2}/.test(dateString)) {
+            date = new Date(dateString.split('T')[0] + 'T00:00:00');
+        } else {
+            date = new Date(dateString);
+        }
+        if (isNaN(date.getTime())) { return 'Data inválida'; }
+        const options = format === 'short' ? { day: '2-digit', month: '2-digit', year: '2-digit' } : { day: '2-digit', month: '2-digit', year: 'numeric' };
+        try { return date.toLocaleDateString('pt-BR', options); } catch (e) { console.error("Erro ao formatar data:", e); return dateString; }
+    }
 
     // --- Inicia a aplicação ---
     initializeApp();
-
 });

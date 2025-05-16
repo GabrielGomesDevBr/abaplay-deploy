@@ -58,7 +58,7 @@
         /* --- ESTILOS DE IMPRESSÃO --- */
          @media print {
             /* Esconde elementos não desejados */
-            .no-print, nav, #contextual-sidebar, #login-modal, .modal-actions,
+            .no-print, nav, #contextual-sidebar, #login-modal, .modal-actions, #mobile-menu,
             #consolidated-report-modal > .modal-content > div:first-child {
                 display: none !important;
             }
@@ -178,6 +178,17 @@
          .nav-link:not(.active):hover {
              background-color: #f9fafb; /* Gray-50 */
          }
+         /* Estilo para links ativos no menu mobile */
+        #mobile-menu .nav-link-mobile.active {
+            background-color: #4f46e5; /* Indigo-600 */
+            color: white;
+            font-weight: 600;
+        }
+        #mobile-menu .nav-link-mobile:not(.active):hover {
+            background-color: #4338ca; /* Indigo-700 */
+            color: white;
+        }
+
 
          /* Melhoria Visual: Sidebar ativa */
          .client-item.active, .program-link.active, .program-category-details[open] > summary {
@@ -282,36 +293,83 @@
     </div>
 
     <div id="app-main-interface" class="hidden flex flex-col flex-1 overflow-hidden">
-        <nav class="bg-white shadow-sm w-full flex items-center justify-between px-6 py-3 flex-shrink-0 z-10 no-print border-b border-gray-200">
-            <div class="flex items-center space-x-1">
-                <span class="text-2xl font-bold text-indigo-600 flex items-center mr-4">
-                    <i class="fas fa-brain mr-2"></i>ABAplay
-                </span>
-                <a href="#" class="nav-link text-gray-600 hover:text-indigo-600 font-medium px-3 py-2 rounded-md text-sm transition-colors duration-150" data-view="dashboard-view"><i class="fas fa-tachometer-alt fa-fw mr-1.5"></i> Dashboard</a>
-                <a href="#" class="nav-link text-gray-600 hover:text-indigo-600 font-medium px-3 py-2 rounded-md text-sm transition-colors duration-150 active" data-view="clients-view"><i class="fas fa-users fa-fw mr-1.5"></i> Clientes</a>
-                <a href="#" class="nav-link text-gray-600 hover:text-indigo-600 font-medium px-3 py-2 rounded-md text-sm transition-colors duration-150" data-view="programs-view" data-area="Psicologia"><i class="fas fa-folder-open fa-fw mr-1.5"></i> Psicologia</a>
-                <a href="#" class="nav-link text-gray-600 hover:text-indigo-600 font-medium px-3 py-2 rounded-md text-sm transition-colors duration-150" data-view="programs-view" data-area="TerapiaOcupacional"><i class="fas fa-puzzle-piece fa-fw mr-1.5"></i> T. Ocupacional</a>
-                <a href="#" class="nav-link text-gray-600 hover:text-indigo-600 font-medium px-3 py-2 rounded-md text-sm transition-colors duration-150" data-view="programs-view" data-area="Psicomotricidade"><i class="fas fa-child fa-fw mr-1.5"></i> Psicomotric.</a>
-                <a href="#" class="nav-link text-gray-600 hover:text-indigo-600 font-medium px-3 py-2 rounded-md text-sm transition-colors duration-150" data-view="programs-view" data-area="Psicopedagogia"><i class="fas fa-graduation-cap fa-fw mr-1.5"></i> Psicopedag.</a>
-                <a href="#" class="nav-link text-gray-600 hover:text-indigo-600 font-medium px-3 py-2 rounded-md text-sm transition-colors duration-150" data-view="programs-view" data-area="Musicoterapia"><i class="fas fa-music fa-fw mr-1.5"></i> Musicoterapia</a>
-                <a href="#" class="nav-link text-gray-600 hover:text-indigo-600 font-medium px-3 py-2 rounded-md text-sm transition-colors duration-150" data-view="programs-view" data-area="Fonoaudiologia"><i class="fas fa-comment-dots fa-fw mr-1.5"></i> Fonoaudiol.</a>
-                <a href="#" class="nav-link text-gray-600 hover:text-indigo-600 font-medium px-3 py-2 rounded-md text-sm transition-colors duration-150" data-view="notes-view"><i class="fas fa-pencil-alt fa-fw mr-1.5"></i> Anotações</a>
-                <a href="#" class="nav-link text-gray-600 hover:text-indigo-600 font-medium px-3 py-2 rounded-md text-sm transition-colors duration-150" data-view="tip-guide-view"><i class="fas fa-book-open fa-fw mr-1.5"></i> Guia de Dicas</a>
+        <nav class="bg-white shadow-sm w-full flex-shrink-0 z-20 no-print border-b border-gray-200">
+            <div class="flex items-center justify-between px-4 sm:px-6 py-3 h-16">
+                <div class="flex items-center">
+                    <span class="text-2xl font-bold text-indigo-600 flex items-center mr-4">
+                        <i class="fas fa-brain mr-2"></i>ABAplay
+                    </span>
+                    <div class="hidden md:flex items-center space-x-1 ml-4">
+                        <a href="#" class="nav-link text-gray-600 hover:text-indigo-600 font-medium px-3 py-2 rounded-md text-sm transition-colors duration-150" data-view="dashboard-view"><i class="fas fa-tachometer-alt fa-fw mr-1.5"></i> Dashboard</a>
+                        <a href="#" class="nav-link text-gray-600 hover:text-indigo-600 font-medium px-3 py-2 rounded-md text-sm transition-colors duration-150 active" data-view="clients-view"><i class="fas fa-users fa-fw mr-1.5"></i> Clientes</a>
+                        <a href="#" class="nav-link text-gray-600 hover:text-indigo-600 font-medium px-3 py-2 rounded-md text-sm transition-colors duration-150" data-view="programs-view" data-area="Psicologia"><i class="fas fa-folder-open fa-fw mr-1.5"></i> Psicologia</a>
+                        <a href="#" class="nav-link text-gray-600 hover:text-indigo-600 font-medium px-3 py-2 rounded-md text-sm transition-colors duration-150" data-view="programs-view" data-area="TerapiaOcupacional"><i class="fas fa-puzzle-piece fa-fw mr-1.5"></i> T. Ocupacional</a>
+                        <a href="#" class="nav-link text-gray-600 hover:text-indigo-600 font-medium px-3 py-2 rounded-md text-sm transition-colors duration-150" data-view="programs-view" data-area="Psicomotricidade"><i class="fas fa-child fa-fw mr-1.5"></i> Psicomotric.</a>
+                        <a href="#" class="nav-link text-gray-600 hover:text-indigo-600 font-medium px-3 py-2 rounded-md text-sm transition-colors duration-150" data-view="programs-view" data-area="Psicopedagogia"><i class="fas fa-graduation-cap fa-fw mr-1.5"></i> Psicopedag.</a>
+                        <a href="#" class="nav-link text-gray-600 hover:text-indigo-600 font-medium px-3 py-2 rounded-md text-sm transition-colors duration-150" data-view="programs-view" data-area="Musicoterapia"><i class="fas fa-music fa-fw mr-1.5"></i> Musicoterapia</a>
+                        <a href="#" class="nav-link text-gray-600 hover:text-indigo-600 font-medium px-3 py-2 rounded-md text-sm transition-colors duration-150" data-view="programs-view" data-area="Fonoaudiologia"><i class="fas fa-comment-dots fa-fw mr-1.5"></i> Fonoaudiol.</a>
+                        <a href="#" class="nav-link text-gray-600 hover:text-indigo-600 font-medium px-3 py-2 rounded-md text-sm transition-colors duration-150" data-view="notes-view"><i class="fas fa-pencil-alt fa-fw mr-1.5"></i> Anotações</a>
+                        <a href="#" class="nav-link text-gray-600 hover:text-indigo-600 font-medium px-3 py-2 rounded-md text-sm transition-colors duration-150" data-view="tip-guide-view"><i class="fas fa-book-open fa-fw mr-1.5"></i> Guia de Dicas</a>
+                    </div>
+                </div>
+
+                <div class="flex items-center space-x-2 sm:space-x-4">
+                     <span id="current-client-indicator" class="text-xs sm:text-sm text-gray-500 italic transition-colors duration-150 hidden md:block">Nenhum cliente selecionado</span>
+                     <div class="relative flex items-center space-x-2 sm:space-x-3">
+                        <div class="w-8 h-8 rounded-full bg-indigo-100 text-indigo-600 flex items-center justify-center font-semibold text-sm border border-indigo-200" id="user-avatar" title="Usuário Logado">--</div>
+                        <span class="text-gray-700 text-sm font-medium hidden lg:block" id="logged-in-username">Usuário</span>
+                        <button id="logout-button" title="Sair" class="text-gray-400 hover:text-red-600 px-2 py-1 rounded-full hover:bg-gray-100 hidden md:block transition-colors duration-150">
+                            <i class="fas fa-sign-out-alt fa-fw"></i>
+                        </button>
+                    </div>
+                    <div class="md:hidden flex items-center">
+                        <button id="mobile-menu-button" type="button" class="inline-flex items-center justify-center p-2 rounded-md text-gray-500 hover:text-white hover:bg-indigo-600 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-indigo-500" aria-controls="mobile-menu" aria-expanded="false">
+                            <span class="sr-only">Abrir menu principal</span>
+                            <svg id="hamburger-icon" class="block h-6 w-6" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
+                            </svg>
+                            <svg id="close-icon" class="hidden h-6 w-6" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                            </svg>
+                        </button>
+                    </div>
+                </div>
             </div>
-            <div class="flex items-center space-x-4">
-                 <span id="current-client-indicator" class="text-sm text-gray-500 italic transition-colors duration-150">Nenhum cliente selecionado</span>
-                 <div class="relative flex items-center space-x-3">
-                    <div class="w-8 h-8 rounded-full bg-indigo-100 text-indigo-600 flex items-center justify-center font-semibold text-sm border border-indigo-200" id="user-avatar" title="Usuário Logado">--</div>
-                    <span class="text-gray-700 text-sm font-medium hidden lg:block" id="logged-in-username">Usuário</span>
-                    <button id="logout-button" title="Sair" class="text-gray-400 hover:text-red-600 px-2 py-1 rounded-full hover:bg-gray-100 hidden transition-colors duration-150">
-                        <i class="fas fa-sign-out-alt fa-fw"></i>
-                    </button>
+
+            <div class="md:hidden hidden bg-white border-t border-gray-200" id="mobile-menu">
+                <div class="px-2 pt-2 pb-3 space-y-1 sm:px-3">
+                    <a href="#" class="nav-link-mobile nav-link block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:bg-indigo-50 hover:text-indigo-700" data-view="dashboard-view"><i class="fas fa-tachometer-alt fa-fw mr-1.5"></i> Dashboard</a>
+                    <a href="#" class="nav-link-mobile nav-link block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:bg-indigo-50 hover:text-indigo-700" data-view="clients-view"><i class="fas fa-users fa-fw mr-1.5"></i> Clientes</a>
+                    <a href="#" class="nav-link-mobile nav-link block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:bg-indigo-50 hover:text-indigo-700" data-view="programs-view" data-area="Psicologia"><i class="fas fa-folder-open fa-fw mr-1.5"></i> Psicologia</a>
+                    <a href="#" class="nav-link-mobile nav-link block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:bg-indigo-50 hover:text-indigo-700" data-view="programs-view" data-area="TerapiaOcupacional"><i class="fas fa-puzzle-piece fa-fw mr-1.5"></i> T. Ocupacional</a>
+                    <a href="#" class="nav-link-mobile nav-link block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:bg-indigo-50 hover:text-indigo-700" data-view="programs-view" data-area="Psicomotricidade"><i class="fas fa-child fa-fw mr-1.5"></i> Psicomotric.</a>
+                    <a href="#" class="nav-link-mobile nav-link block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:bg-indigo-50 hover:text-indigo-700" data-view="programs-view" data-area="Psicopedagogia"><i class="fas fa-graduation-cap fa-fw mr-1.5"></i> Psicopedag.</a>
+                    <a href="#" class="nav-link-mobile nav-link block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:bg-indigo-50 hover:text-indigo-700" data-view="programs-view" data-area="Musicoterapia"><i class="fas fa-music fa-fw mr-1.5"></i> Musicoterapia</a>
+                    <a href="#" class="nav-link-mobile nav-link block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:bg-indigo-50 hover:text-indigo-700" data-view="programs-view" data-area="Fonoaudiologia"><i class="fas fa-comment-dots fa-fw mr-1.5"></i> Fonoaudiol.</a>
+                    <a href="#" class="nav-link-mobile nav-link block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:bg-indigo-50 hover:text-indigo-700" data-view="notes-view"><i class="fas fa-pencil-alt fa-fw mr-1.5"></i> Anotações</a>
+                    <a href="#" class="nav-link-mobile nav-link block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:bg-indigo-50 hover:text-indigo-700" data-view="tip-guide-view"><i class="fas fa-book-open fa-fw mr-1.5"></i> Guia de Dicas</a>
+                </div>
+                <div class="pt-4 pb-3 border-t border-gray-200">
+                    <div class="px-3 mb-2">
+                        <span id="mobile-current-client-indicator" class="block text-sm text-gray-500 italic">Nenhum cliente selecionado</span>
+                    </div>
+                    <div class="flex items-center px-3">
+                        <div class="flex-shrink-0">
+                             <div class="w-10 h-10 rounded-full bg-indigo-100 text-indigo-600 flex items-center justify-center font-semibold text-base border border-indigo-200" id="mobile-user-avatar">--</div>
+                        </div>
+                        <div class="ml-3">
+                            <div class="text-base font-medium leading-none text-gray-800" id="mobile-logged-in-username">Usuário</div>
+                        </div>
+                    </div>
+                    <div class="mt-3 px-2 space-y-1">
+                        <a href="#" id="mobile-logout-button" class="block px-3 py-2 rounded-md text-base font-medium text-gray-500 hover:bg-indigo-50 hover:text-indigo-700"><i class="fas fa-sign-out-alt fa-fw mr-1.5"></i> Sair</a>
+                    </div>
                 </div>
             </div>
         </nav>
 
         <div class="flex flex-1 overflow-hidden">
-            <aside id="contextual-sidebar" class="w-72 bg-white border-r border-gray-200 flex-shrink-0 flex flex-col overflow-y-auto p-4 transition-all duration-300 ease-in-out no-print">
+            <aside id="contextual-sidebar" class="w-72 bg-white border-r border-gray-200 flex-shrink-0 flex flex-col overflow-y-auto p-4 transition-all duration-300 ease-in-out no-print md:block hidden">
                 <div id="sidebar-content-clients" class="sidebar-section flex flex-col flex-1">
                     <h3 class="text-base font-semibold text-gray-700 mb-3 px-1">Clientes</h3>
                     <div class="relative mb-4">
@@ -348,7 +406,7 @@
                  </div>
             </aside>
 
-            <main id="main-content-area" class="flex-1 bg-gray-100 overflow-y-auto p-6">
+            <main id="main-content-area" class="flex-1 bg-gray-100 overflow-y-auto p-4 sm:p-6">
                 <div id="dashboard-view" class="view hidden">
                     <h1 class="text-2xl font-semibold text-gray-800 mb-6">Dashboard</h1>
                     <div id="dashboard-content" class="placeholder-container">
@@ -359,13 +417,12 @@
                     </div>
                 </div>
 
-                <div id="clients-view" class="view hidden">
-                    <div id="add-client-panel" class="bg-white p-6 rounded-lg shadow-md hidden mb-6 max-w-3xl mx-auto border border-gray-200">
+                <div id="clients-view" class="view"> <div id="add-client-panel" class="bg-white p-6 rounded-lg shadow-md hidden mb-6 max-w-3xl mx-auto border border-gray-200">
                          <div class="flex justify-between items-center mb-5 pb-3 border-b border-gray-200">
                             <h2 class="text-xl font-semibold text-gray-800">Cadastrar Novo Cliente</h2>
                             <button id="close-add-client-panel-btn" class="text-gray-400 hover:text-gray-600 transition-colors">
                                 <i class="fas fa-times text-lg"></i>
-                            </button>
+                            </button>,
                          </div>
                          <form id="add-client-form" class="space-y-5">
                              <div>
