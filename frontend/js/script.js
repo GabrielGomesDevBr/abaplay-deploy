@@ -2,7 +2,7 @@
 document.addEventListener('DOMContentLoaded', () => {
     // --- Constantes & Estado Global ---
     const LOCAL_STORAGE_BASE_KEY = 'abaplay.v3';
-    const API_BASE_URL = 'http://localhost:3000/api'; // Certifique-se que esta URL está correta
+    const API_BASE_URL = 'https://abaplay-backend.onrender.com/api'; // Certifique-se que esta URL está correta
 
     // Variáveis de estado global
     let allProgramsData = {};
