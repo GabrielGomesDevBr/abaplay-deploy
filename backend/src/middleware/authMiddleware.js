@@ -2,6 +2,7 @@
 // Arquivo de Middleware de Autenticação (backend/src/middleware/authMiddleware.js)
 // -----------------------------------------------------------------------------
 // Contém funções de middleware para proteger rotas, verificando o JWT.
+// O payload do JWT agora pode incluir 'role' e 'associated_patient_id'.
 // -----------------------------------------------------------------------------
 
 // 1. Importar dependências
@@ -14,6 +15,8 @@ const dbConfig = require('../config/db.config.js'); // Para pegar o segredo JWT
 /**
  * @description Middleware para verificar se um token JWT válido foi enviado
  * na requisição e anexar os dados do usuário decodificado a req.user.
+ * req.user conterá os campos do payload do JWT, incluindo userId, username,
+ * tier, max_patients, role, e associated_patient_id (se aplicável).
  * @param {object} req - Objeto da requisição.
  * @param {object} res - Objeto da resposta.
  * @param {function} next - Função para chamar o próximo middleware ou a rota final.
@@ -38,9 +41,10 @@ const verifyToken = (req, res, next) => {
 
     // 3. Anexa os dados do usuário à requisição
     // Se o token for válido, 'decodedPayload' conterá os dados que colocamos
-    // ao assinar (userId, username, tier). Anexamos isso a req.user.
+    // ao assinar (userId, username, tier, max_patients, role, associated_patient_id).
+    // Anexamos isso a req.user.
     req.user = decodedPayload;
-    console.log('Token verificado com sucesso para:', req.user.username); // Log útil para depuração
+    console.log('Token verificado com sucesso para:', req.user.username, '- Role:', req.user.role); // Log útil para depuração
 
     // 4. Chama a próxima função na cadeia (outro middleware ou a rota final)
     next();
@@ -64,7 +68,7 @@ const verifyToken = (req, res, next) => {
 // -----------------------------------------------------------------------------
 module.exports = {
   verifyToken
-  // Poderíamos adicionar outros middlewares aqui no futuro (ex: verificar permissões de admin)
+  // Poderíamos adicionar outros middlewares aqui no futuro (ex: verificar permissões de admin ou por papel específico)
 };
 
 // -----------------------------------------------------------------------------

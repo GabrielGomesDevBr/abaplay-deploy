@@ -5,17 +5,17 @@ document.addEventListener('DOMContentLoaded', () => {
     const API_BASE_URL = 'https://abaplay-backend.onrender.com/api'; // Certifique-se que esta URL está correta
 
     // Variáveis de estado global
-    let allProgramsData = {};
-    let currentActiveArea = 'Psicologia'; // Área padrão
-    let patients = [];
-    let selectedPatient = null;
-    let selectedProgramForProgress = null;
+    let allProgramsData = {}; // Armazena os dados de programs.json
+    let currentActiveArea = 'Psicologia'; // Área terapêutica padrão
+    let patients = []; // Lista de pacientes (para terapeutas)
+    let selectedPatient = null; // Paciente selecionado pelo terapeuta
+    let selectedProgramForProgress = null; // Programa selecionado para ver/registrar progresso
     let currentView = 'clients-view'; // View padrão ao carregar
-    let progressChartInstance = null;
-    let consolidatedChartInstances = {};
-    let isAuthenticated = false;
-    let currentUser = null;
-    let authToken = null;
+    let progressChartInstance = null; // Instância do gráfico de progresso de um programa
+    let consolidatedChartInstances = {}; // Instâncias dos gráficos para relatórios consolidados
+    let isAuthenticated = false; // Estado de autenticação
+    let currentUser = null; // Dados do usuário logado (incluindo role e associated_patient_id)
+    let authToken = null; // Token JWT
 
     // --- Seletores de Elementos DOM ---
     const loginModal = document.getElementById('login-modal');
@@ -96,9 +96,12 @@ document.addEventListener('DOMContentLoaded', () => {
     const saveNotesBtn = document.getElementById('save-notes-btn');
     const notesPlaceholder = notesView.querySelector('.notes-placeholder');
 
-    const dashboardView = document.getElementById('dashboard-view');
-    const dashboardContent = document.getElementById('dashboard-content');
-    const clientDashboardContent = document.getElementById('client-dashboard-content');
+    const dashboardView = document.getElementById('dashboard-view'); // View geral do terapeuta
+    const clientDashboardContent = document.getElementById('client-dashboard-content'); // Conteúdo específico do cliente no dashboard do terapeuta
+    const generalDashboardContent = document.getElementById('dashboard-content'); // Conteúdo do dashboard geral do terapeuta
+
+    const parentDashboardView = document.getElementById('parent-dashboard-view'); // Nova view para pais
+    const parentDashboardContent = document.getElementById('parent-dashboard-content'); // Conteúdo do dashboard dos pais
 
     const consolidatedReportModal = document.getElementById('consolidated-report-modal');
     const consolidatedReportTitle = document.getElementById('consolidated-report-title');
@@ -120,7 +123,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // --- Inicialização ---
     function initializeApp() {
-        console.log("ABAplay v3.8 (Mobile Enhanced) - Inicializando...");
+        console.log("ABAplay v3.9 (Parent View Complete) - Inicializando...");
         loginForm.addEventListener('submit', handleLogin);
         logoutButton.addEventListener('click', handleLogout);
         mobileLogoutButton.addEventListener('click', handleLogout);
@@ -132,10 +135,11 @@ document.addEventListener('DOMContentLoaded', () => {
             link.addEventListener('click', (e) => {
                 handleNavClick(e);
                 if (mobileMenu && !mobileMenu.classList.contains('hidden')) {
-                    toggleMobileMenu(false);
+                    toggleMobileMenu(false); // Fecha o menu após o clique
                 }
             });
         });
+         // Fechar menu mobile se clicar fora
         document.addEventListener('click', (event) => {
             const isClickInsideMenu = mobileMenu && mobileMenu.contains(event.target);
             const isClickOnMenuButton = mobileMenuButton && mobileMenuButton.contains(event.target);
@@ -143,21 +147,22 @@ document.addEventListener('DOMContentLoaded', () => {
                 toggleMobileMenu(false);
             }
         });
-
+        
         closeModalBtns.forEach(btn => btn.addEventListener('click', closeConsolidatedReportModal));
         consolidatedReportModal.addEventListener('click', (e) => { 
-            if (e.target === consolidatedReportModal) {
+            if (e.target === consolidatedReportModal) { // Fecha se clicar no backdrop
                 closeConsolidatedReportModal();
             }
         });
         
-        // CORREÇÃO: Removida a linha que causava o erro. A função handlePrintConsolidatedReport não existe mais.
-        // O listener abaixo já configura a ação correta para o botão de impressão do relatório consolidado.
         printConsolidatedReportBtn.addEventListener('click', () => { 
-            if (selectedPatient) {
-                generateConsolidatedReportPDF(selectedPatient);
+            if (currentUser && currentUser.role === 'terapeuta' && selectedPatient) {
+                generateConsolidatedReportPDF(selectedPatient); // Função de PDF para terapeutas
+            } else if (currentUser && currentUser.role === 'pai' && parentDashboardView && !parentDashboardView.classList.contains('hidden')) {
+                // Para pais, a impressão será da view do dashboard deles
+                window.print(); 
             } else {
-                alert("Selecione um cliente para gerar o relatório.");
+                alert("Selecione um cliente ou esteja na tela de acompanhamento para imprimir.");
             }
         });
 
@@ -165,7 +170,18 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // --- Tentativa de Restaurar Sessão ---
-    function tryRestoringSession() { authToken = getAuthToken(); currentUser = getUserData(); if (authToken && currentUser) { console.log(`Sessão restaurada para ${currentUser.username}.`); isAuthenticated = true; startAuthenticatedSession(); } else { console.log("Nenhuma sessão ativa. Exibindo login."); showLoginScreen(); } }
+    function tryRestoringSession() {
+        authToken = getAuthToken();
+        currentUser = getUserData();
+        if (authToken && currentUser) {
+            console.log(`Sessão restaurada para ${currentUser.username} (Role: ${currentUser.role}).`);
+            isAuthenticated = true;
+            startAuthenticatedSession();
+        } else {
+            console.log("Nenhuma sessão ativa. Exibindo login.");
+            showLoginScreen();
+        }
+    }
 
     // --- Controle de Estado da Interface ---
     function showLoginScreen() { isAuthenticated = false; currentUser = null; authToken = null; loginModal.classList.remove('hidden'); appMainInterface.classList.add('hidden'); loginForm.reset(); loginErrorMessage.textContent = ''; if(usernameInput) usernameInput.focus(); if (mobileMenu) mobileMenu.classList.add('hidden'); if(hamburgerIcon) hamburgerIcon.classList.remove('hidden'); if(closeIcon) closeIcon.classList.add('hidden');}
@@ -176,20 +192,20 @@ document.addEventListener('DOMContentLoaded', () => {
         if (!mobileMenu || !hamburgerIcon || !closeIcon) return;
         const isOpen = typeof forceState !== 'undefined' ? !forceState : mobileMenu.classList.contains('hidden');
 
-        if (isOpen) {
+        if (isOpen) { // Abrir menu
             mobileMenu.classList.remove('hidden');
             hamburgerIcon.classList.add('hidden');
             closeIcon.classList.remove('hidden');
             mobileMenuButton.setAttribute('aria-expanded', 'true');
-            document.body.style.overflow = 'hidden';
-            if (contextualSidebar && window.innerWidth < 768) contextualSidebar.classList.add('hidden');
-        } else {
+            document.body.style.overflow = 'hidden'; // Previne scroll do body
+            if (contextualSidebar && window.innerWidth < 768) contextualSidebar.classList.add('hidden'); // Esconde sidebar se aberta
+        } else { // Fechar menu
             mobileMenu.classList.add('hidden');
             hamburgerIcon.classList.remove('hidden');
             closeIcon.classList.add('hidden');
             mobileMenuButton.setAttribute('aria-expanded', 'false');
-            document.body.style.overflow = '';
-            updateContextualSidebar(currentView, currentActiveArea);
+            document.body.style.overflow = ''; // Restaura scroll do body
+            updateContextualSidebar(currentView, currentActiveArea); // Mostra sidebar se aplicável
         }
     }
 
@@ -205,10 +221,25 @@ document.addEventListener('DOMContentLoaded', () => {
         try {
             const response = await fetch(`${API_BASE_URL}/auth/login`, { method: 'POST', headers: { 'Content-Type': 'application/json', }, body: JSON.stringify({ username, password }), });
             const data = await response.json();
-            if (response.ok) { console.log('Login bem-sucedido:', data); isAuthenticated = true; saveAuthToken(data.token); saveUserData(data.user); startAuthenticatedSession(); }
-            else { console.warn('Falha no login:', data.errors?.[0]?.msg || response.statusText); loginErrorMessage.textContent = data.errors?.[0]?.msg || `Erro ${response.status}`; passwordInput.value = ''; usernameInput.select(); }
-        } catch (error) { console.error('Erro de rede no login:', error); loginErrorMessage.textContent = 'Erro de conexão.'; }
-        finally { submitButton.disabled = false; submitButton.innerHTML = '<i class="fas fa-sign-in-alt"></i> Entrar'; }
+            if (response.ok) {
+                console.log('Login bem-sucedido:', data);
+                isAuthenticated = true;
+                saveAuthToken(data.token);
+                saveUserData(data.user);
+                startAuthenticatedSession();
+            } else {
+                console.warn('Falha no login:', data.errors?.[0]?.msg || response.statusText);
+                loginErrorMessage.textContent = data.errors?.[0]?.msg || `Erro ${response.status}`;
+                passwordInput.value = '';
+                usernameInput.select();
+            }
+        } catch (error) {
+            console.error('Erro de rede no login:', error);
+            loginErrorMessage.textContent = 'Erro de conexão.';
+        } finally {
+            submitButton.disabled = false;
+            submitButton.innerHTML = '<i class="fas fa-sign-in-alt"></i> Entrar';
+        }
     }
 
     function handleLogout() {
@@ -219,7 +250,7 @@ document.addEventListener('DOMContentLoaded', () => {
         patients = [];
         selectedPatient = null;
         selectedProgramForProgress = null;
-        currentView = 'clients-view';
+        currentView = 'clients-view'; 
         currentActiveArea = 'Psicologia';
         if (progressChartInstance) progressChartInstance.destroy();
         Object.values(consolidatedChartInstances).forEach(chart => chart.destroy());
@@ -240,131 +271,328 @@ document.addEventListener('DOMContentLoaded', () => {
         showMainAppScreen();
         updateUserInfoDisplay();
         await loadProgramsData();
-        await loadUserPatientsFromAPI();
         setupMainEventListeners();
-        renderClientList();
-        updatePatientCountDisplay();
-        updateCurrentClientIndicator();
-        if (patients.length > 0) {
-            displayNoClientSelected(); 
+
+        if (currentUser.role === 'pai') {
+            console.log("Usuário é um PAI. Carregando dashboard do pai...");
+            currentView = 'parent-dashboard-view';
+            hideTherapistFeatures();
+            await loadParentDashboardData();
+        } else if (currentUser.role === 'terapeuta') {
+            console.log("Usuário é um TERAPEUTA. Carregando interface de terapeuta...");
+            currentView = 'clients-view';
+            showTherapistFeatures();
+            await loadUserPatientsFromAPI();
+            renderClientList();
+            updatePatientCountDisplay();
+            updateCurrentClientIndicator();
+            if (patients.length > 0) {
+                displayNoClientSelected(); 
+            } else {
+                displayNoClientSelected();
+            }
         } else {
-            displayNoClientSelected();
+            console.error("Papel de usuário desconhecido:", currentUser.role);
+            handleLogout();
+            return;
         }
-        switchView('clients-view', { area: 'Psicologia' }); 
-        console.log(`Sessão iniciada para ${currentUser.username}. Área ativa: ${currentActiveArea}`);
+        switchView(currentView, { area: currentActiveArea });
+        console.log(`Sessão iniciada para ${currentUser.username}. Papel: ${currentUser.role}. Área ativa: ${currentActiveArea}`);
     }
+
+    // --- Funções para adaptar UI baseada no papel ---
+    function hideTherapistFeatures() {
+        // Esconde links de navegação de TERAPEUTA
+        topNavLinks.forEach(link => {
+            const view = link.dataset.view;
+            if (view === 'clients-view' || view === 'notes-view' || (view === 'programs-view' && link.dataset.area)) { // Esconde links de áreas de programas
+                link.classList.add('hidden');
+            }
+            if (view === 'parent-dashboard-view') link.classList.remove('hidden'); // Mostra o de acompanhamento
+        });
+        mobileNavLinks.forEach(link => {
+            const view = link.dataset.view;
+            if (view === 'clients-view' || view === 'notes-view' || (view === 'programs-view' && link.dataset.area)) {
+                link.classList.add('hidden');
+            }
+             if (view === 'parent-dashboard-view') link.classList.remove('hidden');
+        });
+        
+        if (contextualSidebar) contextualSidebar.classList.add('hidden'); // Pais não usam sidebar contextual
+        if (currentClientIndicator) currentClientIndicator.textContent = `Acompanhamento`;
+        if (mobileCurrentClientIndicator) mobileCurrentClientIndicator.textContent = `Acompanhamento`;
+    }
+
+    function showTherapistFeatures() {
+        // Mostra links de navegação de TERAPEUTA
+        topNavLinks.forEach(link => {
+            const view = link.dataset.view;
+            if (view === 'clients-view' || view === 'notes-view' || (view === 'programs-view' && link.dataset.area)) {
+                link.classList.remove('hidden');
+            }
+            if (view === 'parent-dashboard-view') link.classList.add('hidden'); // Esconde o de acompanhamento
+        });
+        mobileNavLinks.forEach(link => {
+            const view = link.dataset.view;
+            if (view === 'clients-view' || view === 'notes-view' || (view === 'programs-view' && link.dataset.area)) {
+                link.classList.remove('hidden');
+            }
+            if (view === 'parent-dashboard-view') link.classList.add('hidden');
+        });
+        if (contextualSidebar) contextualSidebar.classList.remove('hidden');
+    }
+    
+    // --- Carregar dados para o dashboard do pai ---
+    async function loadParentDashboardData() {
+        if (!currentUser || currentUser.role !== 'pai' || !currentUser.associated_patient_id) {
+            console.error("Não é possível carregar dados do dashboard do pai: usuário inválido ou sem paciente associado.");
+            if (parentDashboardContent) parentDashboardContent.innerHTML = '<div class="placeholder-container text-red-500"><i class="fas fa-exclamation-circle"></i><p>Erro ao carregar dados da criança.</p></div>';
+            return;
+        }
+
+        console.log(`Buscando dados para o paciente associado ID: ${currentUser.associated_patient_id}`);
+        if (parentDashboardContent) parentDashboardContent.innerHTML = '<div class="text-center py-10 placeholder-container"><i class="fas fa-spinner fa-spin text-3xl text-indigo-600"></i><p class="mt-2 text-gray-600">Carregando dados do progresso...</p></div>';
+
+        try {
+            const response = await fetch(`${API_BASE_URL}/parent/dashboard-data`, {
+                method: 'GET',
+                headers: { 'Authorization': `Bearer ${authToken}`, 'Content-Type': 'application/json' }
+            });
+
+            if (response.ok) {
+                const data = await response.json(); // Espera { patient: {}, assigned_program_ids: [], sessionData: [] }
+                console.log("Dados do dashboard do pai recebidos:", data);
+                if (data && data.patient) {
+                    renderParentConsolidatedView(data.patient, data.sessionData || [], data.assigned_program_ids || []);
+                } else {
+                    throw new Error("Dados do paciente não retornados pela API.");
+                }
+            } else if (response.status === 401 || response.status === 403) {
+                alert("Sessão expirada ou acesso negado. Faça login novamente.");
+                handleLogout();
+            } else {
+                const errorData = await response.json().catch(() => ({ error: "Erro desconhecido ao buscar dados." }));
+                console.error(`Erro ${response.status} ao buscar dados do dashboard do pai:`, errorData.error);
+                if (parentDashboardContent) parentDashboardContent.innerHTML = `<div class="placeholder-container text-red-500"><i class="fas fa-exclamation-circle"></i><p>Falha ao carregar dados: ${errorData.error}</p></div>`;
+            }
+        } catch (error) {
+            console.error("Erro de rede ao buscar dados do dashboard do pai:", error);
+            if (parentDashboardContent) parentDashboardContent.innerHTML = '<div class="placeholder-container text-red-500"><i class="fas fa-exclamation-circle"></i><p>Erro de conexão ao carregar dados.</p></div>';
+        }
+    }
+
+    function renderParentConsolidatedView(patientData, sessionDataArray, assignedProgramIdsArray) {
+        if (!parentDashboardContent || !patientData) {
+            console.error("Elemento parentDashboardContent ou dados do paciente não encontrados para renderização.");
+            if(parentDashboardContent) parentDashboardContent.innerHTML = '<div class="placeholder-container text-red-500"><i class="fas fa-exclamation-circle"></i><p>Não foi possível exibir os dados.</p></div>';
+            return;
+        }
+    
+        parentDashboardContent.innerHTML = ''; // Limpa o placeholder de carregamento
+        Object.values(consolidatedChartInstances).forEach(chart => chart.destroy());
+        consolidatedChartInstances = {};
+    
+        const header = document.createElement('div');
+        header.className = 'mb-6 p-4 bg-white rounded-lg shadow border border-gray-200';
+        header.innerHTML = `
+            <h1 class="text-2xl font-semibold text-gray-800 mb-2">Acompanhamento de ${patientData.name}</h1>
+            <p class="text-sm text-gray-600">Progresso nos programas de intervenção.</p>
+            <p class="text-xs text-gray-500 mt-1">ID do Paciente: ${patientData.id}</p>
+        `;
+        parentDashboardContent.appendChild(header);
+    
+        const chartsGrid = document.createElement('div');
+        chartsGrid.id = 'parent-charts-grid'; // Usado para estilização de impressão
+        chartsGrid.className = 'grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-5';
+        parentDashboardContent.appendChild(chartsGrid);
+    
+        if (!assignedProgramIdsArray || assignedProgramIdsArray.length === 0) {
+            chartsGrid.innerHTML = '<p class="text-center text-gray-500 py-6 col-span-full placeholder-container"><i class="fas fa-folder-open"></i><span>Nenhum programa atribuído para visualização.</span></p>';
+            return;
+        }
+    
+        const assignedProgramsDetails = assignedProgramIdsArray.map(id => getProgramById(id)).filter(p => p).sort((a, b) => a.title.localeCompare(b.title, 'pt-BR'));
+    
+        if (assignedProgramsDetails.length === 0) {
+            chartsGrid.innerHTML = '<p class="text-center text-gray-500 py-6 col-span-full placeholder-container"><i class="fas fa-exclamation-triangle"></i><span>Detalhes dos programas atribuídos não puderam ser carregados.</span></p>';
+            return;
+        }
+    
+        assignedProgramsDetails.forEach((program, index) => {
+            const chartId = `parent-consolidated-chart-${program.id}-${index}`; // ID único para cada canvas
+            const wrapper = document.createElement('div');
+            wrapper.className = 'parent-consolidated-chart-wrapper border border-gray-200 rounded-md p-4 bg-gray-50 flex flex-col items-center shadow-sm';
+            wrapper.innerHTML = `
+                <h4 class="text-sm font-medium text-gray-600 mb-2 text-center">${program.title} <span class="text-xs text-gray-500">(${program.tag || 'N/A'})</span></h4>
+                <div class="w-full h-48 sm:h-56 relative"> <canvas id="${chartId}"></canvas> </div>
+                <p class="no-data-message text-xs text-gray-500 italic mt-2 hidden">Nenhum dado de sessão para este programa.</p>`;
+            chartsGrid.appendChild(wrapper);
+            renderSingleConsolidatedChartForParent(sessionDataArray, program.id, chartId);
+        });
+    }
+    
+    function renderSingleConsolidatedChartForParent(allPatientSessions, programId, canvasId) {
+        const canvas = document.getElementById(canvasId);
+        const canvasContainer = canvas?.parentElement;
+        const noDataMsg = canvasContainer?.parentElement.querySelector('.no-data-message'); // Ajustado para pegar o P irmão do div do canvas
+    
+        if (!canvas || !canvasContainer || !noDataMsg) {
+            console.warn(`Elementos do gráfico consolidado do pai não encontrados para ${canvasId}`);
+            return;
+        }
+    
+        const programSpecificSessions = (allPatientSessions || [])
+            .filter(session => String(session.program_id || session.programId) === String(programId))
+            .sort((a, b) => new Date(a.session_date || a.date) - new Date(b.session_date || b.date))
+            .map(s => ({ ...s, score: parseFloat(s.score) }));
+    
+        if (programSpecificSessions.length === 0) {
+            noDataMsg.classList.remove('hidden');
+            canvasContainer.style.display = 'none';
+            return;
+        }
+        noDataMsg.classList.add('hidden');
+        canvasContainer.style.display = 'block';
+    
+        const dates = programSpecificSessions.map(session => formatDate(session.session_date || session.date, 'short'));
+        const scores = programSpecificSessions.map(session => session.score);
+        const pointStyles = programSpecificSessions.map(session => (session.is_baseline || session.isBaseline) ? 'rect' : 'circle');
+        const pointBackgroundColors = programSpecificSessions.map(session => (session.is_baseline || session.isBaseline) ? '#fbbf24' : '#4f46e5'); // Amarelo para baseline, Indigo para normal
+        const pointRadii = programSpecificSessions.map(session => (session.is_baseline || session.isBaseline) ? 3 : 2.5); // Tamanhos dos pontos
+    
+        const ctx = canvas.getContext('2d');
+        const primaryColor = '#4f46e5', baselineColor = '#fbbf24', primaryLight = 'rgba(79, 70, 229, 0.05)', textColor = '#4b5563', gridColor = '#e5e7eb';
+    
+        if (consolidatedChartInstances[canvasId]) {
+            consolidatedChartInstances[canvasId].destroy();
+        }
+    
+        consolidatedChartInstances[canvasId] = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: dates,
+                datasets: [{
+                    label: 'Pontuação (%)',
+                    data: scores,
+                    borderColor: primaryColor,
+                    backgroundColor: primaryLight,
+                    pointStyle: pointStyles,
+                    pointBackgroundColor: pointBackgroundColors,
+                    pointRadius: pointRadii,
+                    pointBorderColor: '#fff', // Cor da borda do ponto
+                    fill: true,
+                    tension: 0.1, // Leve curvatura na linha
+                    borderWidth: 1.5,
+                    pointHoverRadius: pointRadii.map(r => r + 2)
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    y: { beginAtZero: true, max: 100, ticks: { color: textColor, font: { size: 9 } }, grid: { color: gridColor, drawBorder: false } },
+                    x: { ticks: { color: textColor, font: { size: 9 }, maxRotation: 0, autoSkipPadding: 10 }, grid: { display: false } }
+                },
+                plugins: {
+                    legend: { display: false }, // Esconde a legenda geral do dataset
+                    tooltip: {
+                        backgroundColor: '#1f2937', titleColor: '#fff', bodyColor: '#fff', padding: 8, cornerRadius: 3, displayColors: true,
+                        borderColor: (tooltipItem) => { const index = tooltipItem.tooltip.dataPoints[0].dataIndex; if (index < 0 || index >= programSpecificSessions.length) return primaryColor; return (programSpecificSessions[index]?.is_baseline || programSpecificSessions[index]?.isBaseline) ? baselineColor : primaryColor; },
+                        borderWidth: 1,
+                        callbacks: {
+                            title: (tooltipItems) => { const index = tooltipItems[0].dataIndex; if(index < 0 || index >= programSpecificSessions.length) return ''; const session = programSpecificSessions[index]; const prefix = (session.is_baseline || session.isBaseline) ? '[Linha de Base] ' : ''; return `${prefix}${formatDate(session.session_date || session.date)}`; },
+                            label: (context) => `Pontuação: ${context.parsed.y}%`,
+                            labelColor: function(context) { const index = context.dataIndex; if(index < 0 || index >= programSpecificSessions.length) return { borderColor: primaryColor, backgroundColor: primaryColor }; const isBaseline = programSpecificSessions[index].is_baseline || programSpecificSessions[index].isBaseline; return { borderColor: isBaseline ? baselineColor : primaryColor, backgroundColor: isBaseline ? baselineColor : primaryColor, borderWidth: 2, borderRadius: isBaseline ? 0 : '50%' }; },
+                        }
+                    }
+                }
+            }
+        });
+    }
+
 
     // --- Configuração de Listeners ---
     function setupMainEventListeners() {
         topNavLinks.forEach(link => { link.removeEventListener('click', handleNavClick); link.addEventListener('click', handleNavClick); });
-        clientSearchInput.removeEventListener('input', handleClientSearch); clientSearchInput.addEventListener('input', handleClientSearch);
-        showAddClientFormBtn.removeEventListener('click', handleShowAddClientForm); showAddClientFormBtn.addEventListener('click', handleShowAddClientForm);
-        closeAddClientPanelBtn.removeEventListener('click', handleCloseAddClientPanel); closeAddClientPanelBtn.addEventListener('click', handleCloseAddClientPanel);
-        triggerAddClientFormBtn.removeEventListener('click', handleTriggerAddClientForm); triggerAddClientFormBtn.addEventListener('click', handleTriggerAddClientForm);
-        clientListUl.removeEventListener('click', handleClientListClick); clientListUl.addEventListener('click', handleClientListClick);
-        addClientForm.removeEventListener('submit', handleAddOrEditClientSubmit); addClientForm.addEventListener('submit', handleAddOrEditClientSubmit);
-        editClientBtn.removeEventListener('click', handleEditClient); editClientBtn.addEventListener('click', handleEditClient);
-        deleteClientBtn.removeEventListener('click', handleDeleteClient); deleteClientBtn.addEventListener('click', handleDeleteClient);
         
-        generateClientGradePdfBtn.removeEventListener('click', handleGenerateGradePdf); 
-        generateClientGradePdfBtn.addEventListener('click', handleGenerateGradePdf);
-        
-        generateClientRecordPdfBtn.removeEventListener('click', handleGenerateRecordPdf); 
-        generateClientRecordPdfBtn.addEventListener('click', handleGenerateRecordPdf);
-        
-        generateConsolidatedReportBtn.removeEventListener('click', openConsolidatedReportModal);
-        generateConsolidatedReportBtn.addEventListener('click', openConsolidatedReportModal);
-        
-        programSearchInput.removeEventListener('input', handleProgramSearch); programSearchInput.addEventListener('input', handleProgramSearch);
-        saveNotesBtn.removeEventListener('click', handleSaveNotes); saveNotesBtn.addEventListener('click', handleSaveNotes);
+        // Listeners para terapeutas
+        if (currentUser && currentUser.role === 'terapeuta') {
+            if (clientSearchInput) { clientSearchInput.removeEventListener('input', handleClientSearch); clientSearchInput.addEventListener('input', handleClientSearch); }
+            if (showAddClientFormBtn) { showAddClientFormBtn.removeEventListener('click', handleShowAddClientForm); showAddClientFormBtn.addEventListener('click', handleShowAddClientForm); }
+            if (closeAddClientPanelBtn) { closeAddClientPanelBtn.removeEventListener('click', handleCloseAddClientPanel); closeAddClientPanelBtn.addEventListener('click', handleCloseAddClientPanel); }
+            if (triggerAddClientFormBtn) { triggerAddClientFormBtn.removeEventListener('click', handleTriggerAddClientForm); triggerAddClientFormBtn.addEventListener('click', handleTriggerAddClientForm); }
+            if (clientListUl) { clientListUl.removeEventListener('click', handleClientListClick); clientListUl.addEventListener('click', handleClientListClick); }
+            if (addClientForm) { addClientForm.removeEventListener('submit', handleAddOrEditClientSubmit); addClientForm.addEventListener('submit', handleAddOrEditClientSubmit); }
+            if (editClientBtn) { editClientBtn.removeEventListener('click', handleEditClient); editClientBtn.addEventListener('click', handleEditClient); }
+            if (deleteClientBtn) { deleteClientBtn.removeEventListener('click', handleDeleteClient); deleteClientBtn.addEventListener('click', handleDeleteClient); }
+            
+            if (generateClientGradePdfBtn) { generateClientGradePdfBtn.removeEventListener('click', handleGenerateGradePdf); generateClientGradePdfBtn.addEventListener('click', handleGenerateGradePdf); }
+            if (generateClientRecordPdfBtn) { generateClientRecordPdfBtn.removeEventListener('click', handleGenerateRecordPdf); generateClientRecordPdfBtn.addEventListener('click', handleGenerateRecordPdf); }
+            if (generateConsolidatedReportBtn) { generateConsolidatedReportBtn.removeEventListener('click', openConsolidatedReportModal); generateConsolidatedReportBtn.addEventListener('click', openConsolidatedReportModal); }
+            
+            if (programSearchInput) { programSearchInput.removeEventListener('input', handleProgramSearch); programSearchInput.addEventListener('input', handleProgramSearch); }
+            if (saveNotesBtn) { saveNotesBtn.removeEventListener('click', handleSaveNotes); saveNotesBtn.addEventListener('click', handleSaveNotes); }
+        }
     }
 
     // Handlers de Eventos
     function handleNavClick(e) {
         e.preventDefault();
         const link = e.currentTarget;
-        const viewId = link.dataset.view;
+        let viewId = link.dataset.view;
         const area = link.dataset.area;
 
-        if (viewId && isAuthenticated) {
-            if (area) {
-                currentActiveArea = area;
-                console.log("Área ativa mudou para:", currentActiveArea);
+        if (!isAuthenticated) return;
+
+        let areaToSwitch = area || currentActiveArea;
+
+        if (currentUser.role === 'pai') {
+            // Links permitidos para pais: parent-dashboard-view, tip-guide-view
+            if (viewId !== 'parent-dashboard-view' && viewId !== 'tip-guide-view' && viewId !== 'dashboard-view' /* dashboard-view será redirecionado */) {
+                viewId = 'parent-dashboard-view'; // Redireciona para o dashboard do pai
             }
-            switchView(viewId, { area: currentActiveArea });
+            if (viewId === 'dashboard-view') viewId = 'parent-dashboard-view'; // dashboard-view é o do pai
+            areaToSwitch = null; // Pais não têm "áreas" de programas
+        } else if (currentUser.role === 'terapeuta') {
+            if (viewId === 'parent-dashboard-view') { // Terapeutas não acessam diretamente o dashboard do pai
+                viewId = 'dashboard-view'; // Redireciona para o dashboard geral/do cliente
+            }
+        }
+
+        if (viewId) {
+            if (areaToSwitch && currentUser.role === 'terapeuta') {
+                currentActiveArea = areaToSwitch;
+                console.log("Área ativa (terapeuta) mudou para:", currentActiveArea);
+            }
+            switchView(viewId, { area: currentUser.role === 'terapeuta' ? currentActiveArea : null });
             if (link.classList.contains('nav-link-mobile') && mobileMenu && !mobileMenu.classList.contains('hidden')) {
                 toggleMobileMenu(false);
             }
         }
     }
-    function handleClientSearch(e) { if (isAuthenticated) renderClientList(e.target.value); }
-    function handleShowAddClientForm() {
-        if (isAuthenticated && !showAddClientFormBtn.disabled) {
-            resetAddClientForm();
-            addClientPanel.classList.remove('hidden');
-            clientDetailsPanel.classList.add('hidden');
-            noClientSelectedPlaceholder.classList.add('hidden');
-            clientNameInput.focus();
-            if (window.innerWidth < 768 && contextualSidebar) { contextualSidebar.classList.add('hidden'); }
-        }
-    }
-    function handleCloseAddClientPanel() {
-        if (isAuthenticated) {
-            addClientPanel.classList.add('hidden');
-            if (selectedPatient) {
-                clientDetailsPanel.classList.remove('hidden');
-            } else {
-                noClientSelectedPlaceholder.classList.remove('hidden');
-            }
-            updateContextualSidebar(currentView, currentActiveArea);
-        }
-    }
-    function handleClientListClick(e) {
-        if (isAuthenticated) {
-            const clientItem = e.target.closest('.client-item');
-            if (clientItem && clientItem.dataset.clientId) {
-                const clickedClientId = clientItem.dataset.clientId;
-                const patientToSelect = patients.find(p => String(p.id) === clickedClientId);
-                if (patientToSelect) {
-                    selectPatient(patientToSelect);
-                    if (window.innerWidth < 768 && contextualSidebar) { contextualSidebar.classList.add('hidden'); }
-                } else { console.warn(`Paciente ID ${clickedClientId} não encontrado.`); }
-            }
-        }
-    }
-    function handleTriggerAddClientForm() { showAddClientFormBtn.click(); }
-    function handleEditClient() { if (isAuthenticated && selectedPatient) editClient(); }
-    function handleDeleteClient() { if (isAuthenticated && selectedPatient) deleteClient(); }
-    function handleGenerateGradePdf() { 
-        if (isAuthenticated && selectedPatient) { 
-            generateProgramGradePDF(selectedPatient); 
-        } else {
-            alert("Selecione um cliente para gerar a Grade de Programas.");
-        }
-    }
-    function handleGenerateRecordPdf() { 
-        if (isAuthenticated && selectedPatient) { 
-            generateWeeklyRecordSheetPDF(selectedPatient); 
-        } else {
-            alert("Selecione um cliente para gerar a Folha de Registro.");
-        }
-    }
-    function handleProgramSearch(e) {
-        if (isAuthenticated) {
-            const activeProgramLink = programCategoriesContainer.querySelector('a.program-link.active');
-            const programId = activeProgramLink ? activeProgramLink.dataset.programId : null;
-            filterAndDisplayPrograms(currentActiveArea, programId, e.target.value);
-        }
-    }
+    
+    function handleClientSearch(e) { if (isAuthenticated && currentUser.role === 'terapeuta') renderClientList(e.target.value); }
+    function handleShowAddClientForm() { if (isAuthenticated && currentUser.role === 'terapeuta' && showAddClientFormBtn && !showAddClientFormBtn.disabled) { resetAddClientForm(); addClientPanel.classList.remove('hidden'); clientDetailsPanel.classList.add('hidden'); noClientSelectedPlaceholder.classList.add('hidden'); clientNameInput.focus(); if (window.innerWidth < 768 && contextualSidebar) { contextualSidebar.classList.add('hidden'); } } }
+    function handleCloseAddClientPanel() { if (isAuthenticated && currentUser.role === 'terapeuta') { addClientPanel.classList.add('hidden'); if (selectedPatient) { clientDetailsPanel.classList.remove('hidden'); } else { noClientSelectedPlaceholder.classList.remove('hidden'); } updateContextualSidebar(currentView, currentActiveArea); } }
+    function handleClientListClick(e) { if (isAuthenticated && currentUser.role === 'terapeuta') { const clientItem = e.target.closest('.client-item'); if (clientItem && clientItem.dataset.clientId) { const clickedClientId = clientItem.dataset.clientId; const patientToSelect = patients.find(p => String(p.id) === clickedClientId); if (patientToSelect) { selectPatient(patientToSelect); if (window.innerWidth < 768 && contextualSidebar) { contextualSidebar.classList.add('hidden'); } } else { console.warn(`Paciente ID ${clickedClientId} não encontrado.`); } } } }
+    function handleTriggerAddClientForm() { if (currentUser.role === 'terapeuta' && showAddClientFormBtn) showAddClientFormBtn.click(); }
+    function handleEditClient() { if (isAuthenticated && selectedPatient && currentUser.role === 'terapeuta') editClient(); }
+    function handleDeleteClient() { if (isAuthenticated && selectedPatient && currentUser.role === 'terapeuta') deleteClient(); }
+    function handleGenerateGradePdf() { if (isAuthenticated && selectedPatient && currentUser.role === 'terapeuta') { generateProgramGradePDF(selectedPatient); } else { alert("Selecione um cliente para gerar a Grade de Programas."); } }
+    function handleGenerateRecordPdf() { if (isAuthenticated && selectedPatient && currentUser.role === 'terapeuta') { generateWeeklyRecordSheetPDF(selectedPatient); } else { alert("Selecione um cliente para gerar a Folha de Registro."); } }
+    function handleProgramSearch(e) { if (isAuthenticated && currentUser.role === 'terapeuta') { const activeProgramLink = programCategoriesContainer.querySelector('a.program-link.active'); const programId = activeProgramLink ? activeProgramLink.dataset.programId : null; filterAndDisplayPrograms(currentActiveArea, programId, e.target.value); } }
+
 
     // --- Reset da UI para Logout ---
     function resetUIForLogout() {
         loggedInUsernameSpan.textContent = 'Usuário';
         userAvatarDiv.textContent = '--';
         logoutButton.classList.add('hidden');
+        
         currentClientIndicator.textContent = 'Nenhum cliente selecionado';
         currentClientIndicator.classList.add('italic', 'text-gray-500');
         currentClientIndicator.classList.remove('font-medium', 'text-indigo-700');
+        currentClientIndicator.classList.remove('hidden'); // Garante que seja visível para terapeutas
 
         if (mobileLoggedInUsernameSpan) mobileLoggedInUsernameSpan.textContent = 'Usuário';
         if (mobileUserAvatarDiv) mobileUserAvatarDiv.textContent = '--';
@@ -377,15 +605,15 @@ document.addEventListener('DOMContentLoaded', () => {
         if (hamburgerIcon) hamburgerIcon.classList.remove('hidden');
         if (closeIcon) closeIcon.classList.add('hidden');
 
-        clientListUl.innerHTML = '';
-        if (noClientsMessageLi) {
+        if (clientListUl) clientListUl.innerHTML = '';
+        if (noClientsMessageLi && clientListUl) {
             noClientsMessageLi.classList.remove('hidden');
             clientListUl.appendChild(noClientsMessageLi);
         }
         if(assignedProgramsListUl) assignedProgramsListUl.innerHTML = '';
-        if(noAssignedProgramsLi) {
-            noAssignedProgramsLi.classList.remove('hidden');
-            if(assignedProgramsListUl) assignedProgramsListUl.appendChild(noAssignedProgramsLi);
+        if(noAssignedProgramsLi && assignedProgramsListUl) {
+             noAssignedProgramsLi.classList.remove('hidden');
+             assignedProgramsListUl.appendChild(noAssignedProgramsLi);
         }
         if(programLibraryListDiv) programLibraryListDiv.innerHTML = '';
         if(programViewPlaceholder) programViewPlaceholder.classList.remove('hidden');
@@ -399,7 +627,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         if(clientSearchInput) clientSearchInput.value = '';
         if(programSearchInput) programSearchInput.value = '';
-        updatePatientCountDisplay();
+        updatePatientCountDisplay(); 
         if(patientCountIndicator) patientCountIndicator.classList.add('hidden');
 
         if (notesViewTextarea) notesViewTextarea.value = '';
@@ -407,23 +635,33 @@ document.addEventListener('DOMContentLoaded', () => {
         if (saveNotesBtn) saveNotesBtn.disabled = true;
         if (notesPlaceholder) notesPlaceholder.classList.remove('hidden');
 
-        if (dashboardContent) dashboardContent.classList.remove('hidden'); 
-        if (dashboardContent && dashboardContent.querySelector('.placeholder-container')) {
-             dashboardContent.querySelector('.placeholder-container').classList.remove('hidden');
-        } else if (dashboardContent) { 
-            dashboardContent.innerHTML = `<div class="placeholder-container"><i class="fas fa-chart-pie"></i><p>Visão geral da aplicação.</p></div>`;
+        if (generalDashboardContent) generalDashboardContent.classList.remove('hidden'); 
+        if (generalDashboardContent && generalDashboardContent.querySelector('.placeholder-container')) {
+             generalDashboardContent.querySelector('.placeholder-container').classList.remove('hidden');
+        } else if (generalDashboardContent) { 
+            generalDashboardContent.innerHTML = `<div class="placeholder-container"><i class="fas fa-chart-pie"></i><p>Visão geral da aplicação.</p></div>`;
         }
         if (clientDashboardContent) clientDashboardContent.classList.add('hidden');
         if (clientDashboardContent) clientDashboardContent.innerHTML = '';
+        if (parentDashboardView) parentDashboardView.classList.add('hidden');
+        if (parentDashboardContent) parentDashboardContent.innerHTML = '<div class="text-center py-10 placeholder-container"><i class="fas fa-spinner fa-spin text-3xl text-indigo-600"></i><p class="mt-2 text-gray-600">Carregando dados de progresso...</p></div>';
+
 
         if(showAddClientFormBtn) {
             showAddClientFormBtn.disabled = true;
             showAddClientFormBtn.title = '';
+            showAddClientFormBtn.classList.remove('hidden'); 
         }
 
         views.forEach(view => view.classList.add('hidden'));
-        topNavLinks.forEach(link => link.classList.remove('active'));
-        mobileNavLinks.forEach(link => link.classList.remove('active'));
+        topNavLinks.forEach(link => {
+            link.classList.remove('active');
+            link.classList.remove('hidden'); 
+        });
+        mobileNavLinks.forEach(link => {
+            link.classList.remove('active');
+            link.classList.remove('hidden'); 
+        });
 
         const defaultNavLinkDesktop = document.querySelector('nav .nav-link[data-view="clients-view"]');
         if(defaultNavLinkDesktop) defaultNavLinkDesktop.classList.add('active');
@@ -431,37 +669,44 @@ document.addEventListener('DOMContentLoaded', () => {
         if(defaultNavLinkMobile) defaultNavLinkMobile.classList.add('active');
 
         if (contextualSidebar) {
-            contextualSidebar.classList.remove('hidden');
+            contextualSidebar.classList.remove('hidden'); // Garante que a sidebar seja visível para terapeutas
             contextualSidebar.classList.add('md:block');
-             if (window.innerWidth < 768) {
+             if (window.innerWidth < 768) { // Mas escondida em mobile até ser aberta
                 contextualSidebar.classList.add('hidden');
             }
         }
+        // Garante que a sidebar de clientes seja a padrão ao deslogar (para quando um terapeuta logar novamente)
+        if(sidebarSections) sidebarSections.forEach(section => { section.classList.toggle('hidden', section.id !== 'sidebar-content-clients'); });
     }
 
     // --- Atualizações da UI ---
     function updateUserInfoDisplay() {
         if (currentUser) {
-            const initials = (currentUser.full_name || ' ').split(' ').map(n => n[0]).slice(0, 2).join('').toUpperCase();
-            loggedInUsernameSpan.textContent = currentUser.full_name || 'Usuário';
-            userAvatarDiv.textContent = initials;
-            logoutButton.classList.remove('hidden');
-            if (mobileLoggedInUsernameSpan) mobileLoggedInUsernameSpan.textContent = currentUser.full_name || 'Usuário';
+            const initials = (currentUser.full_name || currentUser.username || ' ').split(' ').map(n => n[0]).slice(0, 2).join('').toUpperCase();
+            const displayName = currentUser.full_name || currentUser.username || 'Usuário';
+            const roleDisplay = currentUser.role === 'pai' ? ' (Responsável)' : (currentUser.role === 'terapeuta' ? ' (Terapeuta)' : '');
+            
+            if(loggedInUsernameSpan) loggedInUsernameSpan.textContent = `${displayName}${roleDisplay}`;
+            if(userAvatarDiv) userAvatarDiv.textContent = initials;
+            if(logoutButton) logoutButton.classList.remove('hidden');
+            if (mobileLoggedInUsernameSpan) mobileLoggedInUsernameSpan.textContent = `${displayName}${roleDisplay}`;
             if (mobileUserAvatarDiv) mobileUserAvatarDiv.textContent = initials;
         }
     }
-    function updateCurrentClientIndicator() {
+    function updateCurrentClientIndicator() { // Chamado apenas por terapeutas
+        if (!isAuthenticated || (currentUser && currentUser.role !== 'terapeuta')) {
+            if(currentClientIndicator) currentClientIndicator.classList.add('hidden');
+            if(mobileCurrentClientIndicator) mobileCurrentClientIndicator.classList.add('hidden');
+            return;
+        }
+        if(currentClientIndicator) currentClientIndicator.classList.remove('hidden');
+        if(mobileCurrentClientIndicator) mobileCurrentClientIndicator.classList.remove('hidden');
+
         const defaultText = 'Nenhum cliente selecionado';
         const activeClasses = ['font-medium', 'text-indigo-700'];
         const inactiveClasses = ['italic', 'text-gray-500'];
         const updateIndicator = (indicatorElement) => {
             if (!indicatorElement) return;
-            if (!isAuthenticated) {
-                indicatorElement.textContent = '';
-                indicatorElement.classList.add(...inactiveClasses);
-                indicatorElement.classList.remove(...activeClasses);
-                return;
-            }
             const clientName = selectedPatient ? `Cliente: ${selectedPatient.name}` : defaultText;
             indicatorElement.textContent = clientName;
             inactiveClasses.forEach(cls => indicatorElement.classList.toggle(cls, !selectedPatient));
@@ -470,19 +715,24 @@ document.addEventListener('DOMContentLoaded', () => {
         updateIndicator(currentClientIndicator);
         updateIndicator(mobileCurrentClientIndicator);
     }
-    function updatePatientCountDisplay() {
-        if (isAuthenticated && currentUser) {
+    function updatePatientCountDisplay() { // Chamado apenas por terapeutas
+        if (isAuthenticated && currentUser && currentUser.role === 'terapeuta') {
             const limit = currentUser.max_patients || 0;
-            patientCountIndicator.textContent = `Pacientes: ${patients.length} / ${limit}`;
-            patientCountIndicator.classList.remove('hidden');
-            const canAddMore = patients.length < limit;
-            showAddClientFormBtn.disabled = !canAddMore;
-            showAddClientFormBtn.title = canAddMore ? 'Adicionar novo cliente' : `Limite de ${limit} pacientes atingido`;
+            if(patientCountIndicator) {
+                patientCountIndicator.textContent = `Pacientes: ${patients.length} / ${limit}`;
+                patientCountIndicator.classList.remove('hidden');
+            }
+            if(showAddClientFormBtn) {
+                const canAddMore = patients.length < limit;
+                showAddClientFormBtn.disabled = !canAddMore;
+                showAddClientFormBtn.title = canAddMore ? 'Adicionar novo cliente' : `Limite de ${limit} pacientes atingido`;
+            }
         } else {
-            patientCountIndicator.textContent = `Pacientes: 0 / 0`;
-            patientCountIndicator.classList.add('hidden');
-            showAddClientFormBtn.disabled = true;
-            showAddClientFormBtn.title = '';
+            if(patientCountIndicator) patientCountIndicator.classList.add('hidden');
+            if(showAddClientFormBtn) {
+                showAddClientFormBtn.disabled = true;
+                showAddClientFormBtn.title = '';
+            }
         }
     }
 
@@ -493,7 +743,7 @@ document.addEventListener('DOMContentLoaded', () => {
             if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
             allProgramsData = await response.json();
             console.log("Dados de programas carregados:", Object.keys(allProgramsData).length, "áreas encontradas.");
-            if (!allProgramsData[currentActiveArea]) {
+            if (!allProgramsData[currentActiveArea] && currentUser?.role === 'terapeuta') {
                 console.warn(`Área ativa inicial "${currentActiveArea}" não encontrada nos dados de programas. Verifique programs.json.`);
                 const firstArea = Object.keys(allProgramsData)[0];
                 if (firstArea) {
@@ -521,14 +771,16 @@ document.addEventListener('DOMContentLoaded', () => {
         return null;
     }
     async function loadUserPatientsFromAPI() {
-        if (!isAuthenticated || !authToken) {
-            console.warn("Tentativa de carregar pacientes sem autenticação.");
+        if (!isAuthenticated || !authToken || currentUser?.role !== 'terapeuta') {
+            console.warn("Tentativa de carregar pacientes sem ser terapeuta ou sem autenticação.");
             patients = [];
-            renderClientList(); 
-            updatePatientCountDisplay(); 
+            if (currentUser?.role === 'terapeuta') { 
+                 renderClientList(); 
+                 updatePatientCountDisplay(); 
+            }
             return;
         }
-        console.log("Carregando pacientes da API...");
+        console.log("Carregando pacientes da API para terapeuta...");
         try {
             const response = await fetch(`${API_BASE_URL}/patients`, {
                 method: 'GET',
@@ -556,74 +808,123 @@ document.addEventListener('DOMContentLoaded', () => {
             console.error("Erro de rede ao carregar pacientes:", error);
             patients = [];
         }
-        renderClientList(); 
-        updatePatientCountDisplay(); 
+        if (currentUser?.role === 'terapeuta') {
+            renderClientList(); 
+            updatePatientCountDisplay();
+        }
     }
 
     // --- Gerenciamento de Visão ---
     function switchView(viewId, context = {}) {
         if (!isAuthenticated) return;
-        const areaToSwitch = context.area || currentActiveArea;
-        console.log(`Mudando visão para: ${viewId}, Área Ativa: ${areaToSwitch}`, context);
-        currentView = viewId;
-        currentActiveArea = areaToSwitch;
+        
+        let effectiveViewId = viewId;
+        if (currentUser.role === 'pai' && (viewId === 'clients-view' || viewId === 'notes-view' || viewId === 'programs-view')) {
+            effectiveViewId = 'parent-dashboard-view';
+        } else if (currentUser.role === 'terapeuta' && viewId === 'parent-dashboard-view') {
+            effectiveViewId = 'dashboard-view';
+        }
 
-        topNavLinks.forEach(link => { link.classList.toggle('active', link.dataset.view === viewId && (!link.dataset.area || link.dataset.area === currentActiveArea)); });
-        mobileNavLinks.forEach(link => { link.classList.toggle('active', link.dataset.view === viewId && (!link.dataset.area || link.dataset.area === currentActiveArea)); });
-        views.forEach(view => { view.classList.toggle('hidden', view.id !== viewId); });
-        updateContextualSidebar(viewId, currentActiveArea);
+        const areaToSwitch = (currentUser.role === 'terapeuta' && effectiveViewId === 'programs-view') ? (context.area || currentActiveArea) : null;
+        
+        console.log(`Mudando visão para: ${effectiveViewId}, Área Ativa (se aplicável): ${areaToSwitch || 'N/A'}`, context);
+        currentView = effectiveViewId;
+        if (areaToSwitch) currentActiveArea = areaToSwitch;
+
+        topNavLinks.forEach(link => {
+            const linkView = link.dataset.view;
+            const linkArea = link.dataset.area;
+            let isActive = linkView === currentView;
+            if (linkView === 'programs-view' && currentUser.role === 'terapeuta') {
+                isActive = isActive && linkArea === currentActiveArea;
+            } else if (linkView === 'parent-dashboard-view' && currentUser.role === 'pai') {
+                isActive = true; // Link de acompanhamento sempre ativo para pais nessa view
+            }
+            link.classList.toggle('active', isActive);
+        });
+        mobileNavLinks.forEach(link => {
+            const linkView = link.dataset.view;
+            const linkArea = link.dataset.area;
+            let isActive = linkView === currentView;
+            if (linkView === 'programs-view' && currentUser.role === 'terapeuta') {
+                isActive = isActive && linkArea === currentActiveArea;
+            } else if (linkView === 'parent-dashboard-view' && currentUser.role === 'pai') {
+                isActive = true;
+            }
+            link.classList.toggle('active', isActive);
+        });
+
+        views.forEach(view => { view.classList.toggle('hidden', view.id !== currentView); });
+        
+        if (currentView === 'parent-dashboard-view' && parentDashboardView) {
+            parentDashboardView.classList.remove('hidden');
+        } else if (parentDashboardView) {
+            parentDashboardView.classList.add('hidden');
+        }
+
+        updateContextualSidebar(currentView, currentActiveArea);
         if (mobileMenu && !mobileMenu.classList.contains('hidden')) {
             toggleMobileMenu(false);
         }
 
-        switch (viewId) {
-            case 'clients-view': handleClientViewSwitch(context); break;
-            case 'programs-view': handleProgramViewSwitch(context); break;
-            case 'notes-view': handleNotesViewSwitch(); break;
+        switch (currentView) {
+            case 'clients-view': if (currentUser.role === 'terapeuta') handleClientViewSwitch(context); break;
+            case 'programs-view': if (currentUser.role === 'terapeuta') handleProgramViewSwitch(context); break;
+            case 'notes-view': if (currentUser.role === 'terapeuta') handleNotesViewSwitch(); break;
             case 'dashboard-view': renderDashboard(); break;
-            case 'tip-guide-view': break;
+            case 'parent-dashboard-view': if (currentUser.role === 'pai') loadParentDashboardData(); break;
+            case 'tip-guide-view': break; 
         }
         if (mainContentArea) mainContentArea.scrollTop = 0;
     }
 
     function updateContextualSidebar(viewId, activeArea) {
         let targetSidebarId = '';
+        
+        if (currentUser.role === 'pai') {
+            if (contextualSidebar) contextualSidebar.classList.add('hidden');
+            if(sidebarSections) sidebarSections.forEach(section => section.classList.add('hidden'));
+            return; 
+        }
+
+        if (contextualSidebar) contextualSidebar.classList.remove('hidden');
+
         switch (viewId) {
             case 'clients-view': case 'dashboard-view': case 'notes-view': targetSidebarId = 'sidebar-content-clients'; break;
             case 'programs-view': targetSidebarId = 'sidebar-content-programs'; break;
             case 'tip-guide-view': targetSidebarId = 'sidebar-content-tip-guide'; break;
             default: targetSidebarId = 'sidebar-content-clients';
         }
-        sidebarSections.forEach(section => { section.classList.toggle('hidden', section.id !== targetSidebarId); });
+        if(sidebarSections) sidebarSections.forEach(section => { section.classList.toggle('hidden', section.id !== targetSidebarId); });
 
         if (contextualSidebar) {
-            if (window.innerWidth < 768) { // Mobile
+            if (window.innerWidth < 768) {
                 const isAddClientPanelVisible = addClientPanel && !addClientPanel.classList.contains('hidden');
                 const isMobileMenuOpen = mobileMenu && !mobileMenu.classList.contains('hidden');
-                
                 if (!isMobileMenuOpen && !isAddClientPanelVisible && targetSidebarId !== 'sidebar-content-tip-guide') {
                     contextualSidebar.classList.remove('hidden');
                 } else {
                     contextualSidebar.classList.add('hidden');
                 }
-            } else { // Desktop
-                contextualSidebar.classList.remove('hidden');
+            } else {
+                contextualSidebar.classList.remove('hidden'); // Garante visibilidade em desktop
                 contextualSidebar.classList.add('md:block');
             }
         }
 
         if (targetSidebarId === 'sidebar-content-clients') {
-            renderClientList(clientSearchInput.value);
+            renderClientList(clientSearchInput ? clientSearchInput.value : '');
             updatePatientCountDisplay();
         } else if (targetSidebarId === 'sidebar-content-programs') {
             if (programSidebarTitle) { programSidebarTitle.textContent = `Programas de ${activeArea.replace(/([A-Z])/g, ' $1').trim()}`; }
             renderProgramCategories(activeArea);
-            filterAndDisplayPrograms(activeArea, null, programSearchInput.value);
+            filterAndDisplayPrograms(activeArea, null, programSearchInput ? programSearchInput.value : '');
         }
     }
 
     // --- Lógica Específica das Views ---
     function handleClientViewSwitch(context) {
+        if (!isAuthenticated || currentUser.role !== 'terapeuta') return;
         if (context?.clientId) {
             const patientToSelect = patients.find(p => String(p.id) === String(context.clientId));
             selectPatient(patientToSelect);
@@ -633,17 +934,18 @@ document.addEventListener('DOMContentLoaded', () => {
             displayNoClientSelected();
         }
         if (!(context?.showAddPanel)) { 
-            addClientPanel.classList.add('hidden');
+            if (addClientPanel) addClientPanel.classList.add('hidden');
         }
          updateContextualSidebar('clients-view', currentActiveArea); 
     }
     function handleProgramViewSwitch(context) {
+        if (!isAuthenticated || currentUser.role !== 'terapeuta') return;
         const area = context.area || currentActiveArea;
         const programId = context?.programId || null;
-        const searchText = programSearchInput.value;
+        const searchText = programSearchInput ? programSearchInput.value : '';
         filterAndDisplayPrograms(area, programId, searchText);
-        programCategoriesContainer.querySelectorAll('a.program-link, summary').forEach(el => { el.classList.remove('active'); });
-        if(programId) {
+        if(programCategoriesContainer) programCategoriesContainer.querySelectorAll('a.program-link, summary').forEach(el => el.classList.remove('active'));
+        if(programId && programCategoriesContainer) {
             const link = programCategoriesContainer.querySelector(`a.program-link[data-program-id="${programId}"]`);
             if(link) {
                 link.classList.add('active');
@@ -655,34 +957,36 @@ document.addEventListener('DOMContentLoaded', () => {
         updateContextualSidebar('programs-view', currentActiveArea); 
     }
     function handleNotesViewSwitch() {
-        if (!isAuthenticated) return;
+        if (!isAuthenticated || currentUser.role !== 'terapeuta') return;
         if (selectedPatient) {
-            notesViewTextarea.value = selectedPatient.general_notes || '';
-            notesViewTextarea.disabled = false;
-            saveNotesBtn.disabled = false;
+            if(notesViewTextarea) notesViewTextarea.value = selectedPatient.general_notes || '';
+            if(notesViewTextarea) notesViewTextarea.disabled = false;
+            if(saveNotesBtn) saveNotesBtn.disabled = false;
             if (notesPlaceholder) notesPlaceholder.classList.add('hidden');
         } else {
-            notesViewTextarea.value = '';
-            notesViewTextarea.disabled = true;
-            saveNotesBtn.disabled = true;
+            if(notesViewTextarea) notesViewTextarea.value = '';
+            if(notesViewTextarea) notesViewTextarea.disabled = true;
+            if(saveNotesBtn) saveNotesBtn.disabled = true;
             if (notesPlaceholder) notesPlaceholder.classList.remove('hidden');
         }
         updateContextualSidebar('notes-view', currentActiveArea);
     }
 
-    // --- Gerenciamento de Clientes ---
+    // --- Gerenciamento de Clientes (Exclusivo para Terapeutas) ---
     function renderClientList(filterText = '') {
-        if (!isAuthenticated || !clientListUl) return;
+        if (!isAuthenticated || !clientListUl || currentUser.role !== 'terapeuta') return;
         clientListUl.innerHTML = ''; 
         const lowerCaseFilter = filterText.toLowerCase();
         const filteredPatients = patients.filter(patient => patient.name.toLowerCase().includes(lowerCaseFilter));
         filteredPatients.sort((a, b) => a.name.localeCompare(b.name, 'pt-BR'));
         if (filteredPatients.length === 0) {
-            noClientsMessageLi.classList.remove('hidden');
-            clientListUl.appendChild(noClientsMessageLi);
-            noClientsMessageLi.textContent = patients.length === 0 ? 'Nenhum cliente cadastrado.' : 'Nenhum cliente encontrado.';
+            if(noClientsMessageLi) {
+                noClientsMessageLi.classList.remove('hidden');
+                clientListUl.appendChild(noClientsMessageLi);
+                noClientsMessageLi.textContent = patients.length === 0 ? 'Nenhum cliente cadastrado.' : 'Nenhum cliente encontrado.';
+            }
         } else {
-            noClientsMessageLi.classList.add('hidden');
+            if(noClientsMessageLi) noClientsMessageLi.classList.add('hidden');
             filteredPatients.forEach(patient => {
                 const li = document.createElement('li');
                 li.dataset.clientId = patient.id;
@@ -695,23 +999,22 @@ document.addEventListener('DOMContentLoaded', () => {
         updatePatientCountDisplay();
     }
     function selectPatient(patient) {
-        if (!isAuthenticated || !patient || !patients.some(p => String(p.id) === String(patient.id))) {
-            console.warn("Tentativa de selecionar paciente inválido:", patient);
-            displayNoClientSelected();
+        if (!isAuthenticated || !patient || currentUser.role !== 'terapeuta' || !patients.some(p => String(p.id) === String(patient.id))) {
+            if (currentUser.role === 'terapeuta') displayNoClientSelected();
             return;
         }
         selectedPatient = patient;
         updateCurrentClientIndicator();
-        renderClientList(clientSearchInput.value); 
+        renderClientList(clientSearchInput ? clientSearchInput.value : ''); 
         if (currentView === 'clients-view') {
             displayClientDetails(selectedPatient);
-            noClientSelectedPlaceholder.classList.add('hidden');
-            clientDetailsPanel.classList.remove('hidden');
-            addClientPanel.classList.add('hidden');
+            if(noClientSelectedPlaceholder) noClientSelectedPlaceholder.classList.add('hidden');
+            if(clientDetailsPanel) clientDetailsPanel.classList.remove('hidden');
+            if(addClientPanel) addClientPanel.classList.add('hidden');
             renderAssignedPrograms(selectedPatient.assigned_program_ids || []);
         }
         else if (currentView === 'programs-view') {
-            filterAndDisplayPrograms(currentActiveArea, null, programSearchInput.value);
+            filterAndDisplayPrograms(currentActiveArea, null, programSearchInput ? programSearchInput.value : '');
         }
         else if (currentView === 'notes-view') {
             handleNotesViewSwitch();
@@ -721,10 +1024,10 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
     function displayNoClientSelected() {
-        if (!isAuthenticated) return;
+        if (!isAuthenticated || currentUser.role !== 'terapeuta') return;
         selectedPatient = null;
         updateCurrentClientIndicator();
-        renderClientList(clientSearchInput.value); 
+        renderClientList(clientSearchInput ? clientSearchInput.value : ''); 
         if(clientDetailsPanel) clientDetailsPanel.classList.add('hidden');
         if(noClientSelectedPlaceholder) noClientSelectedPlaceholder.classList.remove('hidden');
         if(addClientPanel) addClientPanel.classList.add('hidden');
@@ -735,7 +1038,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
         if(progressDetailsAreaDiv) progressDetailsAreaDiv.innerHTML = `<div class="text-center text-gray-500 py-6"><i class="fas fa-tasks text-3xl mb-3 text-gray-400"></i><p class="text-sm">Selecione um programa atribuído na lista ao lado para registrar uma sessão ou ver o gráfico de progresso.</p></div>`;
         if (currentView === 'programs-view') {
-            filterAndDisplayPrograms(currentActiveArea, null, programSearchInput.value);
+            filterAndDisplayPrograms(currentActiveArea, null, programSearchInput ? programSearchInput.value : '');
         }
         else if (currentView === 'notes-view') {
             handleNotesViewSwitch();
@@ -745,19 +1048,19 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
     function displayClientDetails(patient) {
-        if (!isAuthenticated || !patient) return;
-        detailClientNameSpan.textContent = patient.name;
-        detailClientIdSpan.textContent = patient.id;
-        detailClientDobSpan.textContent = patient.dob ? formatDate(patient.dob) : 'Não informado';
-        detailClientDiagnosisSpan.textContent = patient.diagnosis || 'Não informado';
-        detailClientNotesSpan.textContent = patient.general_notes || 'Sem anotações'; 
+        if (!isAuthenticated || !patient || currentUser.role !== 'terapeuta') return;
+        if(detailClientNameSpan) detailClientNameSpan.textContent = patient.name;
+        if(detailClientIdSpan) detailClientIdSpan.textContent = patient.id;
+        if(detailClientDobSpan) detailClientDobSpan.textContent = patient.dob ? formatDate(patient.dob) : 'Não informado';
+        if(detailClientDiagnosisSpan) detailClientDiagnosisSpan.textContent = patient.diagnosis || 'Não informado';
+        if(detailClientNotesSpan) detailClientNotesSpan.textContent = patient.general_notes || 'Sem anotações'; 
         renderAssignedPrograms(patient.assigned_program_ids || []);
         if(progressDetailsAreaDiv) progressDetailsAreaDiv.innerHTML = `<div class="text-center text-gray-500 py-6"><i class="fas fa-tasks text-3xl mb-3 text-gray-400"></i><p class="text-sm">Selecione um programa atribuído na lista ao lado para registrar uma sessão ou ver o gráfico de progresso.</p></div>`;
         selectedProgramForProgress = null;
     }
     async function handleAddOrEditClientSubmit(e) {
         e.preventDefault();
-        if (!isAuthenticated || !authToken) return;
+        if (!isAuthenticated || !authToken || currentUser.role !== 'terapeuta') return;
         const editingClientId = e.target.dataset.editingClientId;
         const clientData = {
             name: clientNameInput.value.trim(),
@@ -784,14 +1087,16 @@ document.addEventListener('DOMContentLoaded', () => {
             } else { console.error(`Erro ao ${editingClientId ? 'editar' : 'adicionar'} cliente:`, result.errors?.[0]?.msg || response.statusText); alert(`Erro: ${result.errors?.[0]?.msg || 'Falha ao salvar.'}`); }
         } catch (error) { console.error(`Erro de rede ao ${editingClientId ? 'editar' : 'adicionar'} cliente:`, error); alert("Erro de conexão."); }
     }
-    function resetAddClientForm() {
-        addClientForm.reset();
-        addClientFormTitle.textContent = 'Cadastrar Novo Cliente';
-        addClientFormSubmitBtn.innerHTML = '<i class="fas fa-save mr-1.5"></i> Salvar Cliente';
-        delete addClientForm.dataset.editingClientId; 
+    function resetAddClientForm() { 
+        if (addClientForm && currentUser.role === 'terapeuta') {
+            addClientForm.reset();
+            if (addClientFormTitle) addClientFormTitle.textContent = 'Cadastrar Novo Cliente';
+            if (addClientFormSubmitBtn) addClientFormSubmitBtn.innerHTML = '<i class="fas fa-save mr-1.5"></i> Salvar Cliente';
+            delete addClientForm.dataset.editingClientId; 
+        }
     }
-    async function deleteClient() {
-        if (!selectedPatient || !authToken) return;
+    async function deleteClient() { 
+        if (!selectedPatient || !authToken || currentUser.role !== 'terapeuta') return;
         if (confirm(`Tem certeza que deseja excluir o cliente "${selectedPatient.name}"? Esta ação não pode ser desfeita.`)) {
             const patientId = selectedPatient.id;
             const patientName = selectedPatient.name;
@@ -805,26 +1110,36 @@ document.addEventListener('DOMContentLoaded', () => {
             } catch (error) { console.error('Erro de rede ao excluir cliente:', error); alert("Erro de conexão."); }
         }
     }
-    function editClient() {
-        if (!selectedPatient) return;
+    function editClient() { 
+        if (!selectedPatient || currentUser.role !== 'terapeuta') return;
         clientNameInput.value = selectedPatient.name;
-        clientDobInput.value = selectedPatient.dob || '';
+        if (selectedPatient.dob) {
+            try {
+                const dateObj = new Date(selectedPatient.dob);
+                if (!isNaN(dateObj.getTime())) {
+                    const year = dateObj.getFullYear();
+                    const month = (dateObj.getMonth() + 1).toString().padStart(2, '0');
+                    const day = dateObj.getDate().toString().padStart(2, '0');
+                    clientDobInput.value = `${year}-${month}-${day}`;
+                } else { clientDobInput.value = ''; }
+            } catch (e) { console.warn("Erro ao formatar data de nascimento para edição:", e); clientDobInput.value = selectedPatient.dob.split('T')[0] || ''; }
+        } else { clientDobInput.value = ''; }
         clientDiagnosisInput.value = selectedPatient.diagnosis || '';
         clientNotesInput.value = selectedPatient.general_notes || '';
         addClientFormTitle.textContent = 'Editar Cliente';
         addClientFormSubmitBtn.innerHTML = '<i class="fas fa-save mr-1.5"></i> Salvar Alterações';
         addClientForm.dataset.editingClientId = selectedPatient.id;
-        clientDetailsPanel.classList.add('hidden');
-        noClientSelectedPlaceholder.classList.add('hidden');
-        addClientPanel.classList.remove('hidden');
+        if(clientDetailsPanel) clientDetailsPanel.classList.add('hidden');
+        if(noClientSelectedPlaceholder) noClientSelectedPlaceholder.classList.add('hidden');
+        if(addClientPanel) addClientPanel.classList.remove('hidden');
         clientNameInput.focus();
         if (window.innerWidth < 768 && contextualSidebar) { contextualSidebar.classList.add('hidden'); }
     }
 
-    // --- Gerenciamento de Programas ---
+    // --- Gerenciamento de Programas (Exclusivo para Terapeutas) ---
     function renderProgramCategories(activeArea) {
-        if (!isAuthenticated || !allProgramsData || !allProgramsData[activeArea]) {
-            programCategoriesContainer.innerHTML = `<p class="text-xs text-gray-500 px-1">Nenhuma categoria para ${activeArea.replace(/([A-Z])/g, ' $1').trim()}.</p>`;
+        if (!isAuthenticated || !allProgramsData || !allProgramsData[activeArea] || currentUser.role !== 'terapeuta') {
+            if (programCategoriesContainer) programCategoriesContainer.innerHTML = `<p class="text-xs text-gray-500 px-1">Nenhuma categoria para ${activeArea.replace(/([A-Z])/g, ' $1').trim()}.</p>`;
             return;
         }
         const programsInArea = allProgramsData[activeArea];
@@ -851,10 +1166,10 @@ document.addEventListener('DOMContentLoaded', () => {
     }
     function handleProgramLinkClick(e) {
         e.preventDefault();
-        if (!isAuthenticated) return;
+        if (!isAuthenticated || currentUser.role !== 'terapeuta') return;
         const link = e.currentTarget;
         const programId = link.dataset.programId;
-        programCategoriesContainer.querySelectorAll('a.program-link, summary').forEach(el => el.classList.remove('active'));
+        if(programCategoriesContainer) programCategoriesContainer.querySelectorAll('a.program-link, summary').forEach(el => el.classList.remove('active'));
         link.classList.add('active');
         const parentSummary = link.closest('details')?.querySelector('summary');
         if (parentSummary) {
@@ -862,28 +1177,30 @@ document.addEventListener('DOMContentLoaded', () => {
             if (!link.closest('details').open) { link.closest('details').open = true; }
         }
         filterAndDisplayPrograms(currentActiveArea, programId, '');
-        programSearchInput.value = '';
+        if(programSearchInput) programSearchInput.value = '';
         if (window.innerWidth < 768 && contextualSidebar) { contextualSidebar.classList.add('hidden'); }
     }
     function handleCategoryToggle(event) {
-        if (!isAuthenticated) return;
+        if (!isAuthenticated || currentUser.role !== 'terapeuta') return;
         const detailsElement = event.target;
         if (detailsElement.open) {
-            programCategoriesContainer.querySelectorAll('details.program-category-details').forEach(otherDetails => {
+            if(programCategoriesContainer) programCategoriesContainer.querySelectorAll('details.program-category-details').forEach(otherDetails => {
                 if (otherDetails !== detailsElement) { otherDetails.open = false; }
             });
-            programCategoriesContainer.querySelectorAll('details.program-category-details:not([open]) a.program-link, details.program-category-details:not([open]) summary').forEach(el => { el.classList.remove('active'); });
+            if(programCategoriesContainer) programCategoriesContainer.querySelectorAll('details.program-category-details:not([open]) a.program-link, details.program-category-details:not([open]) summary').forEach(el => { el.classList.remove('active'); });
         } else {
             detailsElement.querySelectorAll('a.program-link, summary').forEach(el => { el.classList.remove('active'); });
-            filterAndDisplayPrograms(currentActiveArea, null, programSearchInput.value);
+            filterAndDisplayPrograms(currentActiveArea, null, programSearchInput ? programSearchInput.value : '');
         }
     }
     function filterAndDisplayPrograms(area, programId = null, searchText = '') {
-        if (!isAuthenticated || !allProgramsData || !allProgramsData[area]) {
-            programLibraryListDiv.innerHTML = '';
-            programViewPlaceholder.classList.add('hidden');
-            noProgramsMessage.classList.remove('hidden');
-            noProgramsMessage.textContent = `Nenhum programa encontrado para ${area.replace(/([A-Z])/g, ' $1').trim()}.`;
+        if (!isAuthenticated || !allProgramsData || !allProgramsData[area] || currentUser.role !== 'terapeuta') {
+            if (programLibraryListDiv) programLibraryListDiv.innerHTML = '';
+            if (programViewPlaceholder) programViewPlaceholder.classList.add('hidden');
+            if (noProgramsMessage) {
+                noProgramsMessage.classList.remove('hidden');
+                noProgramsMessage.textContent = `Nenhum programa encontrado para ${area.replace(/([A-Z])/g, ' $1').trim()}.`;
+            }
             return;
         }
         programLibraryListDiv.innerHTML = '';
@@ -904,16 +1221,18 @@ document.addEventListener('DOMContentLoaded', () => {
         }
         programsToDisplay.sort((a, b) => a.title.localeCompare(b.title, 'pt-BR'));
         if (programsToDisplay.length > 0) {
-            programViewPlaceholder.classList.add('hidden');
-            noProgramsMessage.classList.add('hidden');
+            if(programViewPlaceholder) programViewPlaceholder.classList.add('hidden');
+            if(noProgramsMessage) noProgramsMessage.classList.add('hidden');
             programsToDisplay.forEach(program => {
                 const card = createProgramCardElement(program, selectedPatient);
                 programLibraryListDiv.appendChild(card);
             });
         } else { 
-            programViewPlaceholder.classList.add('hidden');
-            noProgramsMessage.classList.remove('hidden');
-            noProgramsMessage.textContent = searchText ? `Nenhum programa encontrado para "${searchText}" em ${area.replace(/([A-Z])/g, ' $1').trim()}.` : (programId ? `Programa não encontrado.` : `Nenhum programa em ${area.replace(/([A-Z])/g, ' $1').trim()}.`);
+            if(programViewPlaceholder) programViewPlaceholder.classList.add('hidden');
+            if(noProgramsMessage) {
+                noProgramsMessage.classList.remove('hidden');
+                noProgramsMessage.textContent = searchText ? `Nenhum programa encontrado para "${searchText}" em ${area.replace(/([A-Z])/g, ' $1').trim()}.` : (programId ? `Programa não encontrado.` : `Nenhum programa em ${area.replace(/([A-Z])/g, ' $1').trim()}.`);
+            }
         }
     }
     function getTagColor(tag) {
@@ -950,11 +1269,16 @@ document.addEventListener('DOMContentLoaded', () => {
         ).join('') + (program.procedure?.length > 2 ? '<p class="text-xs text-gray-400 italic mt-1">...</p>' : '') || '<p class="text-xs text-gray-400 italic">Procedimento não detalhado.</p>';
         const materialsHTML = program.materials?.length > 0 ?
             `<div class="mt-2"><h4 class="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1">Materiais</h4><ul class="list-disc list-inside text-xs text-gray-600 space-y-0.5">${program.materials.slice(0, 3).map(item => `<li class="truncate" title="${item}">${item}</li>`).join('')}${program.materials.length > 3 ? '<li class="text-gray-400 italic">...</li>' : ''}</ul></div>` : '';
-        const assignedProgramIds = currentSelectedPatient?.assigned_program_ids || [];
-        const isAssigned = currentSelectedPatient && assignedProgramIds.includes(program.id);
-        const assignButtonHTML = currentSelectedPatient ?
-            `<button class="assign-program-btn text-xs font-medium py-1.5 px-3 rounded ${isAssigned ? 'assigned bg-emerald-500 text-white cursor-default' : 'bg-indigo-100 text-indigo-700 hover:bg-indigo-200'}" data-program-id="${program.id}" title="${isAssigned ? 'Programa Já Atribuído' : 'Atribuir ao Cliente'}" ${isAssigned ? 'disabled' : ''}><i class="fas ${isAssigned ? 'fa-check' : 'fa-plus'} mr-1"></i> ${isAssigned ? 'Atribuído' : 'Atribuir'}</button>` :
-            `<button class="text-xs font-medium py-1.5 px-3 rounded bg-gray-100 text-gray-500 cursor-not-allowed" disabled title="Selecione um cliente para atribuir programas"><i class="fas fa-plus mr-1"></i> Atribuir</button>`;
+        
+        let assignButtonHTML = '';
+        if (currentUser.role === 'terapeuta') {
+            const assignedProgramIds = currentSelectedPatient?.assigned_program_ids || [];
+            const isAssigned = currentSelectedPatient && assignedProgramIds.includes(program.id);
+            assignButtonHTML = currentSelectedPatient ?
+                `<button class="assign-program-btn text-xs font-medium py-1.5 px-3 rounded ${isAssigned ? 'assigned bg-emerald-500 text-white cursor-default' : 'bg-indigo-100 text-indigo-700 hover:bg-indigo-200'}" data-program-id="${program.id}" title="${isAssigned ? 'Programa Já Atribuído' : 'Atribuir ao Cliente'}" ${isAssigned ? 'disabled' : ''}><i class="fas ${isAssigned ? 'fa-check' : 'fa-plus'} mr-1"></i> ${isAssigned ? 'Atribuído' : 'Atribuir'}</button>` :
+                `<button class="text-xs font-medium py-1.5 px-3 rounded bg-gray-100 text-gray-500 cursor-not-allowed" disabled title="Selecione um cliente para atribuir programas"><i class="fas fa-plus mr-1"></i> Atribuir</button>`;
+        }
+
         card.innerHTML = `
             <div>
                 <div class="flex justify-between items-start mb-2">
@@ -969,18 +1293,19 @@ document.addEventListener('DOMContentLoaded', () => {
                     ${procedurePreviewHTML}
                 </div>
             </div>
-            <div class="program-card-actions mt-4 pt-3 border-t border-gray-100 text-right">
-                ${assignButtonHTML}
-            </div>`;
-        const assignButton = card.querySelector('.assign-program-btn');
-        if (assignButton && !assignButton.disabled) {
-            assignButton.removeEventListener('click', handleAssignProgram);
-            assignButton.addEventListener('click', handleAssignProgram);
+            ${currentUser.role === 'terapeuta' ? `<div class="program-card-actions mt-4 pt-3 border-t border-gray-100 text-right">${assignButtonHTML}</div>` : ''}
+        `;
+        if (currentUser.role === 'terapeuta') {
+            const assignButton = card.querySelector('.assign-program-btn');
+            if (assignButton && !assignButton.disabled) {
+                assignButton.removeEventListener('click', handleAssignProgram);
+                assignButton.addEventListener('click', handleAssignProgram);
+            }
         }
         return card;
     }
     async function handleAssignProgram(e) {
-        if (!isAuthenticated || !selectedPatient || !authToken) { alert("Por favor, selecione um cliente antes de atribuir um programa."); return; }
+        if (!isAuthenticated || !selectedPatient || !authToken || currentUser.role !== 'terapeuta') { alert("Por favor, selecione um cliente antes de atribuir um programa."); return; }
         const button = e.currentTarget;
         const programId = button.dataset.programId;
         const program = getProgramById(programId);
@@ -1005,7 +1330,7 @@ document.addEventListener('DOMContentLoaded', () => {
         } catch (error) { console.error('Erro de rede ao atribuir programa:', error); alert("Erro de conexão ao tentar atribuir o programa."); button.disabled = false; button.innerHTML = `<i class="fas fa-plus mr-1"></i> Atribuir`; }
     }
     async function handleRemoveProgram(e) {
-        if (!isAuthenticated || !selectedPatient || !authToken) return;
+        if (!isAuthenticated || !selectedPatient || !authToken || currentUser.role !== 'terapeuta') return;
         const button = e.currentTarget;
         const programIdToRemove = button.dataset.programId;
         const program = getProgramById(programIdToRemove);
@@ -1019,13 +1344,15 @@ document.addEventListener('DOMContentLoaded', () => {
                     alert(`Programa "${programTitle}" removido de ${selectedPatient.name}.`);
                     selectedPatient.assigned_program_ids = (selectedPatient.assigned_program_ids || []).filter(id => id !== programIdToRemove);
                     renderAssignedPrograms(selectedPatient.assigned_program_ids); 
-                    const programCardButton = programLibraryListDiv.querySelector(`.assign-program-btn[data-program-id="${programIdToRemove}"]`);
-                    if (programCardButton) {
-                        programCardButton.classList.remove('assigned', 'bg-emerald-500', 'text-white', 'cursor-default');
-                        programCardButton.classList.add('bg-indigo-100', 'text-indigo-700', 'hover:bg-indigo-200');
-                        programCardButton.innerHTML = `<i class="fas fa-plus mr-1"></i> Atribuir`;
-                        programCardButton.disabled = false;
-                        programCardButton.title = 'Atribuir ao Cliente';
+                    if(programLibraryListDiv) {
+                        const programCardButton = programLibraryListDiv.querySelector(`.assign-program-btn[data-program-id="${programIdToRemove}"]`);
+                        if (programCardButton) {
+                            programCardButton.classList.remove('assigned', 'bg-emerald-500', 'text-white', 'cursor-default');
+                            programCardButton.classList.add('bg-indigo-100', 'text-indigo-700', 'hover:bg-indigo-200');
+                            programCardButton.innerHTML = `<i class="fas fa-plus mr-1"></i> Atribuir`;
+                            programCardButton.disabled = false;
+                            programCardButton.title = 'Atribuir ao Cliente';
+                        }
                     }
                     if (selectedProgramForProgress?.id === programIdToRemove) {
                         if(progressDetailsAreaDiv) progressDetailsAreaDiv.innerHTML = `<div class="text-center text-gray-500 py-6"><i class="fas fa-tasks text-3xl mb-3 text-gray-400"></i><p class="text-sm">Selecione um programa atribuído na lista ao lado para registrar uma sessão ou ver o gráfico de progresso.</p></div>`;
@@ -1036,7 +1363,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
     function renderAssignedPrograms(assignedProgramIds) {
-        if (!assignedProgramsListUl || !noAssignedProgramsLi) return;
+        if (!assignedProgramsListUl || !noAssignedProgramsLi || currentUser.role !== 'terapeuta') return;
         assignedProgramsListUl.innerHTML = ''; 
         if (!assignedProgramIds || assignedProgramIds.length === 0) {
             noAssignedProgramsLi.classList.remove('hidden');
@@ -1073,22 +1400,22 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    // --- Gerenciamento de Sessão e Progresso ---
+    // --- Gerenciamento de Sessão e Progresso (Exclusivo para Terapeutas) ---
     function handleViewProgramProgress(e) {
-        if (!isAuthenticated || !selectedPatient) return;
+        if (!isAuthenticated || !selectedPatient || currentUser.role !== 'terapeuta') return;
         const button = e.currentTarget;
         const programId = button.dataset.programId;
         selectedProgramForProgress = getProgramById(programId);
         if (selectedProgramForProgress) {
             renderSessionEntryForm(selectedProgramForProgress);
-            assignedProgramsListUl.querySelectorAll('.assigned-program-item').forEach(item => {
+            if(assignedProgramsListUl) assignedProgramsListUl.querySelectorAll('.assigned-program-item').forEach(item => {
                 item.classList.toggle('active', item.dataset.programId === programId);
                 item.classList.toggle('bg-indigo-100', item.dataset.programId === programId);
             });
         } else { console.error("Programa selecionado para progresso não encontrado:", programId); clearSessionProgressArea(); }
     }
     function renderSessionEntryForm(program) {
-        if (!isAuthenticated || !selectedPatient || !program) return;
+        if (!isAuthenticated || !selectedPatient || !program || currentUser.role !== 'terapeuta' || !progressDetailsAreaDiv) return;
         const totalTrials = program.trials || 0;
         const criteriaHTML = program.criteria_for_advancement ? `<div class="mb-6 p-3 bg-blue-50 border border-blue-200 rounded-md"><h5 class="text-sm font-semibold text-blue-800 mb-1">Critério para Avanço:</h5><p class="text-xs text-blue-700">${program.criteria_for_advancement}</p></div>` : '';
         progressDetailsAreaDiv.innerHTML = `
@@ -1128,15 +1455,13 @@ document.addEventListener('DOMContentLoaded', () => {
             </div>`;
         const form = document.getElementById('add-session-form');
         const cancelBtn = document.getElementById('cancel-session-entry');
-        form.removeEventListener('submit', handleAddSession); 
-        form.addEventListener('submit', handleAddSession);
-        cancelBtn.removeEventListener('click', clearSessionProgressArea); 
-        cancelBtn.addEventListener('click', clearSessionProgressArea);
+        if(form) { form.removeEventListener('submit', handleAddSession); form.addEventListener('submit', handleAddSession); }
+        if(cancelBtn) { cancelBtn.removeEventListener('click', clearSessionProgressArea); cancelBtn.addEventListener('click', clearSessionProgressArea); }
         renderProgressChart(program.id);
     }
     async function handleAddSession(e) {
         e.preventDefault();
-        if (!isAuthenticated || !selectedPatient || !selectedProgramForProgress || !authToken) return;
+        if (!isAuthenticated || !selectedPatient || !selectedProgramForProgress || !authToken || currentUser.role !== 'terapeuta') return;
         const form = e.target;
         const programId = form.dataset.programId;
         const programDetails = getProgramById(programId);
@@ -1168,7 +1493,7 @@ document.addEventListener('DOMContentLoaded', () => {
         finally { submitButton.disabled = false; submitButton.innerHTML = '<i class="fas fa-save mr-1"></i> Salvar Registro'; }
     }
     function renderProgressChart(programId) {
-        if (!isAuthenticated || !selectedPatient) return;
+        if (!isAuthenticated || !selectedPatient || currentUser.role !== 'terapeuta') return;
         const canvasContainer = document.getElementById('program-progress-chart');
         const canvas = document.getElementById('progressChartCanvas');
         const noDataMessage = document.getElementById('no-progress-data-message');
@@ -1190,16 +1515,20 @@ document.addEventListener('DOMContentLoaded', () => {
             options: { responsive: true, maintainAspectRatio: false, scales: { y: { beginAtZero: true, max: 100, ticks: { color: textColor, font: { size: 10 } }, grid: { color: gridColor, drawBorder: false } }, x: { ticks: { color: textColor, font: { size: 10 } }, grid: { display: false } } }, plugins: { legend: { display: false }, tooltip: { enabled: true, backgroundColor: '#1f2937', titleColor: '#fff', bodyColor: '#fff', padding: 10, cornerRadius: 4, displayColors: true, borderColor: (tooltipItem) => { const index = tooltipItem.tooltip.dataPoints[0].dataIndex; if (index < 0 || index >= programSessionData.length) return primaryColor; return programSessionData[index]?.is_baseline || programSessionData[index]?.isBaseline ? baselineColor : primaryColor; }, borderWidth: 1, callbacks: { title: function(tooltipItems) { const index = tooltipItems[0].dataIndex; if (index < 0 || index >= programSessionData.length) return ''; const session = programSessionData[index]; const baselinePrefix = session.is_baseline || session.isBaseline ? '[Linha de Base] ' : ''; return `${baselinePrefix}Data: ${formatDate(session.session_date || session.date)}`; }, label: function(context) { let label = context.dataset.label || ''; if (label) { label += ': '; } if (context.parsed.y !== null) { label += context.parsed.y + '%'; } const index = context.dataIndex; if (index >= 0 && index < programSessionData.length) { const notes = programSessionData[index].notes; if(notes) { const truncatedNotes = notes.length > 50 ? notes.substring(0, 47) + '...' : notes; label += `\nObs: ${truncatedNotes}`; } } return label; }, labelColor: function(context) { const index = context.dataIndex; if (index < 0 || index >= programSessionData.length) return { borderColor: primaryColor, backgroundColor: primaryColor }; const isBaseline = programSessionData[index].is_baseline || programSessionData[index].isBaseline; return { borderColor: isBaseline ? baselineColor : primaryColor, backgroundColor: isBaseline ? baselineColor : primaryColor, borderWidth: 2, borderRadius: isBaseline ? 0 : '50%' }; }, } } }, hover: { mode: 'index', intersect: false }, interaction: { mode: 'index', intersect: false }, }
         });
     }
-    function clearSessionProgressArea() {
-        if (progressDetailsAreaDiv) { progressDetailsAreaDiv.innerHTML = `<div class="text-center text-gray-500 py-6"><i class="fas fa-tasks text-3xl mb-3 text-gray-400"></i><p class="text-sm">Selecione um programa atribuído na lista ao lado para registrar uma sessão ou ver o gráfico de progresso.</p></div>`; }
+    function clearSessionProgressArea() { 
+        if (progressDetailsAreaDiv && currentUser.role === 'terapeuta') { progressDetailsAreaDiv.innerHTML = `<div class="text-center text-gray-500 py-6"><i class="fas fa-tasks text-3xl mb-3 text-gray-400"></i><p class="text-sm">Selecione um programa atribuído na lista ao lado para registrar uma sessão ou ver o gráfico de progresso.</p></div>`; }
         selectedProgramForProgress = null;
         if (progressChartInstance) { progressChartInstance.destroy(); progressChartInstance = null; }
-        if (assignedProgramsListUl) { assignedProgramsListUl.querySelectorAll('.assigned-program-item.active').forEach(item => { item.classList.remove('active', 'bg-indigo-100'); }); }
+        if (assignedProgramsListUl && currentUser.role === 'terapeuta') { assignedProgramsListUl.querySelectorAll('.assigned-program-item.active').forEach(item => { item.classList.remove('active', 'bg-indigo-100'); }); }
     }
 
-    // --- Anotações ---
+    // --- Anotações (Exclusivo para Terapeutas) ---
     async function handleSaveNotes() {
-        if (!selectedPatient || !authToken) { alert("Nenhum cliente selecionado para salvar anotações."); saveNotesBtn.disabled = true; return; }
+        if (!selectedPatient || !authToken || currentUser.role !== 'terapeuta' || !saveNotesBtn) { 
+            if(saveNotesBtn) saveNotesBtn.disabled = true; 
+            if(currentUser.role === 'terapeuta') alert("Nenhum cliente selecionado para salvar anotações.");
+            return; 
+        }
         const newNotes = notesViewTextarea.value;
         console.log(`Salvando anotações para paciente ${selectedPatient.id}`);
         saveNotesBtn.disabled = true;
@@ -1208,7 +1537,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const response = await fetch(`${API_BASE_URL}/patients/${selectedPatient.id}/notes`, { method: 'PUT', headers: { 'Authorization': `Bearer ${authToken}`, 'Content-Type': 'application/json', }, body: JSON.stringify({ generalNotes: newNotes }) });
             if (response.ok) {
                 selectedPatient.general_notes = newNotes; 
-                if (detailClientNotesSpan && !clientDetailsPanel.classList.contains('hidden')) { detailClientNotesSpan.textContent = newNotes || 'Sem anotações'; }
+                if (detailClientNotesSpan && clientDetailsPanel && !clientDetailsPanel.classList.contains('hidden')) { detailClientNotesSpan.textContent = newNotes || 'Sem anotações'; }
                 saveNotesBtn.classList.add('bg-emerald-500', 'hover:bg-emerald-600');
                 saveNotesBtn.classList.remove('bg-indigo-600', 'hover:bg-indigo-700');
                 saveNotesBtn.innerHTML = '<i class="fas fa-check mr-1.5"></i> Salvo!';
@@ -1218,11 +1547,12 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // --- Dashboard ---
-    function renderDashboard() {
-        if (!isAuthenticated || !dashboardView) return;
-        if (selectedPatient) {
-            dashboardContent.classList.add('hidden'); 
-            clientDashboardContent.classList.remove('hidden'); 
+    function renderDashboard() { // Para terapeutas
+        if (!isAuthenticated || !dashboardView || currentUser.role !== 'terapeuta') return;
+        
+        if (selectedPatient) { // Dashboard específico do cliente
+            if (generalDashboardContent) generalDashboardContent.classList.add('hidden'); 
+            if (clientDashboardContent) clientDashboardContent.classList.remove('hidden'); 
             const assignedProgramsCount = selectedPatient.assigned_program_ids?.length || 0;
             const sessionsCount = selectedPatient.sessionData?.length || 0;
             const averageProgress = calculateOverallAverageProgress(selectedPatient);
@@ -1233,12 +1563,12 @@ document.addEventListener('DOMContentLoaded', () => {
                     <div class="bg-white p-4 rounded-lg shadow border border-gray-200"><h3 class="text-sm font-medium text-gray-500 mb-1">Sessões Registradas</h3><p class="text-3xl font-semibold text-emerald-600">${sessionsCount}</p></div>
                     <div class="bg-white p-4 rounded-lg shadow border border-gray-200"><h3 class="text-sm font-medium text-gray-500 mb-1">Progresso Médio (Interv.)</h3><p class="text-3xl font-semibold text-amber-600">${averageProgress}%</p></div>
                 </div>`;
-        } else {
-            clientDashboardContent.classList.add('hidden'); 
-            dashboardContent.classList.remove('hidden'); 
+        } else { // Dashboard geral do terapeuta
+            if (clientDashboardContent) clientDashboardContent.classList.add('hidden'); 
+            if (generalDashboardContent) generalDashboardContent.classList.remove('hidden'); 
             const totalUserSessions = calculateTotalSessions(patients);
             const patientLimit = currentUser?.max_patients || 0;
-            dashboardContent.innerHTML = `
+            generalDashboardContent.innerHTML = `
                 <h2 class="text-xl font-semibold text-gray-700 mb-4">Dashboard Geral - ${currentUser?.full_name || 'Usuário'}</h2>
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div class="bg-white p-4 rounded-lg shadow border border-gray-200"><h3 class="text-sm font-medium text-gray-500 mb-1">Total de Clientes</h3><p class="text-3xl font-semibold text-indigo-600">${patients.length} / ${patientLimit}</p></div>
@@ -1261,26 +1591,30 @@ document.addEventListener('DOMContentLoaded', () => {
         return patientsArray.reduce((total, patient) => total + (patient.sessionData?.length || 0), 0);
     }
 
-    // --- Modal Relatório Consolidado ---
+    // --- Modal Relatório Consolidado (Exclusivo para Terapeutas) ---
     function openConsolidatedReportModal() {
-        if (!selectedPatient) { alert("Por favor, selecione um cliente para gerar o relatório."); return; }
+        if (!selectedPatient || currentUser.role !== 'terapeuta' || !consolidatedReportModal) { 
+            if(currentUser.role === 'terapeuta') alert("Por favor, selecione um cliente para gerar o relatório."); 
+            return; 
+        }
         const reportTitleText = `Relatório Consolidado - ${selectedPatient.name}`;
-        consolidatedReportTitle.textContent = reportTitleText;
+        if(consolidatedReportTitle) consolidatedReportTitle.textContent = reportTitleText;
         if (consolidatedReportPrintTitle) consolidatedReportPrintTitle.textContent = reportTitleText;
         if (consolidatedReportClientNamePrint) consolidatedReportClientNamePrint.textContent = selectedPatient.name;
         if (consolidatedReportClientIdPrint) consolidatedReportClientIdPrint.textContent = selectedPatient.id;
-        renderConsolidatedCharts(selectedPatient);
+        renderConsolidatedCharts(selectedPatient); // Usa a função que renderiza para o modal do terapeuta
         consolidatedReportModal.classList.remove('hidden');
         document.body.style.overflow = 'hidden'; 
     }
     function closeConsolidatedReportModal() {
-        consolidatedReportModal.classList.add('hidden');
-        consolidatedChartsContainer.innerHTML = ''; 
+        if(consolidatedReportModal) consolidatedReportModal.classList.add('hidden');
+        if(consolidatedChartsContainer) consolidatedChartsContainer.innerHTML = ''; 
         Object.values(consolidatedChartInstances).forEach(chart => chart.destroy()); 
         consolidatedChartInstances = {}; 
         document.body.style.overflow = ''; 
     }
-    function renderConsolidatedCharts(patient) {
+    function renderConsolidatedCharts(patient) { // Para o modal do terapeuta
+        if (!consolidatedChartsContainer) return;
         consolidatedChartsContainer.innerHTML = ''; 
         Object.values(consolidatedChartInstances).forEach(chart => chart.destroy());
         consolidatedChartInstances = {};
@@ -1288,8 +1622,9 @@ document.addEventListener('DOMContentLoaded', () => {
         if (!assignedProgramIds?.length) { consolidatedChartsContainer.innerHTML = '<p class="text-center text-gray-500 py-6 col-span-full">Nenhum programa atribuído a este cliente.</p>'; return; }
         const assignedProgramsDetails = assignedProgramIds.map(id => getProgramById(id)).filter(p => p).sort((a, b) => a.title.localeCompare(b.title, 'pt-BR'));
         if (assignedProgramsDetails.length === 0) { consolidatedChartsContainer.innerHTML = '<p class="text-center text-gray-500 py-6 col-span-full">Detalhes dos programas atribuídos não encontrados.</p>'; return; }
+        
         assignedProgramsDetails.forEach((program, index) => {
-            const chartId = `consolidated-chart-${program.id}-${index}`; 
+            const chartId = `modal-consolidated-chart-${program.id}-${index}`; // ID único para o modal
             const wrapper = document.createElement('div');
             wrapper.className = 'consolidated-chart-wrapper border border-gray-200 rounded-md p-4 bg-gray-50 flex flex-col items-center shadow-sm print:border-gray-300 print:shadow-none print:bg-white print:break-inside-avoid';
             wrapper.innerHTML = `
@@ -1297,34 +1632,16 @@ document.addEventListener('DOMContentLoaded', () => {
                 <div class="w-full h-48 sm:h-56 relative"> <canvas id="${chartId}"></canvas> </div>
                 <p class="no-data-message text-xs text-gray-500 italic mt-2 hidden">Nenhum dado de sessão para este programa.</p>`;
             consolidatedChartsContainer.appendChild(wrapper);
-            renderSingleConsolidatedChart(patient, program.id, chartId);
-        });
-    }
-    function renderSingleConsolidatedChart(patient, programId, canvasId) {
-        const canvas = document.getElementById(canvasId);
-        const canvasContainer = canvas?.parentElement; 
-        const noDataMsg = canvasContainer?.nextElementSibling; 
-        if (!canvas || !canvasContainer || !noDataMsg) { console.warn(`Elementos do gráfico consolidado não encontrados para ${canvasId}`); return; }
-        const sessionData = (patient.sessionData || []).filter(session => String(session.program_id || session.programId) === String(programId)).sort((a, b) => new Date(a.session_date || a.date) - new Date(b.session_date || b.date)).map(s => ({ ...s, score: parseFloat(s.score) }));
-        if (sessionData.length === 0) { noDataMsg.classList.remove('hidden'); canvasContainer.style.display = 'none'; return; }
-        noDataMsg.classList.add('hidden'); canvasContainer.style.display = 'block';
-        const dates = sessionData.map(session => formatDate(session.session_date || session.date, 'short'));
-        const scores = sessionData.map(session => session.score);
-        const pointStyles = sessionData.map(session => (session.is_baseline || session.isBaseline) ? 'rect' : 'circle');
-        const pointBackgroundColors = sessionData.map(session => (session.is_baseline || session.isBaseline) ? '#fbbf24' : '#4f46e5'); 
-        const pointRadii = sessionData.map(session => (session.is_baseline || session.isBaseline) ? 3 : 2.5); 
-        const ctx = canvas.getContext('2d');
-        const primaryColor = '#4f46e5', baselineColor = '#fbbf24', primaryLight = 'rgba(79, 70, 229, 0.05)', textColor = '#4b5563', gridColor = '#e5e7eb';
-        consolidatedChartInstances[canvasId] = new Chart(ctx, {
-            type: 'line', data: { labels: dates, datasets: [{ label: 'Pontuação (%)', data: scores, borderColor: primaryColor, backgroundColor: primaryLight, pointStyle: pointStyles, pointBackgroundColor: pointBackgroundColors, pointRadius: pointRadii, pointBorderColor: '#fff', fill: true, tension: 0.1, borderWidth: 1.5, pointHoverRadius: pointRadii.map(r => r + 2) }] },
-            options: { responsive: true, maintainAspectRatio: false, scales: { y: { beginAtZero: true, max: 100, ticks: { color: textColor, font: { size: 9 } }, grid: { color: gridColor, drawBorder: false } }, x: { ticks: { color: textColor, font: { size: 9 }, maxRotation: 0, autoSkipPadding: 10 }, grid: { display: false } } }, plugins: { legend: { display: false }, tooltip: { backgroundColor: '#1f2937', titleColor: '#fff', bodyColor: '#fff', padding: 8, cornerRadius: 3, displayColors: true, borderColor: (tooltipItem) => { const index = tooltipItem.tooltip.dataPoints[0].dataIndex; if (index < 0 || index >= sessionData.length) return primaryColor; return sessionData[index]?.is_baseline || sessionData[index]?.isBaseline ? baselineColor : primaryColor; }, borderWidth: 1, callbacks: { title: (tooltipItems) => { const index = tooltipItems[0].dataIndex; if(index < 0 || index >= sessionData.length) return ''; const session = sessionData[index]; const prefix = (session.is_baseline || session.isBaseline) ? '[LB] ' : ''; return `${prefix}${formatDate(session.session_date || session.date)}`; }, label: (context) => `Pont.: ${context.parsed.y}%`, labelColor: function(context) { const index = context.dataIndex; if(index < 0 || index >= sessionData.length) return { borderColor: primaryColor, backgroundColor: primaryColor }; const isBaseline = sessionData[index].is_baseline || sessionData[index].isBaseline; return { borderColor: isBaseline ? baselineColor : primaryColor, backgroundColor: isBaseline ? baselineColor : primaryColor, borderWidth: 2, borderRadius: isBaseline ? 0 : '50%' }; }, } } } }
+            // Reutiliza a função de renderização de gráfico, passando todos os dados de sessão do paciente
+            // e o ID do programa específico para filtragem dentro da função.
+            renderSingleConsolidatedChartForParent(patient.sessionData, program.id, chartId);
         });
     }
     
-    // --- Geração de PDF ---
+    // --- Geração de PDF (Exclusivo para Terapeutas) ---
     function generateProgramGradePDF(patient) {
         if (typeof jspdf === 'undefined' || typeof jspdf.jsPDF === 'undefined') { console.error("jsPDF não carregado."); alert("Erro: PDF não disponível."); return; }
-        if (!patient) { alert("Nenhum cliente selecionado."); return; }
+        if (!patient || currentUser.role !== 'terapeuta') { alert("Nenhum cliente selecionado."); return; }
         const assignedProgramIds = patient.assigned_program_ids || [];
         if (assignedProgramIds.length === 0) { alert("Nenhum programa atribuído para gerar a Grade."); return; }
         const { jsPDF } = window.jspdf; const doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
@@ -1344,10 +1661,9 @@ document.addEventListener('DOMContentLoaded', () => {
         const totalPages = doc.internal.getNumberOfPages(); for (let i = 1; i <= totalPages; i++) { doc.setPage(i); addFooter(doc, i, margin, pageHeight, footerFontSize, totalPages.toString()); }
         try { const filename = `Grade_Programas_${patient.name.replace(/[^a-z0-9]/gi, '_').toLowerCase()}.pdf`; doc.save(filename); console.log("PDF da Grade gerado:", filename); } catch (error) { console.error("Erro ao salvar PDF da Grade:", error); alert("Erro ao gerar PDF."); }
     }
-
     function generateWeeklyRecordSheetPDF(patient) {
         if (typeof jspdf === 'undefined' || typeof jspdf.jsPDF === 'undefined') { console.error("jsPDF não carregado."); alert("Erro: PDF não disponível."); return; }
-        if (!patient) { alert("Nenhum cliente selecionado."); return; }
+        if (!patient || currentUser.role !== 'terapeuta') { alert("Nenhum cliente selecionado."); return; }
         const assignedProgramIds = patient.assigned_program_ids || [];
         if (assignedProgramIds.length === 0) { alert("Nenhum programa atribuído para gerar Folha de Registro."); return; }
         const { jsPDF } = window.jspdf; const doc = new jsPDF({ orientation: 'landscape', unit: 'mm', format: 'a4' });
@@ -1368,14 +1684,13 @@ document.addEventListener('DOMContentLoaded', () => {
         const totalPages = doc.internal.getNumberOfPages(); for (let i = 1; i <= totalPages; i++) { doc.setPage(i); addFooter(doc, i, margin, pageHeight, footerFontSize, totalPages.toString()); }
         try { const filename = `Folha_Registro_${patient.name.replace(/[^a-z0-9]/gi, '_').toLowerCase()}.pdf`; doc.save(filename); console.log("PDF da Folha de Registro gerado:", filename); } catch (error) { console.error("Erro ao salvar PDF da Folha de Registro:", error); alert("Erro ao gerar PDF."); }
     }
-
-    async function generateConsolidatedReportPDF(patient) {
+    async function generateConsolidatedReportPDF(patient) { 
         if (typeof jspdf === 'undefined' || typeof jspdf.jsPDF === 'undefined' || typeof Chart === 'undefined') {
             console.error("jsPDF ou Chart.js não carregados.");
             alert("Erro: A funcionalidade de PDF não está disponível.");
             return;
         }
-        if (!patient) { alert("Nenhum cliente selecionado."); return; }
+        if (!patient || currentUser.role !== 'terapeuta') { alert("Nenhum cliente selecionado."); return; }
         const assignedProgramIds = patient.assigned_program_ids || [];
         if (assignedProgramIds.length === 0) { alert("Nenhum programa atribuído para gerar o relatório."); return; }
 
@@ -1415,7 +1730,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         for (const program of assignedProgramsDetails) {
             const programTitle = `${program.title} (${program.tag || 'N/A'})`;
-            const sessionData = (patient.sessionData || []).filter(session => String(session.program_id || session.programId) === String(program.id)).sort((a, b) => new Date(a.session_date || a.date) - new Date(b.session_date || b.date)).map(s => ({ ...s, score: parseFloat(s.score) }));
+            const programSpecificSessionData = (patient.sessionData || []).filter(session => String(session.program_id || session.programId) === String(program.id)).sort((a, b) => new Date(a.session_date || a.date) - new Date(b.session_date || b.date)).map(s => ({ ...s, score: parseFloat(s.score) }));
             
             const chartHeightMM = 65; 
             const titleHeightMM = 8;
@@ -1434,7 +1749,7 @@ document.addEventListener('DOMContentLoaded', () => {
             doc.text(programTitle, margin, y);
             y += titleHeightMM;
 
-            if (sessionData.length > 0) {
+            if (programSpecificSessionData.length > 0) {
                 try {
                     const tempCanvas = document.createElement('canvas');
                     const canvasWidthPx = 800; 
@@ -1443,11 +1758,11 @@ document.addEventListener('DOMContentLoaded', () => {
                     tempCanvas.height = canvasHeightPx;
                     const tempCtx = tempCanvas.getContext('2d');
 
-                    const dates = sessionData.map(session => formatDate(session.session_date || session.date, 'short'));
-                    const scores = sessionData.map(session => session.score);
-                    const pointStyles = sessionData.map(session => (session.is_baseline || session.isBaseline) ? 'rect' : 'circle');
-                    const pointBackgroundColors = sessionData.map(session => (session.is_baseline || session.isBaseline) ? '#fbbf24' : '#4f46e5');
-                    const pointRadii = sessionData.map(session => (session.is_baseline || session.isBaseline) ? 4 : 3); 
+                    const dates = programSpecificSessionData.map(session => formatDate(session.session_date || session.date, 'short'));
+                    const scores = programSpecificSessionData.map(session => session.score);
+                    const pointStyles = programSpecificSessionData.map(session => (session.is_baseline || session.isBaseline) ? 'rect' : 'circle');
+                    const pointBackgroundColors = programSpecificSessionData.map(session => (session.is_baseline || session.isBaseline) ? '#fbbf24' : '#4f46e5');
+                    const pointRadii = programSpecificSessionData.map(session => (session.is_baseline || session.isBaseline) ? 4 : 3); 
 
                     const chartInstance = new Chart(tempCtx, {
                         type: 'line',
@@ -1495,19 +1810,21 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-
     // --- Funções Utilitárias ---
     function formatDate(dateString, format = 'long') {
         if (!dateString) return 'N/A';
         let date;
-        if (/^\d{4}-\d{2}-\d{2}/.test(dateString)) {
-            date = new Date(dateString.split('T')[0] + 'T00:00:00');
+        if (/^\d{4}-\d{2}-\d{2}$/.test(dateString.split('T')[0])) {
+            date = new Date(dateString.split('T')[0] + 'T00:00:00'); // Adiciona T00:00:00 para evitar problemas de fuso
         } else {
             date = new Date(dateString);
         }
         if (isNaN(date.getTime())) { return 'Data inválida'; }
-        const options = format === 'short' ? { day: '2-digit', month: '2-digit', year: '2-digit' } : { day: '2-digit', month: '2-digit', year: 'numeric' };
-        try { return date.toLocaleDateString('pt-BR', options); } catch (e) { console.error("Erro ao formatar data:", e); return dateString; }
+        const options = format === 'short' 
+            ? { day: '2-digit', month: '2-digit', year: '2-digit' } 
+            : { day: '2-digit', month: '2-digit', year: 'numeric' };
+        try { return date.toLocaleDateString('pt-BR', options); }
+        catch (e) { console.error("Erro ao formatar data:", e); return dateString; }
     }
 
     // --- Inicia a aplicação ---

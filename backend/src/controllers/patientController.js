@@ -21,7 +21,6 @@ exports.getAllPatients = async (req, res, next) => {
     }
     console.log(`Buscando pacientes, programas e sessões para o usuário ID: ${userId}`);
     try {
-        // ... (lógica de busca existente) ...
         const patientQuery = `
             SELECT id, name, dob, diagnosis, general_notes, created_at
             FROM patients
@@ -61,9 +60,7 @@ exports.getAllPatients = async (req, res, next) => {
 
     } catch (error) {
         console.error(`Erro inesperado ao buscar dados completos para usuário ID ${userId}:`, error);
-        // <<< MUDANÇA AQUI >>>
-        next(error); // Passa para o handler centralizado
-        // Linha antiga: res.status(500).json({ errors: [{ msg: 'Erro interno ao buscar dados dos pacientes.' }] });
+        next(error);
     }
 };
 
@@ -76,7 +73,8 @@ exports.createPatient = async (req, res, next) => {
 
     const userId = req.user.userId;
     const userMaxPatients = req.user.max_patients || (await getUserMaxPatients(userId));
-    const { name, dob, diagnosis, notes } = req.body;
+    // MODIFICAÇÃO: Alterado 'notes' para 'general_notes' para consistência com o frontend
+    const { name, dob, diagnosis, general_notes } = req.body;
     console.log(`Recebida requisição para criar paciente '${name}' para usuário ID: ${userId}`);
 
     try {
@@ -95,7 +93,8 @@ exports.createPatient = async (req, res, next) => {
             VALUES ($1, $2, $3, $4, $5, CURRENT_TIMESTAMP)
             RETURNING id, name, dob, diagnosis, general_notes, created_at
         `;
-        const values = [userId, name, dob || null, diagnosis || null, notes || null];
+        // MODIFICAÇÃO: Usado 'general_notes' na query
+        const values = [userId, name, dob || null, diagnosis || null, general_notes || null];
         const result = await pool.query(insertQuery, values);
         const newPatient = { ...result.rows[0], assigned_program_ids: [], sessionData: [] };
         console.log(`Paciente '${newPatient.name}' (ID: ${newPatient.id}) criado com sucesso para usuário ID: ${userId}.`);
@@ -106,9 +105,7 @@ exports.createPatient = async (req, res, next) => {
         });
     } catch (error) {
         console.error(`Erro inesperado ao criar paciente para usuário ID ${userId}:`, error);
-        // <<< MUDANÇA AQUI >>>
         next(error);
-        // Linha antiga: res.status(500).json({ errors: [{ msg: 'Erro interno ao criar paciente.' }] });
     }
 };
 
@@ -124,7 +121,6 @@ exports.getPatientById = async (req, res, next) => {
     console.log(`Buscando detalhes do paciente ID: ${patientId} para usuário ID: ${userId}`);
 
     try {
-        // ... (lógica de busca existente) ...
         const patientQuery = `SELECT id, name, dob, diagnosis, general_notes, created_at, updated_at FROM patients WHERE id = $1 AND user_id = $2`;
         const patientResult = await pool.query(patientQuery, [patientId, userId]);
 
@@ -147,9 +143,7 @@ exports.getPatientById = async (req, res, next) => {
 
     } catch (error) {
         console.error(`Erro inesperado ao buscar paciente ID ${patientId} para usuário ID ${userId}:`, error);
-        // <<< MUDANÇA AQUI >>>
         next(error);
-        // Linha antiga: res.status(500).json({ errors: [{ msg: 'Erro interno ao buscar detalhes do paciente.' }] });
     }
 };
 
@@ -162,17 +156,18 @@ exports.updatePatient = async (req, res, next) => {
 
     const userId = req.user.userId;
     const patientId = req.params.id;
-    const { name, dob, diagnosis, notes } = req.body;
+    // MODIFICAÇÃO: Alterado 'notes' para 'general_notes' para consistência com o frontend e createPatient
+    const { name, dob, diagnosis, general_notes } = req.body;
     console.log(`Recebida requisição para atualizar paciente ID: ${patientId} para usuário ID: ${userId}`, req.body);
 
     try {
-        // ... (lógica de atualização existente) ...
          const updateQuery = `
             UPDATE patients SET name = $1, dob = $2, diagnosis = $3, general_notes = $4, updated_at = CURRENT_TIMESTAMP
             WHERE id = $5 AND user_id = $6
             RETURNING id, name, dob, diagnosis, general_notes, created_at, updated_at
         `;
-        const values = [name, dob || null, diagnosis || null, notes || null, patientId, userId];
+        // MODIFICAÇÃO: Usado 'general_notes' na query
+        const values = [name, dob || null, diagnosis || null, general_notes || null, patientId, userId];
         const result = await pool.query(updateQuery, values);
 
         if (result.rows.length === 0) {
@@ -197,9 +192,7 @@ exports.updatePatient = async (req, res, next) => {
         });
     } catch (error) {
         console.error(`Erro inesperado ao atualizar paciente ID ${patientId} para usuário ID ${userId}:`, error);
-        // <<< MUDANÇA AQUI >>>
         next(error);
-        // Linha antiga: res.status(500).json({ errors: [{ msg: 'Erro interno ao atualizar paciente.' }] });
     }
 };
 
@@ -227,9 +220,7 @@ exports.deletePatient = async (req, res, next) => {
 
     } catch (error) {
         console.error(`Erro inesperado ao deletar paciente ID ${patientId} para usuário ID ${userId}:`, error);
-        // <<< MUDANÇA AQUI >>>
         next(error);
-        // Linha antiga: res.status(500).json({ errors: [{ msg: 'Erro interno ao deletar paciente.' }] });
     }
 };
 
@@ -246,7 +237,6 @@ exports.assignProgramToPatient = async (req, res, next) => {
     const { programId } = req.body;
     console.log(`Atribuindo programa '${programId}' ao paciente ID ${patientId} (Usuário ID: ${userId})`);
     try {
-        // ... (lógica existente) ...
         const checkPatientQuery = 'SELECT id FROM patients WHERE id = $1 AND user_id = $2';
         const checkResult = await pool.query(checkPatientQuery, [patientId, userId]);
         if (checkResult.rows.length === 0) {
@@ -261,12 +251,10 @@ exports.assignProgramToPatient = async (req, res, next) => {
         }
     } catch (error) {
         console.error(`Erro inesperado ao atribuir programa '${programId}' ao paciente ID ${patientId}:`, error);
-        // <<< MUDANÇA AQUI >>>
-        if (error.code === '23503') { // Tratar erro específico de FK se necessário
+         if (error.code === '23503') {
              return res.status(404).json({ errors: [{ msg: 'Erro ao processar a atribuição (verifique os IDs).' }] });
          }
         next(error);
-        // Linha antiga: res.status(500).json({ errors: [{ msg: 'Erro interno ao atribuir programa.' }] });
     }
 };
 
@@ -282,7 +270,6 @@ exports.removeProgramFromPatient = async (req, res, next) => {
     const programId = req.params.programId;
     console.log(`Removendo programa '${programId}' do paciente ID ${patientId} (Usuário ID: ${userId})`);
     try {
-        // ... (lógica existente) ...
         const checkPatientQuery = 'SELECT id FROM patients WHERE id = $1 AND user_id = $2';
         const checkResult = await pool.query(checkPatientQuery, [patientId, userId]);
         if (checkResult.rows.length === 0) {
@@ -297,9 +284,7 @@ exports.removeProgramFromPatient = async (req, res, next) => {
         res.status(204).send();
     } catch (error) {
         console.error(`Erro inesperado ao remover programa '${programId}' do paciente ID ${patientId}:`, error);
-        // <<< MUDANÇA AQUI >>>
         next(error);
-        // Linha antiga: res.status(500).json({ errors: [{ msg: 'Erro interno ao remover programa.' }] });
     }
 };
 
@@ -316,7 +301,6 @@ exports.createSession = async (req, res, next) => {
     const { programId, date, score, notes, isBaseline } = req.body;
     console.log(`Registrando sessão para Paciente ID: ${patientId}, Programa: ${programId} (Usuário ID: ${userId})`);
     try {
-        // ... (lógica existente) ...
         const checkPatientQuery = 'SELECT id FROM patients WHERE id = $1 AND user_id = $2';
         const checkResult = await pool.query(checkPatientQuery, [patientId, userId]);
         if (checkResult.rows.length === 0) {
@@ -339,12 +323,10 @@ exports.createSession = async (req, res, next) => {
         res.status(201).json(newSession);
     } catch (error) {
         console.error(`Erro inesperado ao registrar sessão para Paciente ID ${patientId}, Programa ${programId}:`, error);
-         // <<< MUDANÇA AQUI >>>
-         if (error.code === '23503') { // Tratar erro específico de FK se necessário
+         if (error.code === '23503') {
              return res.status(404).json({ errors: [{ msg: 'Erro ao processar a sessão (verifique os IDs).' }] });
          }
         next(error);
-        // Linha antiga: res.status(500).json({ errors: [{ msg: 'Erro interno ao registrar sessão.' }] });
     }
 };
 
@@ -352,23 +334,20 @@ exports.createSession = async (req, res, next) => {
 exports.updatePatientNotes = async (req, res, next) => {
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
-        // Este erro não deveria mais acontecer para 'generalNotes' após removermos a validação do corpo
         console.warn('Falha ao atualizar notas devido a erros de validação (inesperado):', errors.array());
         return res.status(400).json(formatValidationErrors(errors));
     }
 
     const userId = req.user.userId;
     const patientId = req.params.patientId;
-    const { generalNotes } = req.body; // Pega o valor (pode ser string, "", ou null)
+    const { generalNotes } = req.body;
     console.log(`Atualizando anotações gerais para paciente ID ${patientId} (Usuário ID: ${userId})`);
     try {
-        // ... (lógica existente) ...
         const updateNotesQuery = `
             UPDATE patients SET general_notes = $1, updated_at = CURRENT_TIMESTAMP
             WHERE id = $2 AND user_id = $3
             RETURNING id, general_notes, updated_at
         `;
-        // Passa generalNotes diretamente (pode ser null ou "")
         const values = [generalNotes, patientId, userId];
         const result = await pool.query(updateNotesQuery, values);
         if (result.rows.length === 0) {
@@ -383,24 +362,18 @@ exports.updatePatientNotes = async (req, res, next) => {
         });
     } catch (error) {
         console.error(`Erro inesperado ao atualizar anotações do paciente ID ${patientId}:`, error);
-        // <<< MUDANÇA AQUI >>>
         next(error);
-        // Linha antiga: res.status(500).json({ errors: [{ msg: 'Erro interno ao salvar anotações.' }] });
     }
 };
 
-// Função auxiliar (sem alterações)
 async function getUserMaxPatients(userId) {
     try {
         const query = 'SELECT max_patients FROM users WHERE id = $1';
         const result = await pool.query(query, [userId]);
         return result.rows.length > 0 ? result.rows[0].max_patients : 0;
     } catch (error) {
-        // Erro ao buscar max_patients não deve parar a operação principal geralmente,
-        // mas logar é importante. Não chamamos next(error) aqui para não quebrar
-        // a lógica principal se apenas essa busca falhar.
         console.error("Erro ao buscar max_patients do usuário (não crítico):", error);
-        return 0; // Retorna 0 para segurança
+        return 0;
     }
 }
 

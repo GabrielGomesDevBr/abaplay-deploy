@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>ABAplay - Nova Interface</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" integrity="sha512-iecdLmaskl7CVkqkXNQ/ZH/XLlvWZOJyj7Yy7tcenmpD1ypASozpmT/E0iPtmFIB46ZmdtAc9eNBvH0H/ZpiBw==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" xintegrity="sha512-iecdLmaskl7CVkqkXNQ/ZH/XLlvWZOJyj7Yy7tcenmpD1ypASozpmT/E0iPtmFIB46ZmdtAc9eNBvH0H/ZpiBw==" crossorigin="anonymous" referrerpolicy="no-referrer" />
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -52,8 +52,16 @@
 
         /* Estilos para áreas de gráfico */
         #program-progress-chart canvas,
-        .consolidated-chart-wrapper canvas { min-height: 250px; max-height: 400px; }
-        .consolidated-chart-wrapper canvas { height: 200px !important; }
+        .consolidated-chart-wrapper canvas,
+        .parent-consolidated-chart-wrapper canvas { /* Adicionado para pais */
+            min-height: 200px; /* Ajustado para consistência */
+            max-height: 350px; /* Ajustado para consistência */
+        }
+         .consolidated-chart-wrapper canvas,
+         .parent-consolidated-chart-wrapper canvas { /* Adicionado para pais */
+            height: 200px !important; /* Mantido para consistência do relatório */
+         }
+
 
         /* --- ESTILOS DE IMPRESSÃO --- */
          @media print {
@@ -76,11 +84,16 @@
             #app-main-interface { display: block !important; height: auto !important; overflow: visible !important; flex-direction: column !important; }
             #main-content-area { padding: 0 !important; overflow: visible !important; background-color: white !important; }
 
-            /* Ajusta layout do modal para ocupar a página */
-             .modal { position: static !important; inset: auto !important; background: none !important; display: block !important; width: 100% !important; height: auto !important; overflow: visible !important; padding: 15mm !important; box-shadow: none !important; }
-             .modal-content { box-shadow: none !important; border: none !important; max-width: 100% !important; max-height: none !important; overflow: visible !important; padding: 0 !important; display: block !important; background-color: white !important; }
+            /* Ajusta layout do modal para ocupar a página (se for imprimir o modal de relatório) */
+             .modal.print-this-modal { /* Adicionar classe 'print-this-modal' ao modal que deve ser impresso */
+                position: static !important; inset: auto !important; background: none !important; display: block !important; width: 100% !important; height: auto !important; overflow: visible !important; padding: 15mm !important; box-shadow: none !important; 
+             }
+             .modal.print-this-modal .modal-content { 
+                box-shadow: none !important; border: none !important; max-width: 100% !important; max-height: none !important; overflow: visible !important; padding: 0 !important; display: block !important; background-color: white !important; 
+             }
 
-            /* Mostra e estiliza o cabeçalho de impressão */
+
+            /* Mostra e estiliza o cabeçalho de impressão do relatório consolidado */
             #consolidated-report-print-header {
                 display: block !important;
                 margin-bottom: 10mm;
@@ -104,8 +117,8 @@
                  color: black;
              }
 
-            /* Layout dos gráficos para impressão */
-             #consolidated-charts-container {
+            /* Layout dos gráficos para impressão (Relatório Consolidado) */
+             #consolidated-charts-container { /* Usado pelo modal de relatório do terapeuta */
                  display: block !important;
                  max-height: none !important;
                  overflow: visible !important;
@@ -113,7 +126,7 @@
                  padding: 0 !important;
                  margin-top: 5mm;
              }
-             .consolidated-chart-wrapper {
+             .consolidated-chart-wrapper { /* Usado pelo modal de relatório do terapeuta */
                  width: 100% !important;
                  page-break-inside: avoid !important;
                  border: 1px solid #ccc !important;
@@ -137,6 +150,50 @@
                  color: #333;
              }
              .consolidated-chart-wrapper .no-data-message {
+                 font-size: 9pt;
+                 text-align: center;
+                 color: #666;
+                 padding: 20mm 0;
+             }
+
+            /* Estilos para a view do pai na impressão */
+            #parent-dashboard-view {
+                padding: 15mm !important; /* Margens para impressão da view do pai */
+            }
+            #parent-dashboard-content h2 { /* Cabeçalho do dashboard do pai */
+                font-size: 16pt;
+                font-weight: bold;
+                color: #333;
+                margin-bottom: 8mm;
+                text-align: center;
+            }
+            #parent-charts-grid { /* Grid de gráficos do pai */
+                display: block !important; /* Garante que os gráficos não fiquem em colunas */
+            }
+            .parent-consolidated-chart-wrapper { /* Wrapper de cada gráfico do pai */
+                width: 100% !important;
+                page-break-inside: avoid !important;
+                border: 1px solid #ccc !important;
+                box-shadow: none !important;
+                background-color: #fdfdfd !important;
+                padding: 5mm !important;
+                margin-bottom: 8mm !important;
+                display: block !important;
+            }
+            .parent-consolidated-chart-wrapper canvas {
+                max-height: 80mm !important; /* Ajuste a altura conforme necessário */
+                width: 100% !important;
+                display: block;
+                margin: 0 auto;
+            }
+             .parent-consolidated-chart-wrapper h4 {
+                 font-size: 11pt;
+                 font-weight: bold;
+                 text-align: center;
+                 margin-bottom: 4mm;
+                 color: #333;
+             }
+             .parent-consolidated-chart-wrapper .no-data-message {
                  font-size: 9pt;
                  text-align: center;
                  color: #666;
@@ -250,6 +307,7 @@
 </head>
 <body class="bg-gray-100">
 
+    <!-- Modal de Login -->
     <div id="login-modal" class="modal hidden fixed inset-0 bg-gray-900 bg-opacity-75 flex items-center justify-center z-50 p-4">
         <div class="modal-content bg-white rounded-lg shadow-xl w-full max-w-sm p-8 transform scale-95">
             <h2 class="text-2xl font-bold text-center text-indigo-600 mb-6 flex items-center justify-center">
@@ -292,14 +350,18 @@
         </div>
     </div>
 
+    <!-- Interface Principal da Aplicação -->
     <div id="app-main-interface" class="hidden flex flex-col flex-1 overflow-hidden">
+        <!-- Barra de Navegação Superior -->
         <nav class="bg-white shadow-sm w-full flex-shrink-0 z-20 no-print border-b border-gray-200">
             <div class="flex items-center justify-between px-4 sm:px-6 py-3 h-16">
+                <!-- Logo e Links Desktop -->
                 <div class="flex items-center">
                     <span class="text-2xl font-bold text-indigo-600 flex items-center mr-4">
                         <i class="fas fa-brain mr-2"></i>ABAplay
                     </span>
                     <div class="hidden md:flex items-center space-x-1 ml-4">
+                        <!-- Links para Terapeutas -->
                         <a href="#" class="nav-link text-gray-600 hover:text-indigo-600 font-medium px-3 py-2 rounded-md text-sm transition-colors duration-150" data-view="dashboard-view"><i class="fas fa-tachometer-alt fa-fw mr-1.5"></i> Dashboard</a>
                         <a href="#" class="nav-link text-gray-600 hover:text-indigo-600 font-medium px-3 py-2 rounded-md text-sm transition-colors duration-150 active" data-view="clients-view"><i class="fas fa-users fa-fw mr-1.5"></i> Clientes</a>
                         <a href="#" class="nav-link text-gray-600 hover:text-indigo-600 font-medium px-3 py-2 rounded-md text-sm transition-colors duration-150" data-view="programs-view" data-area="Psicologia"><i class="fas fa-folder-open fa-fw mr-1.5"></i> Psicologia</a>
@@ -309,10 +371,13 @@
                         <a href="#" class="nav-link text-gray-600 hover:text-indigo-600 font-medium px-3 py-2 rounded-md text-sm transition-colors duration-150" data-view="programs-view" data-area="Musicoterapia"><i class="fas fa-music fa-fw mr-1.5"></i> Musicoterapia</a>
                         <a href="#" class="nav-link text-gray-600 hover:text-indigo-600 font-medium px-3 py-2 rounded-md text-sm transition-colors duration-150" data-view="programs-view" data-area="Fonoaudiologia"><i class="fas fa-comment-dots fa-fw mr-1.5"></i> Fonoaudiol.</a>
                         <a href="#" class="nav-link text-gray-600 hover:text-indigo-600 font-medium px-3 py-2 rounded-md text-sm transition-colors duration-150" data-view="notes-view"><i class="fas fa-pencil-alt fa-fw mr-1.5"></i> Anotações</a>
+                        <!-- Link para Pais (será mostrado/escondido por JS) -->
+                        <a href="#" class="nav-link hidden" data-view="parent-dashboard-view"><i class="fas fa-chart-line fa-fw mr-1.5"></i> Acompanhamento</a>
                         <a href="#" class="nav-link text-gray-600 hover:text-indigo-600 font-medium px-3 py-2 rounded-md text-sm transition-colors duration-150" data-view="tip-guide-view"><i class="fas fa-book-open fa-fw mr-1.5"></i> Guia de Dicas</a>
                     </div>
                 </div>
 
+                <!-- Informações do Usuário e Botão de Menu Mobile -->
                 <div class="flex items-center space-x-2 sm:space-x-4">
                      <span id="current-client-indicator" class="text-xs sm:text-sm text-gray-500 italic transition-colors duration-150 hidden md:block">Nenhum cliente selecionado</span>
                      <div class="relative flex items-center space-x-2 sm:space-x-3">
@@ -336,8 +401,10 @@
                 </div>
             </div>
 
+            <!-- Menu Mobile -->
             <div class="md:hidden hidden bg-white border-t border-gray-200" id="mobile-menu">
                 <div class="px-2 pt-2 pb-3 space-y-1 sm:px-3">
+                    <!-- Links para Terapeutas -->
                     <a href="#" class="nav-link-mobile nav-link block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:bg-indigo-50 hover:text-indigo-700" data-view="dashboard-view"><i class="fas fa-tachometer-alt fa-fw mr-1.5"></i> Dashboard</a>
                     <a href="#" class="nav-link-mobile nav-link block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:bg-indigo-50 hover:text-indigo-700" data-view="clients-view"><i class="fas fa-users fa-fw mr-1.5"></i> Clientes</a>
                     <a href="#" class="nav-link-mobile nav-link block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:bg-indigo-50 hover:text-indigo-700" data-view="programs-view" data-area="Psicologia"><i class="fas fa-folder-open fa-fw mr-1.5"></i> Psicologia</a>
@@ -347,6 +414,8 @@
                     <a href="#" class="nav-link-mobile nav-link block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:bg-indigo-50 hover:text-indigo-700" data-view="programs-view" data-area="Musicoterapia"><i class="fas fa-music fa-fw mr-1.5"></i> Musicoterapia</a>
                     <a href="#" class="nav-link-mobile nav-link block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:bg-indigo-50 hover:text-indigo-700" data-view="programs-view" data-area="Fonoaudiologia"><i class="fas fa-comment-dots fa-fw mr-1.5"></i> Fonoaudiol.</a>
                     <a href="#" class="nav-link-mobile nav-link block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:bg-indigo-50 hover:text-indigo-700" data-view="notes-view"><i class="fas fa-pencil-alt fa-fw mr-1.5"></i> Anotações</a>
+                     <!-- Link para Pais (será mostrado/escondido por JS) -->
+                    <a href="#" class="nav-link-mobile nav-link hidden px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:bg-indigo-50 hover:text-indigo-700" data-view="parent-dashboard-view"><i class="fas fa-chart-line fa-fw mr-1.5"></i> Acompanhamento</a>
                     <a href="#" class="nav-link-mobile nav-link block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:bg-indigo-50 hover:text-indigo-700" data-view="tip-guide-view"><i class="fas fa-book-open fa-fw mr-1.5"></i> Guia de Dicas</a>
                 </div>
                 <div class="pt-4 pb-3 border-t border-gray-200">
@@ -368,8 +437,11 @@
             </div>
         </nav>
 
+        <!-- Conteúdo Principal (Sidebar + Área de Conteúdo) -->
         <div class="flex flex-1 overflow-hidden">
+            <!-- Sidebar Contextual -->
             <aside id="contextual-sidebar" class="w-72 bg-white border-r border-gray-200 flex-shrink-0 flex flex-col overflow-y-auto p-4 transition-all duration-300 ease-in-out no-print md:block hidden">
+                <!-- Seção de Clientes (para terapeutas) -->
                 <div id="sidebar-content-clients" class="sidebar-section flex flex-col flex-1">
                     <h3 class="text-base font-semibold text-gray-700 mb-3 px-1">Clientes</h3>
                     <div class="relative mb-4">
@@ -389,6 +461,7 @@
                          </button>
                     </div>
                  </div>
+                 <!-- Seção de Programas (para terapeutas) -->
                  <div id="sidebar-content-programs" class="sidebar-section hidden flex flex-col flex-1">
                      <h3 class="text-base font-semibold text-gray-700 mb-3 px-1">Biblioteca de Programas</h3>
                      <div class="relative mb-4">
@@ -398,15 +471,20 @@
                         <input type="text" id="program-search" placeholder="Buscar programa..." class="w-full pl-10 pr-3 py-1.5 border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-indigo-500 focus:border-indigo-500 text-sm shadow-sm">
                      </div>
                      <div id="program-categories" class="space-y-1 overflow-y-auto flex-1 -mx-2 px-2">
+                        <!-- Categorias de programas serão inseridas aqui pelo JS -->
                      </div>
                  </div>
+                 <!-- Seção Guia de Dicas -->
                  <div id="sidebar-content-tip-guide" class="sidebar-section hidden">
                       <h3 class="text-base font-semibold text-gray-700 mb-3 px-1">Guia de Dicas</h3>
                       <p class="text-sm text-gray-600 px-1">Referência rápida sobre os tipos e passos de dicas.</p>
+                      <!-- Conteúdo do guia pode ser adicionado aqui ou na view principal -->
                  </div>
             </aside>
 
+            <!-- Área de Conteúdo Principal -->
             <main id="main-content-area" class="flex-1 bg-gray-100 overflow-y-auto p-4 sm:p-6">
+                <!-- View: Dashboard (Geral ou do Cliente para Terapeuta) -->
                 <div id="dashboard-view" class="view hidden">
                     <h1 class="text-2xl font-semibold text-gray-800 mb-6">Dashboard</h1>
                     <div id="dashboard-content" class="placeholder-container">
@@ -414,15 +492,19 @@
                         <p>Visão geral da aplicação.</p>
                     </div>
                     <div id="client-dashboard-content" class="hidden">
+                        <!-- Conteúdo do dashboard do cliente específico será inserido aqui -->
                     </div>
                 </div>
 
-                <div id="clients-view" class="view"> <div id="add-client-panel" class="bg-white p-6 rounded-lg shadow-md hidden mb-6 max-w-3xl mx-auto border border-gray-200">
+                <!-- View: Clientes (para terapeutas) -->
+                <div id="clients-view" class="view">
+                     <!-- Painel de Adicionar/Editar Cliente -->
+                     <div id="add-client-panel" class="bg-white p-6 rounded-lg shadow-md hidden mb-6 max-w-3xl mx-auto border border-gray-200">
                          <div class="flex justify-between items-center mb-5 pb-3 border-b border-gray-200">
                             <h2 class="text-xl font-semibold text-gray-800">Cadastrar Novo Cliente</h2>
                             <button id="close-add-client-panel-btn" class="text-gray-400 hover:text-gray-600 transition-colors">
                                 <i class="fas fa-times text-lg"></i>
-                            </button>,
+                            </button>
                          </div>
                          <form id="add-client-form" class="space-y-5">
                              <div>
@@ -450,6 +532,7 @@
                              </div>
                          </form>
                      </div>
+                     <!-- Painel de Detalhes do Cliente -->
                      <div id="client-details-panel" class="hidden">
                         <div class="bg-white p-6 rounded-lg shadow-md mb-6 border border-gray-200">
                             <div class="flex justify-between items-start mb-4">
@@ -501,6 +584,7 @@
                             </div>
                         </div>
                     </div>
+                     <!-- Placeholder quando nenhum cliente está selecionado -->
                     <div id="no-client-selected-placeholder" class="placeholder-container">
                          <i class="fas fa-user-circle"></i>
                          <p>Selecione um cliente na lista ao lado para ver os detalhes.</p>
@@ -508,6 +592,7 @@
                      </div>
                 </div>
 
+                <!-- View: Biblioteca de Programas (para terapeutas) -->
                 <div id="programs-view" class="view hidden">
                      <div id="program-library-list" class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-5">
                          <p id="no-programs-message" class="hidden col-span-full placeholder-container">
@@ -521,6 +606,7 @@
                      </div>
                  </div>
 
+                <!-- View: Anotações (para terapeutas) -->
                 <div id="notes-view" class="view hidden">
                     <h1 class="text-2xl font-semibold text-gray-800 mb-6">Anotações Gerais</h1>
                     <div class="bg-white p-6 rounded-lg shadow-md border border-gray-200">
@@ -537,6 +623,7 @@
                     </div>
                 </div>
 
+                <!-- View: Guia de Dicas (comum a todos) -->
                 <div id="tip-guide-view" class="view hidden">
                     <h1 class="text-2xl font-semibold text-gray-800 mb-6">Guia de Dicas e Legendas</h1>
                     <div id="tip-guide-content" class="bg-white p-6 rounded-lg shadow-md max-w-3xl mx-auto border border-gray-200">
@@ -566,22 +653,38 @@
                          <p>O processo inverso, aumentar o nível de ajuda (Ex: de <code>AG</code> para <code>AFL</code>), ocorre após um número definido de erros consecutivos ou ausência de resposta.</p>
                     </div>
                 </div>
+
+                <!-- Nova View: Dashboard do Responsável -->
+                <div id="parent-dashboard-view" class="view hidden">
+                    <div id="parent-dashboard-content" class="p-4 md:p-6">
+                        <!-- Conteúdo será preenchido por JS. Placeholder inicial: -->
+                        <div class="text-center py-10 placeholder-container">
+                            <i class="fas fa-spinner fa-spin text-3xl text-indigo-600"></i>
+                            <p class="mt-2 text-gray-600">Carregando dados de progresso...</p>
+                        </div>
+                    </div>
+                </div>
+                <!-- Fim da View: Dashboard do Responsável -->
+
             </main>
         </div>
     </div>
 
-    <div id="consolidated-report-modal" class="modal hidden fixed inset-0 bg-gray-900 bg-opacity-60 flex items-center justify-center z-50 p-4 print:p-0 print:bg-transparent print:static print:block print:shadow-none">
+    <!-- Modal de Relatório Consolidado (para terapeutas) -->
+    <div id="consolidated-report-modal" class="modal hidden fixed inset-0 bg-gray-900 bg-opacity-60 flex items-center justify-center z-50 p-4 print:p-0 print:bg-transparent print:static print:block print:shadow-none print-this-modal">
         <div class="modal-content bg-white rounded-lg shadow-xl w-full max-w-5xl max-h-[90vh] flex flex-col overflow-hidden print:shadow-none print:rounded-none print:max-h-full print:max-w-full print:overflow-visible transform scale-95">
             <div class="flex justify-between items-center p-5 border-b border-gray-200 bg-gray-50 rounded-t-lg no-print">
                 <h2 id="consolidated-report-title" class="text-lg font-semibold text-gray-800">Relatório Gráfico Consolidado</h2>
                 <button class="close-modal-btn text-gray-400 hover:text-gray-700 text-2xl transition-colors">&times;</button>
             </div>
+            <!-- Cabeçalho específico para impressão do relatório consolidado -->
             <div id="consolidated-report-print-header" class="hidden print:block p-5 border-b border-gray-200 mb-4">
-                <h2 id="consolidated-report-print-title" class="text-xl font-semibold text-gray-800 text-center mb-1">Relatório</h2>
+                <h2 id="consolidated-report-print-title" class="text-xl font-semibold text-gray-800 text-center mb-1">Relatório Consolidado de Progresso</h2>
                  <p><span>Cliente:</span> <span id="consolidated-report-client-name-print"></span></p>
                 <p><span>ID:</span> <span id="consolidated-report-client-id-print" class="font-mono"></span></p>
             </div>
             <div id="consolidated-charts-container" class="p-6 overflow-y-auto flex-1 grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-5 print:grid-cols-1 print:overflow-visible print:p-4 print:gap-6">
+                <!-- Gráficos consolidados serão inseridos aqui pelo JS -->
             </div>
             <div class="modal-actions p-4 border-t border-gray-200 bg-gray-50 text-right space-x-3 rounded-b-lg no-print">
                 <button id="print-consolidated-report-btn" class="bg-indigo-600 hover:bg-indigo-700 text-white font-medium py-2 px-5 rounded-md text-sm transition shadow hover:shadow-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">

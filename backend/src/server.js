@@ -3,6 +3,7 @@
 // -----------------------------------------------------------------------------
 // Configura e inicia o servidor Express, com CORS, rotas, dotenv,
 // tratamento de erros centralizado e cabeçalhos de segurança Helmet.
+// Adiciona as rotas para pais.
 // -----------------------------------------------------------------------------
 
 // Carrega as variáveis de ambiente do arquivo .env para process.env O MAIS CEDO POSSÍVEL
@@ -14,7 +15,8 @@ const express = require('express');
 const cors = require('cors');
 const authRoutes = require('./routes/authRoutes');
 const patientRoutes = require('./routes/patientRoutes');
-const helmet = require('helmet'); // <<< NOVO: Importa o Helmet
+const parentRoutes = require('./routes/parentRoutes'); // <<< NOVO: Importa as rotas dos pais
+const helmet = require('helmet');
 
 // 2. Configuração Inicial
 // -----------------------------------------------------------------------------
@@ -25,7 +27,7 @@ const PORT = process.env.PORT || 3000;
 // -----------------------------------------------------------------------------
 app.use(cors()); // Habilita CORS
 app.use(express.json()); // Habilita parsing de JSON
-app.use(helmet()); // <<< NOVO: Adiciona cabeçalhos de segurança HTTP
+app.use(helmet()); // Adiciona cabeçalhos de segurança HTTP
 
 // 4. Rotas da API
 // -----------------------------------------------------------------------------
@@ -34,6 +36,7 @@ app.get('/', (req, res) => {
 });
 app.use('/api/auth', authRoutes);
 app.use('/api/patients', patientRoutes);
+app.use('/api/parent', parentRoutes); // <<< NOVO: Monta as rotas dos pais no caminho /api/parent
 
 // 5. Tratamento de Erros Centralizado (Middleware de Erro)
 // -----------------------------------------------------------------------------
