@@ -123,7 +123,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // --- Inicialização ---
     function initializeApp() {
-        console.log("ABAplay v3.9 (Parent View Complete) - Inicializando...");
+        console.log("ABAplay v3.9.1 (Parent Nav Cleanup) - Inicializando...");
         loginForm.addEventListener('submit', handleLogin);
         logoutButton.addEventListener('click', handleLogout);
         mobileLogoutButton.addEventListener('click', handleLogout);
@@ -160,6 +160,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 generateConsolidatedReportPDF(selectedPatient); // Função de PDF para terapeutas
             } else if (currentUser && currentUser.role === 'pai' && parentDashboardView && !parentDashboardView.classList.contains('hidden')) {
                 // Para pais, a impressão será da view do dashboard deles
+                // Futuramente, chamará generateParentReportPDF(data)
                 window.print(); 
             } else {
                 alert("Selecione um cliente ou esteja na tela de acompanhamento para imprimir.");
@@ -205,7 +206,9 @@ document.addEventListener('DOMContentLoaded', () => {
             closeIcon.classList.add('hidden');
             mobileMenuButton.setAttribute('aria-expanded', 'false');
             document.body.style.overflow = ''; // Restaura scroll do body
-            updateContextualSidebar(currentView, currentActiveArea); // Mostra sidebar se aplicável
+            if (currentUser && currentUser.role === 'terapeuta') { // Só mostra sidebar contextual para terapeutas
+                updateContextualSidebar(currentView, currentActiveArea);
+            }
         }
     }
 
@@ -276,12 +279,12 @@ document.addEventListener('DOMContentLoaded', () => {
         if (currentUser.role === 'pai') {
             console.log("Usuário é um PAI. Carregando dashboard do pai...");
             currentView = 'parent-dashboard-view';
-            hideTherapistFeatures();
+            hideTherapistFeatures(); // Esconde funcionalidades de terapeuta e ajusta nav para pais
             await loadParentDashboardData();
         } else if (currentUser.role === 'terapeuta') {
             console.log("Usuário é um TERAPEUTA. Carregando interface de terapeuta...");
             currentView = 'clients-view';
-            showTherapistFeatures();
+            showTherapistFeatures(); // Mostra funcionalidades de terapeuta
             await loadUserPatientsFromAPI();
             renderClientList();
             updatePatientCountDisplay();
@@ -296,50 +299,67 @@ document.addEventListener('DOMContentLoaded', () => {
             handleLogout();
             return;
         }
+        // A view inicial é definida acima, agora chamamos switchView para renderizar
         switchView(currentView, { area: currentActiveArea });
-        console.log(`Sessão iniciada para ${currentUser.username}. Papel: ${currentUser.role}. Área ativa: ${currentActiveArea}`);
+        console.log(`Sessão iniciada para ${currentUser.username}. Papel: ${currentUser.role}. View inicial: ${currentView}. Área ativa: ${currentActiveArea}`);
     }
 
     // --- Funções para adaptar UI baseada no papel ---
-    function hideTherapistFeatures() {
-        // Esconde links de navegação de TERAPEUTA
+    function hideTherapistFeatures() { // Chamado quando o usuário é 'pai'
+        const viewsToHideForParents = ['clients-view', 'notes-view', 'programs-view', 'dashboard-view', 'tip-guide-view'];
+        
         topNavLinks.forEach(link => {
             const view = link.dataset.view;
-            if (view === 'clients-view' || view === 'notes-view' || (view === 'programs-view' && link.dataset.area)) { // Esconde links de áreas de programas
+            if (viewsToHideForParents.includes(view)) {
                 link.classList.add('hidden');
             }
-            if (view === 'parent-dashboard-view') link.classList.remove('hidden'); // Mostra o de acompanhamento
+            if (view === 'parent-dashboard-view') {
+                link.classList.remove('hidden'); // Garante que "Acompanhamento" seja visível
+            }
         });
         mobileNavLinks.forEach(link => {
             const view = link.dataset.view;
-            if (view === 'clients-view' || view === 'notes-view' || (view === 'programs-view' && link.dataset.area)) {
+            if (viewsToHideForParents.includes(view)) {
                 link.classList.add('hidden');
             }
-             if (view === 'parent-dashboard-view') link.classList.remove('hidden');
+            if (view === 'parent-dashboard-view') {
+                link.classList.remove('hidden'); // Garante que "Acompanhamento" seja visível
+            }
         });
         
-        if (contextualSidebar) contextualSidebar.classList.add('hidden'); // Pais não usam sidebar contextual
+        if (contextualSidebar) contextualSidebar.classList.add('hidden');
         if (currentClientIndicator) currentClientIndicator.textContent = `Acompanhamento`;
         if (mobileCurrentClientIndicator) mobileCurrentClientIndicator.textContent = `Acompanhamento`;
+        if (patientCountIndicator) patientCountIndicator.classList.add('hidden');
+        if (showAddClientFormBtn) showAddClientFormBtn.classList.add('hidden');
     }
 
-    function showTherapistFeatures() {
-        // Mostra links de navegação de TERAPEUTA
+    function showTherapistFeatures() { // Chamado quando o usuário é 'terapeuta'
+        const viewsToShowForTherapists = ['clients-view', 'notes-view', 'programs-view', 'dashboard-view', 'tip-guide-view'];
+
         topNavLinks.forEach(link => {
             const view = link.dataset.view;
-            if (view === 'clients-view' || view === 'notes-view' || (view === 'programs-view' && link.dataset.area)) {
+            const area = link.dataset.area;
+            if ((viewsToShowForTherapists.includes(view) && view !== 'programs-view') || (view === 'programs-view' && area)) {
                 link.classList.remove('hidden');
             }
-            if (view === 'parent-dashboard-view') link.classList.add('hidden'); // Esconde o de acompanhamento
+            if (view === 'parent-dashboard-view') {
+                link.classList.add('hidden'); // Esconde "Acompanhamento" para terapeutas
+            }
         });
         mobileNavLinks.forEach(link => {
             const view = link.dataset.view;
-            if (view === 'clients-view' || view === 'notes-view' || (view === 'programs-view' && link.dataset.area)) {
+            const area = link.dataset.area;
+            if ((viewsToShowForTherapists.includes(view) && view !== 'programs-view') || (view === 'programs-view' && area)) {
                 link.classList.remove('hidden');
             }
-            if (view === 'parent-dashboard-view') link.classList.add('hidden');
+            if (view === 'parent-dashboard-view') {
+                link.classList.add('hidden');
+            }
         });
         if (contextualSidebar) contextualSidebar.classList.remove('hidden');
+        if (patientCountIndicator) patientCountIndicator.classList.remove('hidden');
+        if (showAddClientFormBtn) showAddClientFormBtn.classList.remove('hidden');
     }
     
     // --- Carregar dados para o dashboard do pai ---
@@ -360,7 +380,7 @@ document.addEventListener('DOMContentLoaded', () => {
             });
 
             if (response.ok) {
-                const data = await response.json(); // Espera { patient: {}, assigned_program_ids: [], sessionData: [] }
+                const data = await response.json(); 
                 console.log("Dados do dashboard do pai recebidos:", data);
                 if (data && data.patient) {
                     renderParentConsolidatedView(data.patient, data.sessionData || [], data.assigned_program_ids || []);
@@ -388,7 +408,7 @@ document.addEventListener('DOMContentLoaded', () => {
             return;
         }
     
-        parentDashboardContent.innerHTML = ''; // Limpa o placeholder de carregamento
+        parentDashboardContent.innerHTML = ''; 
         Object.values(consolidatedChartInstances).forEach(chart => chart.destroy());
         consolidatedChartInstances = {};
     
@@ -402,7 +422,7 @@ document.addEventListener('DOMContentLoaded', () => {
         parentDashboardContent.appendChild(header);
     
         const chartsGrid = document.createElement('div');
-        chartsGrid.id = 'parent-charts-grid'; // Usado para estilização de impressão
+        chartsGrid.id = 'parent-charts-grid'; 
         chartsGrid.className = 'grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-5';
         parentDashboardContent.appendChild(chartsGrid);
     
@@ -419,7 +439,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     
         assignedProgramsDetails.forEach((program, index) => {
-            const chartId = `parent-consolidated-chart-${program.id}-${index}`; // ID único para cada canvas
+            const chartId = `parent-consolidated-chart-${program.id}-${index}`; 
             const wrapper = document.createElement('div');
             wrapper.className = 'parent-consolidated-chart-wrapper border border-gray-200 rounded-md p-4 bg-gray-50 flex flex-col items-center shadow-sm';
             wrapper.innerHTML = `
@@ -434,7 +454,7 @@ document.addEventListener('DOMContentLoaded', () => {
     function renderSingleConsolidatedChartForParent(allPatientSessions, programId, canvasId) {
         const canvas = document.getElementById(canvasId);
         const canvasContainer = canvas?.parentElement;
-        const noDataMsg = canvasContainer?.parentElement.querySelector('.no-data-message'); // Ajustado para pegar o P irmão do div do canvas
+        const noDataMsg = canvasContainer?.parentElement.querySelector('.no-data-message'); 
     
         if (!canvas || !canvasContainer || !noDataMsg) {
             console.warn(`Elementos do gráfico consolidado do pai não encontrados para ${canvasId}`);
@@ -457,8 +477,8 @@ document.addEventListener('DOMContentLoaded', () => {
         const dates = programSpecificSessions.map(session => formatDate(session.session_date || session.date, 'short'));
         const scores = programSpecificSessions.map(session => session.score);
         const pointStyles = programSpecificSessions.map(session => (session.is_baseline || session.isBaseline) ? 'rect' : 'circle');
-        const pointBackgroundColors = programSpecificSessions.map(session => (session.is_baseline || session.isBaseline) ? '#fbbf24' : '#4f46e5'); // Amarelo para baseline, Indigo para normal
-        const pointRadii = programSpecificSessions.map(session => (session.is_baseline || session.isBaseline) ? 3 : 2.5); // Tamanhos dos pontos
+        const pointBackgroundColors = programSpecificSessions.map(session => (session.is_baseline || session.isBaseline) ? '#fbbf24' : '#4f46e5'); 
+        const pointRadii = programSpecificSessions.map(session => (session.is_baseline || session.isBaseline) ? 3 : 2.5); 
     
         const ctx = canvas.getContext('2d');
         const primaryColor = '#4f46e5', baselineColor = '#fbbf24', primaryLight = 'rgba(79, 70, 229, 0.05)', textColor = '#4b5563', gridColor = '#e5e7eb';
@@ -479,9 +499,9 @@ document.addEventListener('DOMContentLoaded', () => {
                     pointStyle: pointStyles,
                     pointBackgroundColor: pointBackgroundColors,
                     pointRadius: pointRadii,
-                    pointBorderColor: '#fff', // Cor da borda do ponto
+                    pointBorderColor: '#fff', 
                     fill: true,
-                    tension: 0.1, // Leve curvatura na linha
+                    tension: 0.1, 
                     borderWidth: 1.5,
                     pointHoverRadius: pointRadii.map(r => r + 2)
                 }]
@@ -494,7 +514,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     x: { ticks: { color: textColor, font: { size: 9 }, maxRotation: 0, autoSkipPadding: 10 }, grid: { display: false } }
                 },
                 plugins: {
-                    legend: { display: false }, // Esconde a legenda geral do dataset
+                    legend: { display: false }, 
                     tooltip: {
                         backgroundColor: '#1f2937', titleColor: '#fff', bodyColor: '#fff', padding: 8, cornerRadius: 3, displayColors: true,
                         borderColor: (tooltipItem) => { const index = tooltipItem.tooltip.dataPoints[0].dataIndex; if (index < 0 || index >= programSpecificSessions.length) return primaryColor; return (programSpecificSessions[index]?.is_baseline || programSpecificSessions[index]?.isBaseline) ? baselineColor : primaryColor; },
@@ -515,7 +535,6 @@ document.addEventListener('DOMContentLoaded', () => {
     function setupMainEventListeners() {
         topNavLinks.forEach(link => { link.removeEventListener('click', handleNavClick); link.addEventListener('click', handleNavClick); });
         
-        // Listeners para terapeutas
         if (currentUser && currentUser.role === 'terapeuta') {
             if (clientSearchInput) { clientSearchInput.removeEventListener('input', handleClientSearch); clientSearchInput.addEventListener('input', handleClientSearch); }
             if (showAddClientFormBtn) { showAddClientFormBtn.removeEventListener('click', handleShowAddClientForm); showAddClientFormBtn.addEventListener('click', handleShowAddClientForm); }
@@ -538,33 +557,31 @@ document.addEventListener('DOMContentLoaded', () => {
     // Handlers de Eventos
     function handleNavClick(e) {
         e.preventDefault();
-        const link = e.currentTarget;
-        let viewId = link.dataset.view;
-        const area = link.dataset.area;
-
         if (!isAuthenticated) return;
 
+        const link = e.currentTarget;
+        const viewId = link.dataset.view;
+        const area = link.dataset.area;
+        let effectiveViewId = viewId;
         let areaToSwitch = area || currentActiveArea;
 
         if (currentUser.role === 'pai') {
-            // Links permitidos para pais: parent-dashboard-view, tip-guide-view
-            if (viewId !== 'parent-dashboard-view' && viewId !== 'tip-guide-view' && viewId !== 'dashboard-view' /* dashboard-view será redirecionado */) {
-                viewId = 'parent-dashboard-view'; // Redireciona para o dashboard do pai
+            // Pais só devem ver 'parent-dashboard-view'. Qualquer outra é redirecionada.
+            if (effectiveViewId !== 'parent-dashboard-view') {
+                effectiveViewId = 'parent-dashboard-view';
             }
-            if (viewId === 'dashboard-view') viewId = 'parent-dashboard-view'; // dashboard-view é o do pai
             areaToSwitch = null; // Pais não têm "áreas" de programas
         } else if (currentUser.role === 'terapeuta') {
-            if (viewId === 'parent-dashboard-view') { // Terapeutas não acessam diretamente o dashboard do pai
-                viewId = 'dashboard-view'; // Redireciona para o dashboard geral/do cliente
+            if (effectiveViewId === 'parent-dashboard-view') { // Terapeutas não acessam o dashboard do pai
+                effectiveViewId = 'dashboard-view'; // Redireciona para o dashboard geral/do cliente
             }
         }
-
-        if (viewId) {
+        
+        if (effectiveViewId) {
             if (areaToSwitch && currentUser.role === 'terapeuta') {
                 currentActiveArea = areaToSwitch;
-                console.log("Área ativa (terapeuta) mudou para:", currentActiveArea);
             }
-            switchView(viewId, { area: currentUser.role === 'terapeuta' ? currentActiveArea : null });
+            switchView(effectiveViewId, { area: currentUser.role === 'terapeuta' ? currentActiveArea : null });
             if (link.classList.contains('nav-link-mobile') && mobileMenu && !mobileMenu.classList.contains('hidden')) {
                 toggleMobileMenu(false);
             }
@@ -592,7 +609,7 @@ document.addEventListener('DOMContentLoaded', () => {
         currentClientIndicator.textContent = 'Nenhum cliente selecionado';
         currentClientIndicator.classList.add('italic', 'text-gray-500');
         currentClientIndicator.classList.remove('font-medium', 'text-indigo-700');
-        currentClientIndicator.classList.remove('hidden'); // Garante que seja visível para terapeutas
+        currentClientIndicator.classList.remove('hidden'); 
 
         if (mobileLoggedInUsernameSpan) mobileLoggedInUsernameSpan.textContent = 'Usuário';
         if (mobileUserAvatarDiv) mobileUserAvatarDiv.textContent = '--';
@@ -669,13 +686,12 @@ document.addEventListener('DOMContentLoaded', () => {
         if(defaultNavLinkMobile) defaultNavLinkMobile.classList.add('active');
 
         if (contextualSidebar) {
-            contextualSidebar.classList.remove('hidden'); // Garante que a sidebar seja visível para terapeutas
+            contextualSidebar.classList.remove('hidden'); 
             contextualSidebar.classList.add('md:block');
-             if (window.innerWidth < 768) { // Mas escondida em mobile até ser aberta
+             if (window.innerWidth < 768) { 
                 contextualSidebar.classList.add('hidden');
             }
         }
-        // Garante que a sidebar de clientes seja a padrão ao deslogar (para quando um terapeuta logar novamente)
         if(sidebarSections) sidebarSections.forEach(section => { section.classList.toggle('hidden', section.id !== 'sidebar-content-clients'); });
     }
 
@@ -693,7 +709,7 @@ document.addEventListener('DOMContentLoaded', () => {
             if (mobileUserAvatarDiv) mobileUserAvatarDiv.textContent = initials;
         }
     }
-    function updateCurrentClientIndicator() { // Chamado apenas por terapeutas
+    function updateCurrentClientIndicator() { 
         if (!isAuthenticated || (currentUser && currentUser.role !== 'terapeuta')) {
             if(currentClientIndicator) currentClientIndicator.classList.add('hidden');
             if(mobileCurrentClientIndicator) mobileCurrentClientIndicator.classList.add('hidden');
@@ -715,7 +731,7 @@ document.addEventListener('DOMContentLoaded', () => {
         updateIndicator(currentClientIndicator);
         updateIndicator(mobileCurrentClientIndicator);
     }
-    function updatePatientCountDisplay() { // Chamado apenas por terapeutas
+    function updatePatientCountDisplay() { 
         if (isAuthenticated && currentUser && currentUser.role === 'terapeuta') {
             const limit = currentUser.max_patients || 0;
             if(patientCountIndicator) {
@@ -819,17 +835,24 @@ document.addEventListener('DOMContentLoaded', () => {
         if (!isAuthenticated) return;
         
         let effectiveViewId = viewId;
-        if (currentUser.role === 'pai' && (viewId === 'clients-view' || viewId === 'notes-view' || viewId === 'programs-view')) {
-            effectiveViewId = 'parent-dashboard-view';
-        } else if (currentUser.role === 'terapeuta' && viewId === 'parent-dashboard-view') {
-            effectiveViewId = 'dashboard-view';
-        }
+        const areaFromContext = context.area;
 
-        const areaToSwitch = (currentUser.role === 'terapeuta' && effectiveViewId === 'programs-view') ? (context.area || currentActiveArea) : null;
+        if (currentUser.role === 'pai') {
+            if (effectiveViewId !== 'parent-dashboard-view') {
+                effectiveViewId = 'parent-dashboard-view';
+            }
+            currentActiveArea = null; // Pais não têm área ativa de programa
+        } else if (currentUser.role === 'terapeuta') {
+            if (effectiveViewId === 'parent-dashboard-view') {
+                effectiveViewId = 'dashboard-view';
+            }
+            if (effectiveViewId === 'programs-view' && areaFromContext) {
+                currentActiveArea = areaFromContext;
+            }
+        }
         
-        console.log(`Mudando visão para: ${effectiveViewId}, Área Ativa (se aplicável): ${areaToSwitch || 'N/A'}`, context);
+        console.log(`Mudando visão para: ${effectiveViewId}, Área Ativa (se aplicável): ${currentActiveArea || 'N/A'}`, context);
         currentView = effectiveViewId;
-        if (areaToSwitch) currentActiveArea = areaToSwitch;
 
         topNavLinks.forEach(link => {
             const linkView = link.dataset.view;
@@ -837,8 +860,8 @@ document.addEventListener('DOMContentLoaded', () => {
             let isActive = linkView === currentView;
             if (linkView === 'programs-view' && currentUser.role === 'terapeuta') {
                 isActive = isActive && linkArea === currentActiveArea;
-            } else if (linkView === 'parent-dashboard-view' && currentUser.role === 'pai') {
-                isActive = true; // Link de acompanhamento sempre ativo para pais nessa view
+            } else if (linkView === 'parent-dashboard-view' && currentUser.role === 'pai' && currentView === 'parent-dashboard-view') {
+                isActive = true; // Link "Acompanhamento" ativo para pais na sua view
             }
             link.classList.toggle('active', isActive);
         });
@@ -848,7 +871,7 @@ document.addEventListener('DOMContentLoaded', () => {
             let isActive = linkView === currentView;
             if (linkView === 'programs-view' && currentUser.role === 'terapeuta') {
                 isActive = isActive && linkArea === currentActiveArea;
-            } else if (linkView === 'parent-dashboard-view' && currentUser.role === 'pai') {
+            } else if (linkView === 'parent-dashboard-view' && currentUser.role === 'pai' && currentView === 'parent-dashboard-view') {
                 isActive = true;
             }
             link.classList.toggle('active', isActive);
@@ -856,10 +879,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
         views.forEach(view => { view.classList.toggle('hidden', view.id !== currentView); });
         
-        if (currentView === 'parent-dashboard-view' && parentDashboardView) {
-            parentDashboardView.classList.remove('hidden');
-        } else if (parentDashboardView) {
-            parentDashboardView.classList.add('hidden');
+        // Garante que a view correta do dashboard do pai seja mostrada/escondida
+        if (parentDashboardView) {
+            parentDashboardView.classList.toggle('hidden', currentView !== 'parent-dashboard-view');
         }
 
         updateContextualSidebar(currentView, currentActiveArea);
@@ -867,13 +889,14 @@ document.addEventListener('DOMContentLoaded', () => {
             toggleMobileMenu(false);
         }
 
+        // Chama handlers específicos da view
         switch (currentView) {
             case 'clients-view': if (currentUser.role === 'terapeuta') handleClientViewSwitch(context); break;
             case 'programs-view': if (currentUser.role === 'terapeuta') handleProgramViewSwitch(context); break;
             case 'notes-view': if (currentUser.role === 'terapeuta') handleNotesViewSwitch(); break;
-            case 'dashboard-view': renderDashboard(); break;
-            case 'parent-dashboard-view': if (currentUser.role === 'pai') loadParentDashboardData(); break;
-            case 'tip-guide-view': break; 
+            case 'dashboard-view': if (currentUser.role === 'terapeuta') renderDashboard(); break; // Dashboard do terapeuta
+            case 'parent-dashboard-view': if (currentUser.role === 'pai') loadParentDashboardData(); break; // Dashboard do pai
+            case 'tip-guide-view': break; // Guia de dicas é uma view estática, mas já verificamos o acesso
         }
         if (mainContentArea) mainContentArea.scrollTop = 0;
     }
@@ -887,27 +910,39 @@ document.addEventListener('DOMContentLoaded', () => {
             return; 
         }
 
+        // Se for terapeuta, a sidebar deve ser visível
         if (contextualSidebar) contextualSidebar.classList.remove('hidden');
 
         switch (viewId) {
-            case 'clients-view': case 'dashboard-view': case 'notes-view': targetSidebarId = 'sidebar-content-clients'; break;
-            case 'programs-view': targetSidebarId = 'sidebar-content-programs'; break;
-            case 'tip-guide-view': targetSidebarId = 'sidebar-content-tip-guide'; break;
-            default: targetSidebarId = 'sidebar-content-clients';
+            case 'clients-view': 
+            case 'dashboard-view': // Dashboard do terapeuta usa a sidebar de clientes
+            case 'notes-view': 
+                targetSidebarId = 'sidebar-content-clients'; 
+                break;
+            case 'programs-view': 
+                targetSidebarId = 'sidebar-content-programs'; 
+                break;
+            case 'tip-guide-view': 
+                targetSidebarId = 'sidebar-content-tip-guide'; 
+                break;
+            default: 
+                targetSidebarId = 'sidebar-content-clients'; // Fallback para terapeutas
         }
+
         if(sidebarSections) sidebarSections.forEach(section => { section.classList.toggle('hidden', section.id !== targetSidebarId); });
 
         if (contextualSidebar) {
-            if (window.innerWidth < 768) {
+            if (window.innerWidth < 768) { // Em mobile
                 const isAddClientPanelVisible = addClientPanel && !addClientPanel.classList.contains('hidden');
                 const isMobileMenuOpen = mobileMenu && !mobileMenu.classList.contains('hidden');
-                if (!isMobileMenuOpen && !isAddClientPanelVisible && targetSidebarId !== 'sidebar-content-tip-guide') {
-                    contextualSidebar.classList.remove('hidden');
-                } else {
+                // Esconde a sidebar se o menu mobile estiver aberto ou o painel de adicionar cliente
+                if (isMobileMenuOpen || isAddClientPanelVisible) {
                     contextualSidebar.classList.add('hidden');
+                } else {
+                     contextualSidebar.classList.remove('hidden'); // Mostra se não estiverem abertos
                 }
-            } else {
-                contextualSidebar.classList.remove('hidden'); // Garante visibilidade em desktop
+            } else { // Em desktop
+                contextualSidebar.classList.remove('hidden'); 
                 contextualSidebar.classList.add('md:block');
             }
         }
@@ -1547,10 +1582,10 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // --- Dashboard ---
-    function renderDashboard() { // Para terapeutas
+    function renderDashboard() { 
         if (!isAuthenticated || !dashboardView || currentUser.role !== 'terapeuta') return;
         
-        if (selectedPatient) { // Dashboard específico do cliente
+        if (selectedPatient) { 
             if (generalDashboardContent) generalDashboardContent.classList.add('hidden'); 
             if (clientDashboardContent) clientDashboardContent.classList.remove('hidden'); 
             const assignedProgramsCount = selectedPatient.assigned_program_ids?.length || 0;
@@ -1563,7 +1598,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     <div class="bg-white p-4 rounded-lg shadow border border-gray-200"><h3 class="text-sm font-medium text-gray-500 mb-1">Sessões Registradas</h3><p class="text-3xl font-semibold text-emerald-600">${sessionsCount}</p></div>
                     <div class="bg-white p-4 rounded-lg shadow border border-gray-200"><h3 class="text-sm font-medium text-gray-500 mb-1">Progresso Médio (Interv.)</h3><p class="text-3xl font-semibold text-amber-600">${averageProgress}%</p></div>
                 </div>`;
-        } else { // Dashboard geral do terapeuta
+        } else { 
             if (clientDashboardContent) clientDashboardContent.classList.add('hidden'); 
             if (generalDashboardContent) generalDashboardContent.classList.remove('hidden'); 
             const totalUserSessions = calculateTotalSessions(patients);
@@ -1602,7 +1637,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (consolidatedReportPrintTitle) consolidatedReportPrintTitle.textContent = reportTitleText;
         if (consolidatedReportClientNamePrint) consolidatedReportClientNamePrint.textContent = selectedPatient.name;
         if (consolidatedReportClientIdPrint) consolidatedReportClientIdPrint.textContent = selectedPatient.id;
-        renderConsolidatedCharts(selectedPatient); // Usa a função que renderiza para o modal do terapeuta
+        renderConsolidatedCharts(selectedPatient); 
         consolidatedReportModal.classList.remove('hidden');
         document.body.style.overflow = 'hidden'; 
     }
@@ -1613,7 +1648,7 @@ document.addEventListener('DOMContentLoaded', () => {
         consolidatedChartInstances = {}; 
         document.body.style.overflow = ''; 
     }
-    function renderConsolidatedCharts(patient) { // Para o modal do terapeuta
+    function renderConsolidatedCharts(patient) { 
         if (!consolidatedChartsContainer) return;
         consolidatedChartsContainer.innerHTML = ''; 
         Object.values(consolidatedChartInstances).forEach(chart => chart.destroy());
@@ -1624,7 +1659,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (assignedProgramsDetails.length === 0) { consolidatedChartsContainer.innerHTML = '<p class="text-center text-gray-500 py-6 col-span-full">Detalhes dos programas atribuídos não encontrados.</p>'; return; }
         
         assignedProgramsDetails.forEach((program, index) => {
-            const chartId = `modal-consolidated-chart-${program.id}-${index}`; // ID único para o modal
+            const chartId = `modal-consolidated-chart-${program.id}-${index}`; 
             const wrapper = document.createElement('div');
             wrapper.className = 'consolidated-chart-wrapper border border-gray-200 rounded-md p-4 bg-gray-50 flex flex-col items-center shadow-sm print:border-gray-300 print:shadow-none print:bg-white print:break-inside-avoid';
             wrapper.innerHTML = `
@@ -1632,8 +1667,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 <div class="w-full h-48 sm:h-56 relative"> <canvas id="${chartId}"></canvas> </div>
                 <p class="no-data-message text-xs text-gray-500 italic mt-2 hidden">Nenhum dado de sessão para este programa.</p>`;
             consolidatedChartsContainer.appendChild(wrapper);
-            // Reutiliza a função de renderização de gráfico, passando todos os dados de sessão do paciente
-            // e o ID do programa específico para filtragem dentro da função.
             renderSingleConsolidatedChartForParent(patient.sessionData, program.id, chartId);
         });
     }
@@ -1815,7 +1848,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (!dateString) return 'N/A';
         let date;
         if (/^\d{4}-\d{2}-\d{2}$/.test(dateString.split('T')[0])) {
-            date = new Date(dateString.split('T')[0] + 'T00:00:00'); // Adiciona T00:00:00 para evitar problemas de fuso
+            date = new Date(dateString.split('T')[0] + 'T00:00:00'); 
         } else {
             date = new Date(dateString);
         }
