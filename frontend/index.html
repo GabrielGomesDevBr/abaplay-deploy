@@ -692,7 +692,7 @@
                     <div id="parent-dashboard-content" class="p-4 md:p-6">
                         <!-- Cabeçalho com nome do paciente (inserido por JS) -->
                         <!-- Seção de Anotações do Terapeuta (NOVO) -->
-                        <div id="parent-annotations-section" class="mb-8 hidden">
+                        <div id="parent-annotations-section" class="mb-8 hidden"> <!-- Esta seção será mostrada/escondida e populada pelo JS -->
                             <h3 class="text-xl font-semibold text-gray-700 mb-3 pb-2 border-b border-gray-200">Observações do Terapeuta</h3>
                             <div id="parent-annotations-content" class="bg-white p-4 rounded-lg shadow border border-gray-200 text-sm text-gray-600 whitespace-pre-wrap min-h-[100px]">
                                 <!-- Anotações serão inseridas aqui pelo JS -->
@@ -716,40 +716,45 @@
         </div>
     </div>
 
-    <!-- Modal de Relatório Consolidado (para terapeutas) -->
+    <!-- Modal de Relatório Consolidado (para terapeutas E pais - adaptado por JS) -->
     <div id="consolidated-report-modal" class="modal hidden fixed inset-0 bg-gray-900 bg-opacity-60 flex items-center justify-center z-50 p-4 print:p-0 print:bg-transparent print:static print:block print:shadow-none print-this-modal">
         <div class="modal-content bg-white rounded-lg shadow-xl w-full max-w-5xl max-h-[90vh] flex flex-col overflow-hidden print:shadow-none print:rounded-none print:max-h-full print:max-w-full print:overflow-visible transform scale-95">
             <div class="flex justify-between items-center p-5 border-b border-gray-200 bg-gray-50 rounded-t-lg no-print">
                 <h2 id="consolidated-report-title" class="text-lg font-semibold text-gray-800">Relatório Gráfico Consolidado</h2>
                 <button class="close-modal-btn text-gray-400 hover:text-gray-700 text-2xl transition-colors">&times;</button>
             </div>
+            
             <!-- Cabeçalho específico para impressão do relatório consolidado (TERAPEUTA) -->
             <div id="consolidated-report-print-header" class="hidden print:block p-5 border-b border-gray-200 mb-4">
                 <h2 id="consolidated-report-print-title" class="text-xl font-semibold text-gray-800 text-center mb-1">Relatório Consolidado de Progresso</h2>
                  <p><span>Cliente:</span> <span id="consolidated-report-client-name-print"></span></p>
                 <p><span>ID:</span> <span id="consolidated-report-client-id-print" class="font-mono"></span></p>
             </div>
-            <!-- NOVO: Cabeçalho específico para impressão do relatório do PAI -->
+
+            <!-- Cabeçalho específico para impressão do relatório do PAI -->
             <div id="parent-report-print-header" class="hidden print:block p-5 border-b border-gray-200 mb-4">
                 <h2 id="parent-report-print-title" class="text-xl font-semibold text-gray-800 text-center mb-1">Relatório de Acompanhamento</h2>
                 <p><span>Paciente:</span> <span id="parent-report-patient-name-print"></span></p>
                 <p><span>ID do Paciente:</span> <span id="parent-report-patient-id-print" class="font-mono"></span></p>
                 <p><span>Data do Relatório:</span> <span id="parent-report-generation-date-print"></span></p>
             </div>
-            <!-- NOVO: Seção de Anotações para impressão no PDF do PAI -->
+            
+            <!-- Seção de Anotações para impressão no PDF do PAI -->
             <div id="parent-annotations-print" class="hidden print:block p-5">
                 <h3 class="text-lg font-semibold text-gray-800 mb-2">Observações do Terapeuta</h3>
                 <div id="parent-annotations-print-content" class="text-sm text-gray-700 whitespace-pre-wrap">
-                    <!-- Conteúdo das anotações para PDF do pai -->
+                    <!-- Conteúdo das anotações para PDF do pai será populado aqui pelo JS -->
                 </div>
             </div>
 
+            <!-- Container de gráficos para TERAPEUTAS (usado para o modal de relatório consolidado deles) -->
             <div id="consolidated-charts-container" class="p-6 overflow-y-auto flex-1 grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-5 print:grid-cols-1 print:overflow-visible print:p-4 print:gap-6">
                 <!-- Gráficos consolidados para terapeutas -->
             </div>
-            <!-- NOVO: Container para gráficos na impressão do PDF do PAI -->
+            
+            <!-- Container de gráficos para PAIS (usado para impressão do modal deles) -->
             <div id="parent-charts-grid-print" class="hidden print:block p-5 print:grid-cols-1 print:gap-6">
-                 <!-- Gráficos para PDF do pai -->
+                 <!-- Gráficos para PDF do pai serão populados/clonados aqui pelo JS -->
             </div>
 
             <div class="modal-actions p-4 border-t border-gray-200 bg-gray-50 text-right space-x-3 rounded-b-lg no-print">

@@ -62,7 +62,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const clientNameInput = document.getElementById('client-name');
     const clientDobInput = document.getElementById('client-dob');
     const clientDiagnosisInput = document.getElementById('client-diagnosis');
-    const clientNotesInput = document.getElementById('client-notes');
+    const clientNotesInput = document.getElementById('client-notes'); // Anotações iniciais do cliente (terapeuta)
 
     const clientDetailsPanel = document.getElementById('client-details-panel');
     const noClientSelectedPlaceholder = document.getElementById('no-client-selected-placeholder');
@@ -71,7 +71,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const detailClientIdSpan = document.getElementById('detail-client-id');
     const detailClientDobSpan = document.getElementById('detail-client-dob');
     const detailClientDiagnosisSpan = document.getElementById('detail-client-diagnosis');
-    const detailClientNotesSpan = document.getElementById('detail-client-notes');
+    const detailClientNotesSpan = document.getElementById('detail-client-notes'); // Anotações iniciais na view de detalhes (terapeuta)
     const assignedProgramsListUl = document.getElementById('assigned-programs-list');
     const noAssignedProgramsLi = assignedProgramsListUl.querySelector('.no-assigned-programs');
     const editClientBtn = document.getElementById('edit-client-btn');
@@ -91,8 +91,8 @@ document.addEventListener('DOMContentLoaded', () => {
     const sessionProgressSectionDiv = document.getElementById('session-progress-section');
     const progressDetailsAreaDiv = document.getElementById('progress-details-area');
 
-    const notesView = document.getElementById('notes-view');
-    const notesViewTextarea = document.getElementById('notes-textarea');
+    const notesView = document.getElementById('notes-view'); // View de anotações do terapeuta
+    const notesViewTextarea = document.getElementById('notes-textarea'); // Textarea para o terapeuta editar general_notes
     const saveNotesBtn = document.getElementById('save-notes-btn');
     const notesPlaceholder = notesView.querySelector('.notes-placeholder');
 
@@ -100,8 +100,15 @@ document.addEventListener('DOMContentLoaded', () => {
     const clientDashboardContent = document.getElementById('client-dashboard-content'); // Conteúdo específico do cliente no dashboard do terapeuta
     const generalDashboardContent = document.getElementById('dashboard-content'); // Conteúdo do dashboard geral do terapeuta
 
-    const parentDashboardView = document.getElementById('parent-dashboard-view'); // Nova view para pais
-    const parentDashboardContent = document.getElementById('parent-dashboard-content'); // Conteúdo do dashboard dos pais
+    // --- Seletores para Dashboard dos Pais ---
+    const parentDashboardView = document.getElementById('parent-dashboard-view');
+    const parentDashboardContent = document.getElementById('parent-dashboard-content');
+    const parentAnnotationsSection = document.getElementById('parent-annotations-section'); // Seção para anotações dos pais
+    const parentAnnotationsContent = document.getElementById('parent-annotations-content'); // Div para o conteúdo das anotações dos pais
+    const noParentAnnotationsMessage = parentAnnotationsContent?.querySelector('.no-annotations-message'); // Placeholder se não houver anotações
+    const parentChartsGrid = document.getElementById('parent-charts-grid'); // Grid para gráficos dos pais
+    const parentLoadingPlaceholder = parentDashboardContent?.querySelector('.parent-loading-placeholder');
+
 
     const consolidatedReportModal = document.getElementById('consolidated-report-modal');
     const consolidatedReportTitle = document.getElementById('consolidated-report-title');
@@ -111,6 +118,10 @@ document.addEventListener('DOMContentLoaded', () => {
     const consolidatedChartsContainer = document.getElementById('consolidated-charts-container');
     const printConsolidatedReportBtn = document.getElementById('print-consolidated-report-btn');
     const closeModalBtns = consolidatedReportModal.querySelectorAll('.close-modal-btn, #close-consolidated-modal-btn');
+
+    // --- Seletores para Impressão de Anotações dos Pais ---
+    const parentAnnotationsPrintSection = document.getElementById('parent-annotations-print'); // Seção de anotações no modal de impressão
+    const parentAnnotationsPrintContent = document.getElementById('parent-annotations-print-content'); // Conteúdo das anotações para impressão
 
 
     // --- Funções Utilitárias de Autenticação ---
@@ -123,7 +134,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // --- Inicialização ---
     function initializeApp() {
-        console.log("ABAplay v3.9.1 (Parent Nav Cleanup) - Inicializando...");
+        console.log("ABAplay v3.9.2 (Parent Notes Display) - Inicializando...");
         loginForm.addEventListener('submit', handleLogin);
         logoutButton.addEventListener('click', handleLogout);
         mobileLogoutButton.addEventListener('click', handleLogout);
@@ -159,9 +170,11 @@ document.addEventListener('DOMContentLoaded', () => {
             if (currentUser && currentUser.role === 'terapeuta' && selectedPatient) {
                 generateConsolidatedReportPDF(selectedPatient); // Função de PDF para terapeutas
             } else if (currentUser && currentUser.role === 'pai' && parentDashboardView && !parentDashboardView.classList.contains('hidden')) {
-                // Para pais, a impressão será da view do dashboard deles
-                // Futuramente, chamará generateParentReportPDF(data)
+                // Prepara o modal para impressão do relatório do pai
+                prepareParentReportForPrint();
+                consolidatedReportModal.classList.add('print-this-modal'); // Adiciona classe para estilos de impressão do modal
                 window.print(); 
+                consolidatedReportModal.classList.remove('print-this-modal'); // Remove após imprimir
             } else {
                 alert("Selecione um cliente ou esteja na tela de acompanhamento para imprimir.");
             }
@@ -280,7 +293,7 @@ document.addEventListener('DOMContentLoaded', () => {
             console.log("Usuário é um PAI. Carregando dashboard do pai...");
             currentView = 'parent-dashboard-view';
             hideTherapistFeatures(); // Esconde funcionalidades de terapeuta e ajusta nav para pais
-            await loadParentDashboardData();
+            await loadParentDashboardData(); // Esta função agora renderizará as notas
         } else if (currentUser.role === 'terapeuta') {
             console.log("Usuário é um TERAPEUTA. Carregando interface de terapeuta...");
             currentView = 'clients-view';
@@ -367,11 +380,16 @@ document.addEventListener('DOMContentLoaded', () => {
         if (!currentUser || currentUser.role !== 'pai' || !currentUser.associated_patient_id) {
             console.error("Não é possível carregar dados do dashboard do pai: usuário inválido ou sem paciente associado.");
             if (parentDashboardContent) parentDashboardContent.innerHTML = '<div class="placeholder-container text-red-500"><i class="fas fa-exclamation-circle"></i><p>Erro ao carregar dados da criança.</p></div>';
+            if (parentLoadingPlaceholder) parentLoadingPlaceholder.classList.add('hidden');
             return;
         }
 
         console.log(`Buscando dados para o paciente associado ID: ${currentUser.associated_patient_id}`);
-        if (parentDashboardContent) parentDashboardContent.innerHTML = '<div class="text-center py-10 placeholder-container"><i class="fas fa-spinner fa-spin text-3xl text-indigo-600"></i><p class="mt-2 text-gray-600">Carregando dados do progresso...</p></div>';
+        if (parentLoadingPlaceholder) parentLoadingPlaceholder.classList.remove('hidden');
+        if (parentDashboardContent && parentDashboardContent !== parentLoadingPlaceholder) parentDashboardContent.innerHTML = ''; // Limpa conteúdo anterior, exceto o loader
+        if (parentAnnotationsSection) parentAnnotationsSection.classList.add('hidden'); // Esconde anotações enquanto carrega
+        if (parentChartsGrid) parentChartsGrid.innerHTML = ''; // Limpa gráficos
+
 
         try {
             const response = await fetch(`${API_BASE_URL}/parent/dashboard-data`, {
@@ -379,11 +397,14 @@ document.addEventListener('DOMContentLoaded', () => {
                 headers: { 'Authorization': `Bearer ${authToken}`, 'Content-Type': 'application/json' }
             });
 
+            if (parentLoadingPlaceholder) parentLoadingPlaceholder.classList.add('hidden');
+
             if (response.ok) {
                 const data = await response.json(); 
                 console.log("Dados do dashboard do pai recebidos:", data);
                 if (data && data.patient) {
-                    renderParentConsolidatedView(data.patient, data.sessionData || [], data.assigned_program_ids || []);
+                    // Passa todos os dados relevantes para renderParentDashboard, incluindo general_notes
+                    renderParentDashboard(data.patient, data.sessionData || [], data.assigned_program_ids || []);
                 } else {
                     throw new Error("Dados do paciente não retornados pela API.");
                 }
@@ -397,21 +418,24 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         } catch (error) {
             console.error("Erro de rede ao buscar dados do dashboard do pai:", error);
+            if (parentLoadingPlaceholder) parentLoadingPlaceholder.classList.add('hidden');
             if (parentDashboardContent) parentDashboardContent.innerHTML = '<div class="placeholder-container text-red-500"><i class="fas fa-exclamation-circle"></i><p>Erro de conexão ao carregar dados.</p></div>';
         }
     }
 
-    function renderParentConsolidatedView(patientData, sessionDataArray, assignedProgramIdsArray) {
+    // MODIFICADO: Nome da função e lógica para incluir anotações
+    function renderParentDashboard(patientData, sessionDataArray, assignedProgramIdsArray) {
         if (!parentDashboardContent || !patientData) {
             console.error("Elemento parentDashboardContent ou dados do paciente não encontrados para renderização.");
             if(parentDashboardContent) parentDashboardContent.innerHTML = '<div class="placeholder-container text-red-500"><i class="fas fa-exclamation-circle"></i><p>Não foi possível exibir os dados.</p></div>';
             return;
         }
     
-        parentDashboardContent.innerHTML = ''; 
+        parentDashboardContent.innerHTML = ''; // Limpa completamente o conteúdo anterior
         Object.values(consolidatedChartInstances).forEach(chart => chart.destroy());
         consolidatedChartInstances = {};
     
+        // Cabeçalho do Dashboard do Pai
         const header = document.createElement('div');
         header.className = 'mb-6 p-4 bg-white rounded-lg shadow border border-gray-200';
         header.innerHTML = `
@@ -420,21 +444,41 @@ document.addEventListener('DOMContentLoaded', () => {
             <p class="text-xs text-gray-500 mt-1">ID do Paciente: ${patientData.id}</p>
         `;
         parentDashboardContent.appendChild(header);
+
+        // --- Seção de Anotações do Terapeuta ---
+        if (parentAnnotationsSection && parentAnnotationsContent) {
+            parentAnnotationsSection.classList.remove('hidden'); // Mostra a seção de anotações
+            if (patientData.general_notes && patientData.general_notes.trim() !== '') {
+                parentAnnotationsContent.textContent = patientData.general_notes;
+                if (noParentAnnotationsMessage) noParentAnnotationsMessage.classList.add('hidden');
+            } else {
+                parentAnnotationsContent.textContent = ''; // Limpa qualquer texto anterior
+                if (noParentAnnotationsMessage) {
+                    noParentAnnotationsMessage.classList.remove('hidden');
+                    parentAnnotationsContent.appendChild(noParentAnnotationsMessage); // Garante que a mensagem está lá
+                } else { // Fallback se o elemento da mensagem não existir por algum motivo
+                    parentAnnotationsContent.innerHTML = '<p class="text-gray-400 italic">Nenhuma observação recente do terapeuta.</p>';
+                }
+            }
+            parentDashboardContent.appendChild(parentAnnotationsSection); // Adiciona a seção de anotações ao dashboard
+        }
+        // --- Fim da Seção de Anotações ---
     
-        const chartsGrid = document.createElement('div');
-        chartsGrid.id = 'parent-charts-grid'; 
-        chartsGrid.className = 'grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-5';
-        parentDashboardContent.appendChild(chartsGrid);
+        // Grid de Gráficos (lógica existente)
+        const chartsGridContainer = document.createElement('div'); // Cria um novo container para os gráficos
+        chartsGridContainer.id = 'parent-charts-grid'; 
+        chartsGridContainer.className = 'grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-5 mt-6'; // Adiciona margem superior
+        parentDashboardContent.appendChild(chartsGridContainer);
     
         if (!assignedProgramIdsArray || assignedProgramIdsArray.length === 0) {
-            chartsGrid.innerHTML = '<p class="text-center text-gray-500 py-6 col-span-full placeholder-container"><i class="fas fa-folder-open"></i><span>Nenhum programa atribuído para visualização.</span></p>';
+            chartsGridContainer.innerHTML = '<p class="text-center text-gray-500 py-6 col-span-full placeholder-container"><i class="fas fa-folder-open"></i><span>Nenhum programa atribuído para visualização.</span></p>';
             return;
         }
     
         const assignedProgramsDetails = assignedProgramIdsArray.map(id => getProgramById(id)).filter(p => p).sort((a, b) => a.title.localeCompare(b.title, 'pt-BR'));
     
         if (assignedProgramsDetails.length === 0) {
-            chartsGrid.innerHTML = '<p class="text-center text-gray-500 py-6 col-span-full placeholder-container"><i class="fas fa-exclamation-triangle"></i><span>Detalhes dos programas atribuídos não puderam ser carregados.</span></p>';
+            chartsGridContainer.innerHTML = '<p class="text-center text-gray-500 py-6 col-span-full placeholder-container"><i class="fas fa-exclamation-triangle"></i><span>Detalhes dos programas atribuídos não puderam ser carregados.</span></p>';
             return;
         }
     
@@ -446,7 +490,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 <h4 class="text-sm font-medium text-gray-600 mb-2 text-center">${program.title} <span class="text-xs text-gray-500">(${program.tag || 'N/A'})</span></h4>
                 <div class="w-full h-48 sm:h-56 relative"> <canvas id="${chartId}"></canvas> </div>
                 <p class="no-data-message text-xs text-gray-500 italic mt-2 hidden">Nenhum dado de sessão para este programa.</p>`;
-            chartsGrid.appendChild(wrapper);
+            chartsGridContainer.appendChild(wrapper);
             renderSingleConsolidatedChartForParent(sessionDataArray, program.id, chartId);
         });
     }
@@ -660,8 +704,22 @@ document.addEventListener('DOMContentLoaded', () => {
         }
         if (clientDashboardContent) clientDashboardContent.classList.add('hidden');
         if (clientDashboardContent) clientDashboardContent.innerHTML = '';
+        
+        // Reset do dashboard dos pais
         if (parentDashboardView) parentDashboardView.classList.add('hidden');
-        if (parentDashboardContent) parentDashboardContent.innerHTML = '<div class="text-center py-10 placeholder-container"><i class="fas fa-spinner fa-spin text-3xl text-indigo-600"></i><p class="mt-2 text-gray-600">Carregando dados de progresso...</p></div>';
+        if (parentDashboardContent) parentDashboardContent.innerHTML = ''; // Limpa o conteúdo
+        if (parentLoadingPlaceholder && parentDashboardContent) { // Adiciona o loader de volta se existir
+            parentDashboardContent.appendChild(parentLoadingPlaceholder);
+            parentLoadingPlaceholder.classList.remove('hidden');
+        } else if (parentDashboardContent) { // Fallback se o loader não existir
+             parentDashboardContent.innerHTML = '<div class="text-center py-10 placeholder-container parent-loading-placeholder"><i class="fas fa-spinner fa-spin text-3xl text-indigo-600"></i><p class="mt-2 text-gray-600">Carregando dados de progresso...</p></div>';
+        }
+        if (parentAnnotationsSection) parentAnnotationsSection.classList.add('hidden');
+        if (parentAnnotationsContent && noParentAnnotationsMessage) {
+            parentAnnotationsContent.textContent = '';
+            parentAnnotationsContent.appendChild(noParentAnnotationsMessage);
+            noParentAnnotationsMessage.classList.remove('hidden');
+        }
 
 
         if(showAddClientFormBtn) {
@@ -1101,7 +1159,7 @@ document.addEventListener('DOMContentLoaded', () => {
             name: clientNameInput.value.trim(),
             dob: clientDobInput.value || null,
             diagnosis: clientDiagnosisInput.value.trim() || null,
-            general_notes: clientNotesInput.value.trim() || null,
+            general_notes: clientNotesInput.value.trim() || null, // Anotações iniciais do terapeuta
         };
         if (!clientData.name) { alert("O nome do cliente é obrigatório."); clientNameInput.focus(); return; }
         let url = `${API_BASE_URL}/patients`;
@@ -1160,7 +1218,7 @@ document.addEventListener('DOMContentLoaded', () => {
             } catch (e) { console.warn("Erro ao formatar data de nascimento para edição:", e); clientDobInput.value = selectedPatient.dob.split('T')[0] || ''; }
         } else { clientDobInput.value = ''; }
         clientDiagnosisInput.value = selectedPatient.diagnosis || '';
-        clientNotesInput.value = selectedPatient.general_notes || '';
+        clientNotesInput.value = selectedPatient.general_notes || ''; // Anotações iniciais do terapeuta
         addClientFormTitle.textContent = 'Editar Cliente';
         addClientFormSubmitBtn.innerHTML = '<i class="fas fa-save mr-1.5"></i> Salvar Alterações';
         addClientForm.dataset.editingClientId = selectedPatient.id;
@@ -1558,27 +1616,51 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // --- Anotações (Exclusivo para Terapeutas) ---
+    // Esta função é para o terapeuta editar as 'general_notes'
     async function handleSaveNotes() {
         if (!selectedPatient || !authToken || currentUser.role !== 'terapeuta' || !saveNotesBtn) { 
             if(saveNotesBtn) saveNotesBtn.disabled = true; 
             if(currentUser.role === 'terapeuta') alert("Nenhum cliente selecionado para salvar anotações.");
             return; 
         }
-        const newNotes = notesViewTextarea.value;
-        console.log(`Salvando anotações para paciente ${selectedPatient.id}`);
+        const newNotes = notesViewTextarea.value; // Pega as notas da textarea do terapeuta
+        console.log(`Salvando anotações gerais para paciente ${selectedPatient.id}`);
         saveNotesBtn.disabled = true;
         saveNotesBtn.innerHTML = '<i class="fas fa-spinner fa-spin mr-1.5"></i> Salvando...';
         try {
-            const response = await fetch(`${API_BASE_URL}/patients/${selectedPatient.id}/notes`, { method: 'PUT', headers: { 'Authorization': `Bearer ${authToken}`, 'Content-Type': 'application/json', }, body: JSON.stringify({ generalNotes: newNotes }) });
+            // O endpoint /api/patients/:patientId/notes já existe e atualiza 'general_notes'
+            const response = await fetch(`${API_BASE_URL}/patients/${selectedPatient.id}/notes`, { 
+                method: 'PUT', 
+                headers: { 'Authorization': `Bearer ${authToken}`, 'Content-Type': 'application/json', }, 
+                body: JSON.stringify({ generalNotes: newNotes }) // A API espera 'generalNotes'
+            });
             if (response.ok) {
-                selectedPatient.general_notes = newNotes; 
-                if (detailClientNotesSpan && clientDetailsPanel && !clientDetailsPanel.classList.contains('hidden')) { detailClientNotesSpan.textContent = newNotes || 'Sem anotações'; }
+                selectedPatient.general_notes = newNotes; // Atualiza o objeto local do paciente
+                if (detailClientNotesSpan && clientDetailsPanel && !clientDetailsPanel.classList.contains('hidden')) { 
+                    detailClientNotesSpan.textContent = newNotes || 'Sem anotações'; // Atualiza na view de detalhes do cliente (terapeuta)
+                }
                 saveNotesBtn.classList.add('bg-emerald-500', 'hover:bg-emerald-600');
                 saveNotesBtn.classList.remove('bg-indigo-600', 'hover:bg-indigo-700');
                 saveNotesBtn.innerHTML = '<i class="fas fa-check mr-1.5"></i> Salvo!';
-                setTimeout(() => { saveNotesBtn.classList.remove('bg-emerald-500', 'hover:bg-emerald-600'); saveNotesBtn.classList.add('bg-indigo-600', 'hover:bg-indigo-700'); saveNotesBtn.innerHTML = '<i class="fas fa-save mr-1.5"></i> Salvar Anotações'; saveNotesBtn.disabled = false; }, 2000);
-            } else { const result = await response.json().catch(() => ({ errors: [{ msg: "Erro ao processar resposta do servidor." }] })); console.error('Erro ao salvar anotações:', result.errors?.[0]?.msg || response.statusText); alert(`Erro ao salvar anotações: ${result.errors?.[0]?.msg || 'Falha.'}`); saveNotesBtn.disabled = false; saveNotesBtn.innerHTML = '<i class="fas fa-save mr-1.5"></i> Salvar Anotações'; }
-        } catch (error) { console.error('Erro de rede ao salvar anotações:', error); alert("Erro de conexão."); saveNotesBtn.disabled = false; saveNotesBtn.innerHTML = '<i class="fas fa-save mr-1.5"></i> Salvar Anotações'; }
+                setTimeout(() => { 
+                    saveNotesBtn.classList.remove('bg-emerald-500', 'hover:bg-emerald-600'); 
+                    saveNotesBtn.classList.add('bg-indigo-600', 'hover:bg-indigo-700'); 
+                    saveNotesBtn.innerHTML = '<i class="fas fa-save mr-1.5"></i> Salvar Anotações'; 
+                    saveNotesBtn.disabled = false; 
+                }, 2000);
+            } else { 
+                const result = await response.json().catch(() => ({ errors: [{ msg: "Erro ao processar resposta do servidor." }] })); 
+                console.error('Erro ao salvar anotações:', result.errors?.[0]?.msg || response.statusText); 
+                alert(`Erro ao salvar anotações: ${result.errors?.[0]?.msg || 'Falha.'}`); 
+                saveNotesBtn.disabled = false; 
+                saveNotesBtn.innerHTML = '<i class="fas fa-save mr-1.5"></i> Salvar Anotações'; 
+            }
+        } catch (error) { 
+            console.error('Erro de rede ao salvar anotações:', error); 
+            alert("Erro de conexão."); 
+            saveNotesBtn.disabled = false; 
+            saveNotesBtn.innerHTML = '<i class="fas fa-save mr-1.5"></i> Salvar Anotações'; 
+        }
     }
 
     // --- Dashboard ---
@@ -1626,28 +1708,101 @@ document.addEventListener('DOMContentLoaded', () => {
         return patientsArray.reduce((total, patient) => total + (patient.sessionData?.length || 0), 0);
     }
 
-    // --- Modal Relatório Consolidado (Exclusivo para Terapeutas) ---
+    // --- Modal Relatório Consolidado (Pode ser usado por Terapeuta e adaptado para Pais) ---
     function openConsolidatedReportModal() {
-        if (!selectedPatient || currentUser.role !== 'terapeuta' || !consolidatedReportModal) { 
-            if(currentUser.role === 'terapeuta') alert("Por favor, selecione um cliente para gerar o relatório."); 
-            return; 
+        if (!consolidatedReportModal) return;
+
+        if (currentUser.role === 'terapeuta' && selectedPatient) {
+            const reportTitleText = `Relatório Consolidado - ${selectedPatient.name}`;
+            if(consolidatedReportTitle) consolidatedReportTitle.textContent = reportTitleText;
+            if (consolidatedReportPrintTitle) consolidatedReportPrintTitle.textContent = reportTitleText;
+            if (consolidatedReportClientNamePrint) consolidatedReportClientNamePrint.textContent = selectedPatient.name;
+            if (consolidatedReportClientIdPrint) consolidatedReportClientIdPrint.textContent = selectedPatient.id;
+            
+            // Esconde seções de pais, mostra de terapeutas
+            if(parentReportPrintHeader) parentReportPrintHeader.classList.add('hidden');
+            if(parentAnnotationsPrintSection) parentAnnotationsPrintSection.classList.add('hidden');
+            if(parentChartsGridPrint) parentChartsGridPrint.classList.add('hidden');
+            if(consolidatedReportPrintHeader) consolidatedReportPrintHeader.classList.remove('hidden');
+            if(consolidatedChartsContainer) consolidatedChartsContainer.classList.remove('hidden');
+
+            renderConsolidatedCharts(selectedPatient); 
+            consolidatedReportModal.classList.remove('hidden');
+            document.body.style.overflow = 'hidden'; 
+        } else if (currentUser.role === 'pai' && parentDashboardView && !parentDashboardView.classList.contains('hidden')) {
+            // Para pais, o botão de imprimir na NAV chama prepareParentReportForPrint() antes de window.print()
+            // Este modal pode ser reutilizado, mas precisa ser populado corretamente.
+            prepareParentReportForPrint(); // Garante que o modal está com os dados corretos dos pais
+            consolidatedReportModal.classList.remove('hidden');
+            document.body.style.overflow = 'hidden';
+        } else {
+            alert("Selecione um cliente ou esteja na tela de acompanhamento para gerar o relatório.");
         }
-        const reportTitleText = `Relatório Consolidado - ${selectedPatient.name}`;
-        if(consolidatedReportTitle) consolidatedReportTitle.textContent = reportTitleText;
-        if (consolidatedReportPrintTitle) consolidatedReportPrintTitle.textContent = reportTitleText;
-        if (consolidatedReportClientNamePrint) consolidatedReportClientNamePrint.textContent = selectedPatient.name;
-        if (consolidatedReportClientIdPrint) consolidatedReportClientIdPrint.textContent = selectedPatient.id;
-        renderConsolidatedCharts(selectedPatient); 
-        consolidatedReportModal.classList.remove('hidden');
-        document.body.style.overflow = 'hidden'; 
     }
+
     function closeConsolidatedReportModal() {
         if(consolidatedReportModal) consolidatedReportModal.classList.add('hidden');
         if(consolidatedChartsContainer) consolidatedChartsContainer.innerHTML = ''; 
+        if(parentChartsGridPrint) parentChartsGridPrint.innerHTML = '';
+        if(parentAnnotationsPrintContent) parentAnnotationsPrintContent.innerHTML = '';
         Object.values(consolidatedChartInstances).forEach(chart => chart.destroy()); 
         consolidatedChartInstances = {}; 
         document.body.style.overflow = ''; 
     }
+
+    // Função para preparar o modal de relatório para impressão dos PAIS
+    function prepareParentReportForPrint() {
+        if (!currentUser || currentUser.role !== 'pai' || !parentDashboardView || !consolidatedReportModal) return;
+        
+        const patientNameElement = parentDashboardContent.querySelector('h1');
+        const patientIdElement = parentDashboardContent.querySelector('p.text-xs'); // Ajuste se o seletor for diferente
+        const patientName = patientNameElement ? patientNameElement.textContent.replace('Acompanhamento de ', '') : 'Paciente';
+        const patientId = patientIdElement ? patientIdElement.textContent.replace('ID do Paciente: ', '') : 'N/A';
+
+        // Atualiza cabeçalho de impressão do PAI no modal
+        const parentReportPrintTitleEl = document.getElementById('parent-report-print-title');
+        const parentReportPatientNamePrintEl = document.getElementById('parent-report-patient-name-print');
+        const parentReportPatientIdPrintEl = document.getElementById('parent-report-patient-id-print');
+        const parentReportGenerationDatePrintEl = document.getElementById('parent-report-generation-date-print');
+        
+        if (parentReportPrintTitleEl) parentReportPrintTitleEl.textContent = `Relatório de Acompanhamento`;
+        if (parentReportPatientNamePrintEl) parentReportPatientNamePrintEl.textContent = patientName;
+        if (parentReportPatientIdPrintEl) parentReportPatientIdPrintEl.textContent = patientId;
+        if (parentReportGenerationDatePrintEl) parentReportGenerationDatePrintEl.textContent = formatDate(new Date().toISOString());
+
+        // Esconde seções de terapeutas, mostra de pais
+        if(consolidatedReportPrintHeader) consolidatedReportPrintHeader.classList.add('hidden');
+        if(consolidatedChartsContainer) consolidatedChartsContainer.classList.add('hidden');
+        if(parentReportPrintHeader) parentReportPrintHeader.classList.remove('hidden');
+        if(parentAnnotationsPrintSection) parentAnnotationsPrintSection.classList.remove('hidden');
+        if(parentChartsGridPrint) parentChartsGridPrint.classList.remove('hidden');
+        
+        // Popula anotações para impressão
+        if (parentAnnotationsPrintContent && parentAnnotationsContent) {
+            parentAnnotationsPrintContent.innerHTML = parentAnnotationsContent.innerHTML; // Copia o conteúdo das anotações da view
+        }
+
+        // Popula gráficos para impressão (recria ou copia do DOM)
+        if (parentChartsGrid && parentChartsGridPrint) {
+            parentChartsGridPrint.innerHTML = ''; // Limpa antes de popular
+            const chartsToPrint = parentChartsGrid.querySelectorAll('.parent-consolidated-chart-wrapper');
+            if (chartsToPrint.length > 0) {
+                chartsToPrint.forEach(chartWrapper => {
+                    const clonedChartWrapper = chartWrapper.cloneNode(true); // Clona o wrapper do gráfico
+                    // Importante: Se os gráficos são Chart.js, eles precisam ser recriados no canvas clonado
+                    // ou uma imagem do gráfico original precisa ser usada. A clonagem simples do canvas não funciona.
+                    // Para simplificar, vamos assumir que os estilos de impressão @media print cuidarão da aparência.
+                    // Se os gráficos não aparecerem no PDF, esta parte precisa de uma lógica mais complexa para recriar os gráficos em canvases visíveis para impressão.
+                    parentChartsGridPrint.appendChild(clonedChartWrapper);
+                });
+            } else {
+                parentChartsGridPrint.innerHTML = '<p class="text-center text-gray-500 py-6 col-span-full">Nenhum gráfico para exibir.</p>';
+            }
+        }
+        if (consolidatedReportModal) consolidatedReportModal.classList.remove('hidden'); // Garante que o modal esteja visível para impressão
+    }
+
+
     function renderConsolidatedCharts(patient) { 
         if (!consolidatedChartsContainer) return;
         consolidatedChartsContainer.innerHTML = ''; 
@@ -1667,7 +1822,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 <div class="w-full h-48 sm:h-56 relative"> <canvas id="${chartId}"></canvas> </div>
                 <p class="no-data-message text-xs text-gray-500 italic mt-2 hidden">Nenhum dado de sessão para este programa.</p>`;
             consolidatedChartsContainer.appendChild(wrapper);
-            renderSingleConsolidatedChartForParent(patient.sessionData, program.id, chartId);
+            renderSingleConsolidatedChartForParent(patient.sessionData, program.id, chartId); // Reutiliza a função de gráfico do pai
         });
     }
     
