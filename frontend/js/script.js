@@ -119,9 +119,13 @@ document.addEventListener('DOMContentLoaded', () => {
     const printConsolidatedReportBtn = document.getElementById('print-consolidated-report-btn');
     const closeModalBtns = consolidatedReportModal.querySelectorAll('.close-modal-btn, #close-consolidated-modal-btn');
 
-    // --- Seletores para Impressão de Anotações dos Pais ---
-    const parentAnnotationsPrintSection = document.getElementById('parent-annotations-print'); // Seção de anotações no modal de impressão
-    const parentAnnotationsPrintContent = document.getElementById('parent-annotations-print-content'); // Conteúdo das anotações para impressão
+    // --- Seletores para Impressão ---
+    // CORREÇÃO: Declarando as variáveis que estavam faltando
+    const consolidatedReportPrintHeader = document.getElementById('consolidated-report-print-header');
+    const parentReportPrintHeader = document.getElementById('parent-report-print-header');
+    const parentAnnotationsPrintSection = document.getElementById('parent-annotations-print');
+    const parentAnnotationsPrintContent = document.getElementById('parent-annotations-print-content');
+    const parentChartsGridPrint = document.getElementById('parent-charts-grid-print');
 
 
     // --- Funções Utilitárias de Autenticação ---
@@ -134,7 +138,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // --- Inicialização ---
     function initializeApp() {
-        console.log("ABAplay v3.9.2 (Parent Notes Display) - Inicializando...");
+        console.log("ABAplay v3.9.3 (Fix Impressão) - Inicializando...");
         loginForm.addEventListener('submit', handleLogin);
         logoutButton.addEventListener('click', handleLogout);
         mobileLogoutButton.addEventListener('click', handleLogout);
@@ -166,15 +170,14 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         });
         
-        // CORREÇÃO: Unificando a lógica de impressão
+        // Lógica de impressão unificada
         printConsolidatedReportBtn.addEventListener('click', () => { 
             let canPrint = false;
-            // Verifica se o modal e os containers corretos estão visíveis e preparados
             if (currentUser && currentUser.role === 'terapeuta' && selectedPatient) {
-                // A função openConsolidatedReportModal já prepara o conteúdo do terapeuta
+                // A função openConsolidatedReportModal já prepara o conteúdo do terapeuta.
                 canPrint = true;
             } else if (currentUser && currentUser.role === 'pai') {
-                // A função prepareParentReportForPrint prepara o conteúdo dos pais
+                // Prepara o conteúdo do pai para o modal antes de imprimir.
                 prepareParentReportForPrint();
                 canPrint = true;
             } else {
@@ -1617,10 +1620,10 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
     function clearSessionProgressArea() { 
-        if (progressDetailsAreaDiv && currentUser.role === 'terapeuta') { progressDetailsAreaDiv.innerHTML = `<div class="text-center text-gray-500 py-6"><i class="fas fa-tasks text-3xl mb-3 text-gray-400"></i><p class="text-sm">Selecione um programa atribuído na lista ao lado para registrar uma sessão ou ver o gráfico de progresso.</p></div>`; }
+        if (progressDetailsAreaDiv && currentUser.role !== 'terapeuta') { progressDetailsAreaDiv.innerHTML = `<div class="text-center text-gray-500 py-6"><i class="fas fa-tasks text-3xl mb-3 text-gray-400"></i><p class="text-sm">Selecione um programa atribuído na lista ao lado para registrar uma sessão ou ver o gráfico de progresso.</p></div>`; }
         selectedProgramForProgress = null;
         if (progressChartInstance) { progressChartInstance.destroy(); progressChartInstance = null; }
-        if (assignedProgramsListUl && currentUser.role === 'terapeuta') { assignedProgramsListUl.querySelectorAll('.assigned-program-item.active').forEach(item => { item.classList.remove('active', 'bg-indigo-100'); }); }
+        if (assignedProgramsListUl && currentUser.role !== 'terapeuta') { assignedProgramsListUl.querySelectorAll('.assigned-program-item.active').forEach(item => { item.classList.remove('active', 'bg-indigo-100'); }); }
     }
 
     // --- Anotações (Exclusivo para Terapeutas) ---
@@ -1835,9 +1838,6 @@ document.addEventListener('DOMContentLoaded', () => {
     }
     
     // --- Geração de PDF (Exclusivo para Terapeutas) ---
-    // REMOVIDA: A função generateConsolidatedReportPDF foi removida, pois agora usamos window.print().
-    // As funções generateProgramGradePDF e generateWeeklyRecordSheetPDF são mantidas pois são diferentes.
-
     function generateProgramGradePDF(patient) {
         if (typeof jspdf === 'undefined' || typeof jspdf.jsPDF === 'undefined') { console.error("jsPDF não carregado."); alert("Erro: PDF não disponível."); return; }
         if (!patient || currentUser.role !== 'terapeuta') { alert("Nenhum cliente selecionado."); return; }
