@@ -53,184 +53,176 @@
         /* Estilos para áreas de gráfico */
         #program-progress-chart canvas,
         .consolidated-chart-wrapper canvas,
-        .parent-consolidated-chart-wrapper canvas { 
-            min-height: 200px; 
-            max-height: 350px; 
+        .parent-consolidated-chart-wrapper canvas {
+            min-height: 200px;
+            max-height: 350px;
         }
          .consolidated-chart-wrapper canvas,
-         .parent-consolidated-chart-wrapper canvas { 
-            height: 200px !important; 
+         .parent-consolidated-chart-wrapper canvas {
+            height: 200px !important;
          }
 
 
         /* --- ESTILOS DE IMPRESSÃO --- */
-         @media print {
+        @media print {
+            @page {
+                size: A4 portrait;
+                margin: 15mm;
+            }
+
             /* Esconde elementos não desejados */
-            .no-print, nav, #contextual-sidebar, #login-modal, .modal-actions, #mobile-menu,
-            #consolidated-report-modal > .modal-content > div:first-child {
+            .no-print, nav, #contextual-sidebar, #login-modal, .modal-actions, #mobile-menu {
                 display: none !important;
             }
 
-            /* Ajusta layout geral para impressão */
-            body {
-                overflow: visible !important;
+            /* Reseta o layout do body e do app */
+            body, #app-main-interface {
+                display: block !important;
                 height: auto !important;
-                font-size: 10pt;
+                width: 100% !important;
+                overflow: visible !important;
                 background-color: white !important;
                 color: black !important;
-                -webkit-print-color-adjust: exact;
+                font-size: 10pt;
+                 -webkit-print-color-adjust: exact;
                 print-color-adjust: exact;
             }
-            #app-main-interface { display: block !important; height: auto !important; overflow: visible !important; flex-direction: column !important; }
-            #main-content-area { padding: 0 !important; overflow: visible !important; background-color: white !important; }
 
-            /* Ajusta layout do modal para ocupar a página (se for imprimir o modal de relatório) */
-             .modal.print-this-modal { 
-                position: static !important; inset: auto !important; background: none !important; display: block !important; width: 100% !important; height: auto !important; overflow: visible !important; padding: 15mm !important; box-shadow: none !important; 
+            /* Força o modal do relatório a ocupar toda a área de impressão */
+             .modal.print-this-modal {
+                position: static !important;
+                display: block !important;
+                inset: auto !important;
+                padding: 0 !important;
+                background: none !important;
+                width: 100% !important;
+                height: auto !important;
+                overflow: visible !important;
              }
-             .modal.print-this-modal .modal-content { 
-                box-shadow: none !important; border: none !important; max-width: 100% !important; max-height: none !important; overflow: visible !important; padding: 0 !important; display: block !important; background-color: white !important; 
+             .modal.print-this-modal .modal-content {
+                box-shadow: none !important;
+                border: none !important;
+                max-width: 100% !important;
+                max-height: none !important;
+                overflow: visible !important;
+                padding: 0 !important;
+                display: block !important;
+                background-color: white !important;
+                transform: none !important;
              }
 
-
-            /* Mostra e estiliza o cabeçalho de impressão do relatório consolidado */
-            #consolidated-report-print-header, #parent-report-print-header { /* Aplicado a ambos os cabeçalhos de relatório */
+            /* Estiliza os cabeçalhos de impressão (Terapeuta e Pais) */
+            #consolidated-report-print-header,
+            #parent-report-print-header {
                 display: block !important;
                 margin-bottom: 10mm;
                 padding-bottom: 5mm;
                 border-bottom: 1px solid #666 !important;
                 text-align: left;
             }
-            #consolidated-report-print-header h2, #parent-report-print-header h2 {
+            #consolidated-report-print-header h2,
+            #parent-report-print-header h2 {
                 font-size: 16pt;
-                font-weight: bold;
-                color: #333;
+                font-weight: 700;
+                color: #111827;
                 margin-bottom: 4mm;
+                text-align: center;
             }
-            #consolidated-report-print-header p, #parent-report-print-header p {
+            #consolidated-report-print-header p,
+            #parent-report-print-header p {
                 font-size: 10pt;
-                color: #444;
+                color: #374151;
                 margin-bottom: 1mm;
             }
-             #consolidated-report-print-header p span, #parent-report-print-header p span {
-                 font-weight: bold;
-                 color: black;
-             }
+            #consolidated-report-print-header p span,
+            #parent-report-print-header p span {
+                 font-weight: 600;
+                 color: #000;
+            }
 
-            /* Layout dos gráficos para impressão (Relatório Consolidado e Relatório do Pai) */
-             #consolidated-charts-container, #parent-charts-grid-print { 
-                 display: block !important;
-                 max-height: none !important;
-                 overflow: visible !important;
-                 width: 100%;
-                 padding: 0 !important;
-                 margin-top: 5mm;
-             }
-             .consolidated-chart-wrapper, .parent-consolidated-chart-wrapper-print { 
-                 width: 100% !important;
-                 page-break-inside: avoid !important;
-                 border: 1px solid #ccc !important;
-                 box-shadow: none !important;
-                 background-color: #fdfdfd !important;
-                 padding: 5mm !important;
-                 margin-bottom: 8mm !important;
-                 display: block !important;
-             }
-             .consolidated-chart-wrapper canvas, .parent-consolidated-chart-wrapper-print canvas {
-                 max-height: 80mm !important;
-                 width: 100% !important;
-                 display: block;
-                 margin: 0 auto;
-             }
-             .consolidated-chart-wrapper h4, .parent-consolidated-chart-wrapper-print h4 {
-                 font-size: 11pt;
-                 font-weight: bold;
-                 text-align: center;
-                 margin-bottom: 4mm;
-                 color: #333;
-             }
-             .consolidated-chart-wrapper .no-data-message, .parent-consolidated-chart-wrapper-print .no-data-message {
-                 font-size: 9pt;
-                 text-align: center;
-                 color: #666;
-                 padding: 20mm 0;
-             }
-            
-            /* Estilos para anotações no PDF do Pai */
-            #parent-annotations-print {
-                display: block !important; /* Garante que seja visível na impressão */
-                margin-top: 10mm;
+            /* Estilos para a seção de anotações */
+            #print-therapist-notes-section, /* Seção de notas do terapeuta */
+            #parent-annotations-print { /* Seção de notas para o pai */
+                display: block !important;
+                margin-top: 8mm;
                 margin-bottom: 10mm;
                 page-break-before: auto;
                 page-break-inside: avoid;
             }
+            #print-therapist-notes-section h3,
             #parent-annotations-print h3 {
                 font-size: 14pt;
-                font-weight: bold;
-                color: #333;
-                margin-bottom: 5mm;
-                padding-bottom: 2mm;
-                border-bottom: 1px solid #ccc;
-            }
-            #parent-annotations-print-content {
-                font-size: 10pt;
-                line-height: 1.5;
-                color: #333;
-                white-space: pre-wrap; /* Mantém quebras de linha e espaços das anotações */
-            }
-
-            /* Ajustes específicos para a view do pai na impressão direta da tela (se window.print() for usado) */
-            #parent-dashboard-view {
-                padding: 10mm !important; 
-            }
-            #parent-dashboard-content > .mb-6.p-4 { /* Header do dashboard do pai */
-                text-align: center;
-                border-bottom: 1px solid #999;
-                padding-bottom: 5mm;
-                margin-bottom: 8mm;
-            }
-             #parent-dashboard-content > .mb-6.p-4 h1 {
-                 font-size: 16pt;
-             }
-             #parent-dashboard-content > .mb-6.p-4 p {
-                 font-size: 10pt;
-             }
-             /* Anotações na view do pai (impressão direta) */
-            #parent-annotations-section {
-                margin-top: 8mm;
-                margin-bottom: 8mm;
-                page-break-before: auto;
-            }
-            #parent-annotations-section h3 {
-                font-size: 14pt;
-                font-weight: bold;
-                color: #333;
+                font-weight: 600;
+                color: #1f2937;
                 margin-bottom: 4mm;
                 padding-bottom: 2mm;
                 border-bottom: 1px solid #ccc;
             }
-            #parent-annotations-content {
-                 font-size: 10pt;
-                 line-height: 1.5;
-                 color: #333;
-                 white-space: pre-wrap;
-                 background-color: #f9f9f9;
-                 padding: 4mm;
-                 border: 1px solid #eee;
-                 border-radius: 4px;
+            #print-therapist-notes-content,
+            #parent-annotations-print-content {
+                font-size: 10pt;
+                line-height: 1.5;
+                color: #374151;
+                white-space: pre-wrap; /* Mantém quebras de linha das anotações */
+                background-color: #f9fafb;
+                padding: 4mm;
+                border: 1px solid #e5e7eb;
+                border-radius: 4px;
             }
-            #parent-charts-grid { 
-                display: block !important; 
+
+            /* Layout de grade para os gráficos de impressão */
+            #consolidated-charts-container,
+            #parent-charts-grid-print {
+                display: flex !important;
+                flex-wrap: wrap !important;
+                justify-content: space-between !important;
+                gap: 20px 2%; /* Espaço vertical e horizontal */
+                max-height: none !important;
+                overflow: visible !important;
+                width: 100%;
+                padding: 0 !important;
+                margin-top: 5mm;
             }
-            .parent-consolidated-chart-wrapper { 
-                width: 100% !important;
+            .consolidated-chart-wrapper,
+            .parent-consolidated-chart-wrapper-print .parent-consolidated-chart-wrapper {
+                width: 49% !important; /* Dois gráficos por linha */
                 page-break-inside: avoid !important;
-                border: 1px solid #ccc !important;
+                border: 1px solid #d1d5db !important;
                 box-shadow: none !important;
-                background-color: #fdfdfd !important;
+                background-color: #ffffff !important;
                 padding: 5mm !important;
                 margin-bottom: 8mm !important;
-                display: block !important;
+                display: flex !important;
+                flex-direction: column !important;
+                align-items: center !important;
+            }
+            .consolidated-chart-wrapper canvas,
+            .parent-consolidated-chart-wrapper-print .parent-consolidated-chart-wrapper canvas {
+                max-height: 70mm !important;
+                height: 70mm !important;
+                width: 100% !important;
+                display: block;
+            }
+            .consolidated-chart-wrapper h4,
+            .parent-consolidated-chart-wrapper-print .parent-consolidated-chart-wrapper h4 {
+                 font-size: 11pt;
+                 font-weight: 600;
+                 text-align: center;
+                 margin-bottom: 4mm;
+                 color: #1f2937;
+            }
+            .consolidated-chart-wrapper .no-data-message,
+            .parent-consolidated-chart-wrapper-print .parent-consolidated-chart-wrapper .no-data-message {
+                 font-size: 9pt;
+                 text-align: center;
+                 color: #6b7280;
+                 padding: 20mm 0;
+            }
+
+            /* Esconde as áreas de gráfico que não são para impressão */
+            #parent-charts-grid,
+            #program-progress-chart {
+                display: none !important;
             }
          }
 
@@ -585,7 +577,7 @@
                             <div class="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-4 text-sm mb-5 border-t border-gray-100 pt-4">
                                 <div><strong class="text-gray-500 font-medium block mb-0.5">Data Nasc.:</strong> <span id="detail-client-dob" class="text-gray-700"></span></div>
                                 <div><strong class="text-gray-500 font-medium block mb-0.5">Diagnóstico:</strong> <span id="detail-client-diagnosis" class="text-gray-700"></span></div>
-                                <div class="col-span-1 md:col-span-2"><strong class="text-gray-500 font-medium block mb-0.5">Anotações Iniciais:</strong> <span id="detail-client-notes" class="block mt-1 text-gray-700 whitespace-pre-wrap text-xs leading-relaxed"></span></div>
+                                <div class="col-span-1 md:col-span-2"><strong class="text-gray-500 font-medium block mb-0.5">Anotações Gerais:</strong> <span id="detail-client-notes" class="block mt-1 text-gray-700 whitespace-pre-wrap text-xs leading-relaxed"></span></div>
                             </div>
                              <div class="flex flex-wrap gap-3 border-t border-gray-100 pt-4 no-print">
                                  <button id="generate-client-grade-pdf" class="bg-gray-100 hover:bg-gray-200 text-gray-700 font-medium py-1.5 px-4 rounded-md text-xs transition duration-150 ease-in-out flex items-center space-x-1.5 border border-gray-300 shadow-sm">
@@ -727,33 +719,40 @@
             <!-- Cabeçalho específico para impressão do relatório consolidado (TERAPEUTA) -->
             <div id="consolidated-report-print-header" class="hidden print:block p-5 border-b border-gray-200 mb-4">
                 <h2 id="consolidated-report-print-title" class="text-xl font-semibold text-gray-800 text-center mb-1">Relatório Consolidado de Progresso</h2>
-                 <p><span>Cliente:</span> <span id="consolidated-report-client-name-print"></span></p>
-                <p><span>ID:</span> <span id="consolidated-report-client-id-print" class="font-mono"></span></p>
+                 <p class="text-sm"><span>Cliente:</span> <span id="consolidated-report-client-name-print"></span></p>
+                <p class="text-sm"><span>ID:</span> <span id="consolidated-report-client-id-print" class="font-mono"></span></p>
+            </div>
+             <!-- NOVO: Seção para as anotações do terapeuta na impressão -->
+             <div id="print-therapist-notes-section" class="hidden print:block p-5">
+                <h3 class="text-lg font-semibold text-gray-800 mb-2">Anotações Gerais do Terapeuta</h3>
+                <div id="print-therapist-notes-content" class="text-sm text-gray-700 whitespace-pre-wrap bg-gray-50 p-3 border rounded">
+                    <!-- Conteúdo das anotações do terapeuta será populado aqui pelo JS -->
+                </div>
             </div>
 
             <!-- Cabeçalho específico para impressão do relatório do PAI -->
             <div id="parent-report-print-header" class="hidden print:block p-5 border-b border-gray-200 mb-4">
                 <h2 id="parent-report-print-title" class="text-xl font-semibold text-gray-800 text-center mb-1">Relatório de Acompanhamento</h2>
-                <p><span>Paciente:</span> <span id="parent-report-patient-name-print"></span></p>
-                <p><span>ID do Paciente:</span> <span id="parent-report-patient-id-print" class="font-mono"></span></p>
-                <p><span>Data do Relatório:</span> <span id="parent-report-generation-date-print"></span></p>
+                <p class="text-sm"><span>Paciente:</span> <span id="parent-report-patient-name-print"></span></p>
+                <p class="text-sm"><span>ID do Paciente:</span> <span id="parent-report-patient-id-print" class="font-mono"></span></p>
+                <p class="text-sm"><span>Data do Relatório:</span> <span id="parent-report-generation-date-print"></span></p>
             </div>
             
             <!-- Seção de Anotações para impressão no PDF do PAI -->
             <div id="parent-annotations-print" class="hidden print:block p-5">
                 <h3 class="text-lg font-semibold text-gray-800 mb-2">Observações do Terapeuta</h3>
-                <div id="parent-annotations-print-content" class="text-sm text-gray-700 whitespace-pre-wrap">
+                <div id="parent-annotations-print-content" class="text-sm text-gray-700 whitespace-pre-wrap bg-gray-50 p-3 border rounded">
                     <!-- Conteúdo das anotações para PDF do pai será populado aqui pelo JS -->
                 </div>
             </div>
 
             <!-- Container de gráficos para TERAPEUTAS (usado para o modal de relatório consolidado deles) -->
-            <div id="consolidated-charts-container" class="p-6 overflow-y-auto flex-1 grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-5 print:grid-cols-1 print:overflow-visible print:p-4 print:gap-6">
+            <div id="consolidated-charts-container" class="p-6 overflow-y-auto flex-1 grid grid-cols-1 md:grid-cols-2 gap-5 print:grid-cols-2 print:overflow-visible print:p-4 print:gap-y-8 print:gap-x-6">
                 <!-- Gráficos consolidados para terapeutas -->
             </div>
             
             <!-- Container de gráficos para PAIS (usado para impressão do modal deles) -->
-            <div id="parent-charts-grid-print" class="hidden print:block p-5 print:grid-cols-1 print:gap-6">
+            <div id="parent-charts-grid-print" class="hidden print:block p-5 print:grid print:grid-cols-2 print:gap-y-8 print:gap-x-6">
                  <!-- Gráficos para PDF do pai serão populados/clonados aqui pelo JS -->
             </div>
 
