@@ -120,8 +120,8 @@ document.addEventListener('DOMContentLoaded', () => {
     const closeModalBtns = consolidatedReportModal.querySelectorAll('.close-modal-btn, #close-consolidated-modal-btn');
 
     // --- Seletores para Impressão ---
-    // CORREÇÃO: Declarando as variáveis que estavam faltando
     const consolidatedReportPrintHeader = document.getElementById('consolidated-report-print-header');
+    // CORREÇÃO: Variável que faltava e causava o erro foi declarada aqui.
     const parentReportPrintHeader = document.getElementById('parent-report-print-header');
     const parentAnnotationsPrintSection = document.getElementById('parent-annotations-print');
     const parentAnnotationsPrintContent = document.getElementById('parent-annotations-print-content');
@@ -138,7 +138,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // --- Inicialização ---
     function initializeApp() {
-        console.log("ABAplay v3.9.3 (Fix Impressão) - Inicializando...");
+        console.log("ABAplay v3.9.4 (Correção do Relatório) - Inicializando...");
         loginForm.addEventListener('submit', handleLogin);
         logoutButton.addEventListener('click', handleLogout);
         mobileLogoutButton.addEventListener('click', handleLogout);
