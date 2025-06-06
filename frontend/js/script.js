@@ -166,17 +166,25 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         });
         
+        // CORREÇÃO: Unificando a lógica de impressão
         printConsolidatedReportBtn.addEventListener('click', () => { 
+            let canPrint = false;
+            // Verifica se o modal e os containers corretos estão visíveis e preparados
             if (currentUser && currentUser.role === 'terapeuta' && selectedPatient) {
-                generateConsolidatedReportPDF(selectedPatient); // Função de PDF para terapeutas
-            } else if (currentUser && currentUser.role === 'pai' && parentDashboardView && !parentDashboardView.classList.contains('hidden')) {
-                // Prepara o modal para impressão do relatório do pai
+                // A função openConsolidatedReportModal já prepara o conteúdo do terapeuta
+                canPrint = true;
+            } else if (currentUser && currentUser.role === 'pai') {
+                // A função prepareParentReportForPrint prepara o conteúdo dos pais
                 prepareParentReportForPrint();
-                consolidatedReportModal.classList.add('print-this-modal'); // Adiciona classe para estilos de impressão do modal
-                window.print(); 
-                consolidatedReportModal.classList.remove('print-this-modal'); // Remove após imprimir
+                canPrint = true;
             } else {
-                alert("Selecione um cliente ou esteja na tela de acompanhamento para imprimir.");
+                 alert("Selecione um cliente ou esteja na tela de acompanhamento para imprimir.");
+            }
+
+            if (canPrint) {
+                consolidatedReportModal.classList.add('print-this-modal');
+                window.print();
+                consolidatedReportModal.classList.remove('print-this-modal');
             }
         });
 
@@ -1827,6 +1835,9 @@ document.addEventListener('DOMContentLoaded', () => {
     }
     
     // --- Geração de PDF (Exclusivo para Terapeutas) ---
+    // REMOVIDA: A função generateConsolidatedReportPDF foi removida, pois agora usamos window.print().
+    // As funções generateProgramGradePDF e generateWeeklyRecordSheetPDF são mantidas pois são diferentes.
+
     function generateProgramGradePDF(patient) {
         if (typeof jspdf === 'undefined' || typeof jspdf.jsPDF === 'undefined') { console.error("jsPDF não carregado."); alert("Erro: PDF não disponível."); return; }
         if (!patient || currentUser.role !== 'terapeuta') { alert("Nenhum cliente selecionado."); return; }
@@ -1871,131 +1882,6 @@ document.addEventListener('DOMContentLoaded', () => {
         assignedProgramsDetails.forEach(program => { const programText = `${program.title} (${program.tag || 'N/A'})`; const programCellHeight = addWrappedTextToCell(programText, margin, y, programColWidth, defaultRowHeight, {padding: 1, lineHeight: 3}); const actualRowHeight = Math.max(defaultRowHeight, programCellHeight); y = checkAndAddPageLandscape(y, actualRowHeight); doc.rect(margin, y, programColWidth, actualRowHeight, 'S'); addWrappedTextToCell(programText, margin, y, programColWidth, actualRowHeight, {padding: 1, lineHeight: 3}); let currentX = margin + programColWidth; const numTrials = (typeof program.trials === 'number' && program.trials > 0) ? program.trials : 1; const trialCellWidth = dayColWidth / numTrials; daysOfWeek.forEach(() => { doc.rect(currentX, y, dayColWidth, actualRowHeight, 'S'); if (numTrials > 1) { for (let j = 1; j < numTrials; j++) { doc.line(currentX + (trialCellWidth * j), y, currentX + (trialCellWidth * j), y + actualRowHeight); } } currentX += dayColWidth; }); y += actualRowHeight; });
         const totalPages = doc.internal.getNumberOfPages(); for (let i = 1; i <= totalPages; i++) { doc.setPage(i); addFooter(doc, i, margin, pageHeight, footerFontSize, totalPages.toString()); }
         try { const filename = `Folha_Registro_${patient.name.replace(/[^a-z0-9]/gi, '_').toLowerCase()}.pdf`; doc.save(filename); console.log("PDF da Folha de Registro gerado:", filename); } catch (error) { console.error("Erro ao salvar PDF da Folha de Registro:", error); alert("Erro ao gerar PDF."); }
-    }
-    async function generateConsolidatedReportPDF(patient) { 
-        if (typeof jspdf === 'undefined' || typeof jspdf.jsPDF === 'undefined' || typeof Chart === 'undefined') {
-            console.error("jsPDF ou Chart.js não carregados.");
-            alert("Erro: A funcionalidade de PDF não está disponível.");
-            return;
-        }
-        if (!patient || currentUser.role !== 'terapeuta') { alert("Nenhum cliente selecionado."); return; }
-        const assignedProgramIds = patient.assigned_program_ids || [];
-        if (assignedProgramIds.length === 0) { alert("Nenhum programa atribuído para gerar o relatório."); return; }
-
-        const { jsPDF } = window.jspdf;
-        const doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
-        const margin = 15, pageWidth = doc.internal.pageSize.getWidth(), pageHeight = doc.internal.pageSize.getHeight(), contentWidth = pageWidth - margin * 2;
-        let y = margin, pageCount = 1;
-        const footerFontSize = 8, totalPagesPlaceholder = "{totalPages}";
-
-        const addHeaderToPage = (pdfDoc, patientData, currentPageY) => {
-            pdfDoc.setFontSize(16); pdfDoc.setFont(undefined, 'bold');
-            pdfDoc.text("Relatório Consolidado de Progresso", pageWidth / 2, currentPageY, { align: 'center' });
-            currentPageY += 8;
-            pdfDoc.setFontSize(10); pdfDoc.setFont(undefined, 'normal');
-            pdfDoc.text(`Cliente: ${patientData.name}`, margin, currentPageY);
-            pdfDoc.text(`ID: ${patientData.id}`, margin + contentWidth / 2, currentPageY);
-            currentPageY += 5;
-            pdfDoc.text(`Data Nasc.: ${patientData.dob ? formatDate(patientData.dob) : 'N/I'}`, margin, currentPageY);
-            pdfDoc.text(`Diagnóstico: ${patientData.diagnosis || 'N/I'}`, margin + contentWidth / 2, currentPageY);
-            currentPageY += 5;
-            pdfDoc.text(`Gerado em: ${formatDate(new Date().toISOString().split('T')[0])}`, margin, currentPageY);
-            currentPageY += 7;
-            pdfDoc.setLineWidth(0.3); pdfDoc.line(margin, currentPageY, pageWidth - margin, currentPageY);
-            currentPageY += 8;
-            return currentPageY;
-        };
-        const addFooterToPage = (pdfDoc, currentPage, totalPagesStr) => {
-            pdfDoc.setFontSize(footerFontSize); pdfDoc.setTextColor(100);
-            const footerText = `Página ${currentPage} de ${totalPagesStr}`;
-            pdfDoc.text(footerText, pageWidth / 2, pageHeight - margin / 1.5, { align: 'center' });
-            pdfDoc.setTextColor(0);
-        };
-
-        y = addHeaderToPage(doc, patient, y);
-
-        const assignedProgramsDetails = assignedProgramIds.map(id => getProgramById(id)).filter(p => p).sort((a, b) => a.title.localeCompare(b.title, 'pt-BR'));
-
-        for (const program of assignedProgramsDetails) {
-            const programTitle = `${program.title} (${program.tag || 'N/A'})`;
-            const programSpecificSessionData = (patient.sessionData || []).filter(session => String(session.program_id || session.programId) === String(program.id)).sort((a, b) => new Date(a.session_date || a.date) - new Date(b.session_date || b.date)).map(s => ({ ...s, score: parseFloat(s.score) }));
-            
-            const chartHeightMM = 65; 
-            const titleHeightMM = 8;
-            const spaceBetweenMM = 8;
-            const requiredHeight = titleHeightMM + chartHeightMM + spaceBetweenMM;
-
-            if (y + requiredHeight > pageHeight - margin - 10) { 
-                addFooterToPage(doc, pageCount, totalPagesPlaceholder);
-                doc.addPage();
-                pageCount++;
-                y = margin;
-                y = addHeaderToPage(doc, patient, y); 
-            }
-
-            doc.setFontSize(11); doc.setFont(undefined, 'bold'); doc.setTextColor(50, 50, 50);
-            doc.text(programTitle, margin, y);
-            y += titleHeightMM;
-
-            if (programSpecificSessionData.length > 0) {
-                try {
-                    const tempCanvas = document.createElement('canvas');
-                    const canvasWidthPx = 800; 
-                    const canvasHeightPx = chartHeightMM * (canvasWidthPx / contentWidth); 
-                    tempCanvas.width = canvasWidthPx;
-                    tempCanvas.height = canvasHeightPx;
-                    const tempCtx = tempCanvas.getContext('2d');
-
-                    const dates = programSpecificSessionData.map(session => formatDate(session.session_date || session.date, 'short'));
-                    const scores = programSpecificSessionData.map(session => session.score);
-                    const pointStyles = programSpecificSessionData.map(session => (session.is_baseline || session.isBaseline) ? 'rect' : 'circle');
-                    const pointBackgroundColors = programSpecificSessionData.map(session => (session.is_baseline || session.isBaseline) ? '#fbbf24' : '#4f46e5');
-                    const pointRadii = programSpecificSessionData.map(session => (session.is_baseline || session.isBaseline) ? 4 : 3); 
-
-                    const chartInstance = new Chart(tempCtx, {
-                        type: 'line',
-                        data: { labels: dates, datasets: [{ label: 'Pontuação (%)', data: scores, borderColor: '#4f46e5', backgroundColor: 'rgba(79, 70, 229, 0.05)', pointStyle: pointStyles, pointBackgroundColor: pointBackgroundColors, pointRadius: pointRadii, pointBorderColor: '#fff', fill: true, tension: 0.1, borderWidth: 1.5 }] },
-                        options: {
-                            responsive: false, 
-                            animation: false,
-                            devicePixelRatio: 2, 
-                            scales: { y: { beginAtZero: true, max: 100, ticks: { font: { size: 10 } } }, x: { ticks: { font: { size: 10 } } } },
-                            plugins: { legend: { display: false }, tooltip: { enabled: false } } 
-                        }
-                    });
-                    
-                    const imageDataUrl = tempCanvas.toDataURL('image/png', 1.0); 
-                    doc.addImage(imageDataUrl, 'PNG', margin, y, contentWidth, chartHeightMM);
-                    y += chartHeightMM;
-                    chartInstance.destroy(); 
-                } catch (chartError) {
-                    console.error("Erro ao renderizar gráfico para PDF:", chartError);
-                    doc.setFontSize(9); doc.setTextColor(150, 0, 0);
-                    doc.text("Erro ao gerar gráfico.", margin + 5, y + chartHeightMM / 2);
-                    y += chartHeightMM;
-                }
-            } else {
-                doc.setFontSize(9); doc.setTextColor(100);
-                doc.text("Nenhum dado de sessão registrado para este programa.", margin + 5, y + chartHeightMM / 2);
-                y += chartHeightMM;
-            }
-            y += spaceBetweenMM;
-        }
-        
-        const totalPages = doc.internal.getNumberOfPages();
-        for (let i = 1; i <= totalPages; i++) {
-            doc.setPage(i);
-            addFooterToPage(doc, i, totalPages.toString());
-        }
-
-        try {
-            const filename = `Relatorio_Consolidado_${patient.name.replace(/[^a-z0-9]/gi, '_').toLowerCase()}.pdf`;
-            doc.save(filename);
-            console.log("PDF do Relatório Consolidado gerado:", filename);
-        } catch (error) {
-            console.error("Erro ao salvar PDF do Relatório Consolidado:", error);
-            alert("Erro ao gerar PDF do Relatório Consolidado.");
-        }
     }
 
     // --- Funções Utilitárias ---
